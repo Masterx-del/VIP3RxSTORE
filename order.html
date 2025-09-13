@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="order-header">
+    <h1>KISHAN</h1>
+  </header>
+
+  <main>
+    <div class="order-box">
+      <h2 id="serviceTitle">Service Name</h2>
+      <p class="muted">Paste the related link below</p>
+      <p>Amount: ₹<span id="price">0</span></p>
+
+      <input type="text" id="link" placeholder="Paste link here (https://...)" />
+
+      <button class="btn-primary" onclick="confirmOrder()">Confirm & Continue</button>
+      <button class="btn-secondary" onclick="window.history.back()">Cancel</button>
+    </div>
+  </main>
+</body>
+</html>
