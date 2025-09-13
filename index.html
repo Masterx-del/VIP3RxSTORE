@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMM Panel</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
+    .banner img { width: 100%; max-height: 250px; object-fit: cover; }
+    .tabs { display: flex; justify-content: space-around; background: #fff; border-bottom: 2px solid #ddd; }
+    .tab { padding: 12px 18px; cursor: pointer; font-weight: bold; }
+    .tab.active { color: #fff; background: #007bff; border-radius: 5px 5px 0 0; }
+    .content { padding: 20px; background: #fff; }
+    .service { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+    .service button { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- Banner -->
+  <div class="banner">
+    <img src="https://i.ibb.co/yFrCnYZ9/your-image.png" alt="Banner">
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('instagram')">Instagram</div>
+    <div class="tab" onclick="showTab('youtube')">YouTube</div>
+    <div class="tab" onclick="showTab('facebook')">Facebook</div>
+    <div class="tab" onclick="showTab('telegram')">Telegram</div>
+  </div>
+
+  <!-- Content Sections -->
+  <div id="instagram" class="content">
+    <div class="service"><span>10K Instagram Followers</span><button>Pay ₹49</button></div>
+    <div class="service"><span>50K Instagram Likes</span><button>Pay ₹29</button></div>
+    <div class="service"><span>100K Instagram Reel Views</span><button>Pay ₹29</button></div>
+    <div class="service"><span>Instagram Blue Tick</span><button>Pay ₹99</button></div>
+  </div>
+
+  <div id="youtube" class="content" style="display:none;">
+    <div class="service"><span>1K YouTube Subscribers</span><button>Pay ₹49</button></div>
+    <div class="service"><span>10K YouTube Views</span><button>Pay ₹29</button></div>
+  </div>
+
+  <div id="facebook" class="content" style="display:none;">
+    <div class="service"><span>2K Facebook Likes</span><button>Pay ₹29</button></div>
+  </div>
+
+  <div id="telegram" class="content" style="display:none;">
+    <div class="service"><span>Coming Soon...</span></div>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      // Hide all sections
+      document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+      // Remove active class
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      // Show selected tab
+      document.getElementById(tabId).style.display = 'block';
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
