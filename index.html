@@ -1,67 +1,816 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMM Panel</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
-    .banner img { width: 100%; max-height: 250px; object-fit: cover; }
-    .tabs { display: flex; justify-content: space-around; background: #fff; border-bottom: 2px solid #ddd; }
-    .tab { padding: 12px 18px; cursor: pointer; font-weight: bold; }
-    .tab.active { color: #fff; background: #007bff; border-radius: 5px 5px 0 0; }
-    .content { padding: 20px; background: #fff; }
-    .service { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
-    .service button { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Shop - Premium Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: env(safe-area-inset-bottom, 80px);
+            padding-top: env(safe-area-inset-top, 0);
+            scroll-behavior: smooth;
+        }
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #00ffff;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Notification Toast */
+        .notification-toast {
+            position: fixed;
+            top: max(20px, env(safe-area-inset-top, 20px));
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid #00ffff;
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: #00ffff;
+            z-index: 10001;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+        .notification-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .notification-toast.error { border-color: #ff006e; color: #ff006e; }
+
+        /* Header */
+        .header {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .hamburger { cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
+        .hamburger span { width: 25px; height: 2px; background: #00ffff; transition: 0.3s; }
+        .brand-name { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #00ffff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            height: 100vh;
+            background: rgba(15, 10, 25, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            transition: 0.3s;
+            padding: 20px;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-right { left: auto; right: -100%; }
+        .sidebar-right.active { right: 0; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none; z-index: 1500;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .menu-item { padding: 15px; color: #ccc; display: flex; align-items: center; gap: 10px; border-radius: 10px; margin-bottom: 5px; }
+        .menu-item i { color: #00ffff; width: 20px; }
+        .menu-item:active { background: rgba(255,255,255,0.05); }
+
+        /* Main Content */
+        .container { padding: 15px; }
+        .search-container { padding: 0 15px 15px; }
+        .search-bar { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; }
+        
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .subscription-grid { grid-template-columns: 1fr; }
+
+        .product-card { background: rgba(255,255,255,0.03); border-radius: 15px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .product-image { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        .product-title { font-size: 14px; font-weight: 600; margin-bottom: 5px; height: 35px; overflow: hidden; }
+        .price-tag { color: #00ff88; font-weight: 700; font-size: 16px; }
+
+        /* Subscription Card */
+        .sub-card {
+            background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(168,85,247,0.1) 100%);
+            border: 1px solid rgba(0,255,255,0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .sub-card h3 { font-size: 20px; margin-bottom: 10px; color: #00ffff; }
+        .sub-price { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 15px; }
+
+        /* Buttons */
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #00ffff; color: #000; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+            border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #666; gap: 4px; }
+        .nav-item.active { color: #00ffff; }
+        .nav-item i { font-size: 20px; }
+
+        /* Modals */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 3000;
+            display: none; align-items: flex-end;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #121212; width: 100%; padding: 25px;
+            border-radius: 25px 25px 0 0; animation: slideUp 0.3s ease-out;
+            max-height: 85vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 12px; color: #888; }
+        .input-field { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; font-size: 16px; }
+
+        /* Chat */
+        .chat-container { height: 400px; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 14px; }
+        .msg.user { align-self: flex-end; background: #00ffff; color: #000; }
+        .msg.admin { align-self: flex-start; background: #222; color: #fff; }
+    </style>
 </head>
 <body>
 
-  <!-- Banner -->
-  <div class="banner">
-    <img src="https://i.ibb.co/yFrCnYZ9/your-image.png" alt="Banner">
-  </div>
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <p>Syncing with Server...</p>
+        </div>
+    </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('instagram')">Instagram</div>
-    <div class="tab" onclick="showTab('youtube')">YouTube</div>
-    <div class="tab" onclick="showTab('facebook')">Facebook</div>
-    <div class="tab" onclick="showTab('telegram')">Telegram</div>
-  </div>
+    <!-- Notification -->
+    <div id="toast" class="notification-toast"></div>
 
-  <!-- Content Sections -->
-  <div id="instagram" class="content">
-    <div class="service"><span>10K Instagram Followers</span><button>Pay ₹49</button></div>
-    <div class="service"><span>50K Instagram Likes</span><button>Pay ₹29</button></div>
-    <div class="service"><span>100K Instagram Reel Views</span><button>Pay ₹29</button></div>
-    <div class="service"><span>Instagram Blue Tick</span><button>Pay ₹99</button></div>
-  </div>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="overlay" onclick="closeSidebars()"></div>
 
-  <div id="youtube" class="content" style="display:none;">
-    <div class="service"><span>1K YouTube Subscribers</span><button>Pay ₹49</button></div>
-    <div class="service"><span>10K YouTube Views</span><button>Pay ₹29</button></div>
-  </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="hamburger" onclick="toggleSidebar('sidebar')">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="brand-name" id="brandName">Premium Shop</div>
+        <div style="position: relative;" onclick="toggleSidebar('cartSidebar')">
+            <i class="fas fa-shopping-cart" style="font-size: 20px; color: #00ffff;"></i>
+            <span id="cartCount" style="position: absolute; -8px; right: -8px; background: #ff006e; color: #fff; font-size: 10px; padding: 2px 5px; border-radius: 10px; display: none;">0</span>
+        </div>
+    </header>
 
-  <div id="facebook" class="content" style="display:none;">
-    <div class="service"><span>2K Facebook Likes</span><button>Pay ₹29</button></div>
-  </div>
+    <!-- Navigation Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div id="userInfo" style="padding-bottom: 20px; border-bottom: 1px solid #333; margin-bottom: 20px;">
+            <p style="color: #888; font-size: 12px;">Welcome,</p>
+            <p id="userNameDisplay" style="font-weight: 700; font-size: 18px;">Guest User</p>
+        </div>
+        <div class="menu-item" onclick="navigate('home')"><i class="fas fa-home"></i> Home</div>
+        <div class="menu-item" onclick="navigate('subs')"><i class="fas fa-star"></i> Subscriptions</div>
+        <div class="menu-item" onclick="navigate('orders')"><i class="fas fa-box"></i> My Orders</div>
+        <div class="menu-item" onclick="navigate('support')"><i class="fas fa-headset"></i> Support</div>
+        <div id="authBtnContainer" style="margin-top: 30px;">
+            <button class="btn btn-primary" onclick="openModal('authModal')">Login / Sign Up</button>
+        </div>
+    </div>
 
-  <div id="telegram" class="content" style="display:none;">
-    <div class="service"><span>Coming Soon...</span></div>
-  </div>
+    <!-- Cart Sidebar -->
+    <div class="sidebar sidebar-right" id="cartSidebar">
+        <h3>Your Cart</h3>
+        <div id="cartItemsList" style="margin-top: 20px; flex: 1; overflow-y: auto;"></div>
+        <div id="cartTotalSection" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; display: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span>Total Amount:</span>
+                <span id="totalPrice" style="color: #00ff88; font-weight: 800;">₹0</span>
+            </div>
+            <button class="btn btn-primary" onclick="processCheckout()">Checkout Now</button>
+        </div>
+    </div>
 
-  <script>
-    function showTab(tabId) {
-      // Hide all sections
-      document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-      // Remove active class
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      // Show selected tab
-      document.getElementById(tabId).style.display = 'block';
-      event.target.classList.add('active');
-    }
-  </script>
+    <!-- Main Content Area -->
+    <main class="container">
+        <div id="searchBox" class="search-container">
+            <input type="text" class="search-bar" placeholder="Search for premium services..." oninput="handleSearch(this.value)">
+        </div>
+        
+        <h2 id="pageTitle" style="margin-bottom: 15px; font-size: 20px;">Services</h2>
+        <div id="contentGrid" class="products-grid">
+            <!-- Data will load here -->
+        </div>
+    </main>
 
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="nav-home" onclick="navigate('home')">
+            <i class="fas fa-th-large"></i><span>Home</span>
+        </div>
+        <div class="nav-item" id="nav-subs" onclick="navigate('subs')">
+            <i class="fas fa-crown"></i><span>Subs</span>
+        </div>
+        <div class="nav-item" id="nav-orders" onclick="navigate('orders')">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="navigate('profile')">
+            <i class="fas fa-user-circle"></i><span>Profile</span>
+        </div>
+    </nav>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <h2 id="authTitle" style="margin-bottom: 20px;">Login to Store</h2>
+            <div id="loginFields">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" class="input-field" placeholder="example@mail.com">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" class="input-field" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="handleAuth('login')">Login</button>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #888;">
+                    Don't have an account? <span style="color: #00ffff;" onclick="toggleAuthMode(true)">Sign Up</span>
+                </p>
+            </div>
+            <div id="signupFields" style="display: none;">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" class="input-field" placeholder="John Doe">
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signupEmail" class="input-field" placeholder="example@mail.com">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPass" class="input-field" placeholder="Min 6 characters">
+                </div>
+                <button class="btn btn-primary" onclick="handleAuth('signup')">Create Account</button>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #888;">
+                    Already registered? <span style="color: #00ffff;" onclick="toggleAuthMode(false)">Login</span>
+                </p>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeModal('authModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <img id="modalImg" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 15px; margin-bottom: 15px;">
+            <h2 id="modalTitle">Product Title</h2>
+            <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
+                <span id="modalPrice" class="price-tag">₹0</span>
+                <span id="modalOldPrice" style="text-decoration: line-through; color: #666; font-size: 14px;">₹0</span>
+            </div>
+            <p id="modalDesc" style="color: #aaa; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Description goes here...</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" style="flex: 1;" id="modalCartBtn">Add to Cart</button>
+                <button class="btn btn-primary" style="flex: 1;" id="modalBuyBtn">Buy Now</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeModal('productModal')">Close</button>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 15px;">Complete Payment</h2>
+            <div style="background: #fff; padding: 10px; border-radius: 15px; width: 180px; margin: 0 auto 15px;">
+                <img src="https://i.ibb.co/GQfzjpKT/Screenshot-2026-04-15-03-18-10-459-com-paytm-business.png" style="width: 100%;">
+            </div>
+            <p style="text-align: center; font-size: 13px; color: #aaa; margin-bottom: 15px;">Scan QR & Pay the amount, then enter Transaction ID (UTR) below.</p>
+            <div class="input-group">
+                <label>12 Digit UTR Number</label>
+                <input type="text" id="utrNumber" class="input-field" placeholder="Enter Transaction ID">
+            </div>
+            <button class="btn btn-primary" onclick="submitFinalOrder()">Confirm Order</button>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeModal('paymentModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div class="modal" id="supportModal">
+        <div class="modal-content" style="height: 90vh;">
+            <h2>Support Chat</h2>
+            <div class="chat-container">
+                <div class="chat-messages" id="chatBox"></div>
+                <div style="display: flex; gap: 10px; padding-top: 15px;">
+                    <input type="text" id="msgInput" class="input-field" placeholder="Type your message...">
+                    <button class="btn btn-primary" style="width: 60px;" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeModal('supportModal')">Exit Chat</button>
+        </div>
+    </div>
+
+    <!-- SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, set, push, get, update } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
+            authDomain: "selll-d5149.firebaseapp.com",
+            databaseURL: "https://selll-d5149-default-rtdb.firebaseio.com",
+            projectId: "selll-d5149",
+            storageBucket: "selll-d5149.firebasestorage.app",
+            messagingSenderId: "633734276998",
+            appId: "1:633734276998:web:b486015bd345028a406e07"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Global State
+        window.db = db;
+        window.auth = auth;
+        window.currentUser = null;
+        window.products = [];
+        window.subscriptions = [];
+        window.cart = JSON.parse(localStorage.getItem('my_cart') || '[]');
+
+        // Auth Observer (Fixes logout on refresh)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('userNameDisplay').innerText = user.displayName || user.email.split('@')[0];
+                document.getElementById('authBtnContainer').innerHTML = `<button class="btn btn-secondary" onclick="handleLogout()">Logout Account</button>`;
+                loadChat();
+            } else {
+                window.currentUser = null;
+                document.getElementById('userNameDisplay').innerText = "Guest User";
+                document.getElementById('authBtnContainer').innerHTML = `<button class="btn btn-primary" onclick="openModal('authModal')">Login / Sign Up</button>`;
+            }
+            hideLoading();
+            refreshCurrentPage();
+        });
+
+        // Load Data
+        onValue(ref(db, 'products'), (snapshot) => {
+            window.products = [];
+            if(snapshot.exists()) {
+                Object.entries(snapshot.val()).forEach(([id, data]) => {
+                    window.products.push({ id, ...data });
+                });
+            }
+            if(document.getElementById('nav-home').classList.contains('active')) renderProducts(window.products);
+        });
+
+        onValue(ref(db, 'subscriptions'), (snapshot) => {
+            window.subscriptions = [];
+            if(snapshot.exists()) {
+                Object.entries(snapshot.val()).forEach(([id, data]) => {
+                    window.subscriptions.push({ id, ...data });
+                });
+            }
+            // If on subs page, re-render
+            if(document.getElementById('nav-subs').classList.contains('active')) renderSubscriptions();
+        });
+
+        onValue(ref(db, 'meta/brand'), (snapshot) => {
+            if(snapshot.exists()) {
+                const data = snapshot.val();
+                if(data.name) document.getElementById('brandName').innerText = data.name;
+            }
+        });
+
+        // Authentication Handlers
+        window.handleAuth = async (mode) => {
+            showLoading();
+            try {
+                if(mode === 'login') {
+                    const email = document.getElementById('loginEmail').value;
+                    const pass = document.getElementById('loginPass').value;
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    showToast("Welcome back!");
+                } else {
+                    const name = document.getElementById('signupName').value;
+                    const email = document.getElementById('signupEmail').value;
+                    const pass = document.getElementById('signupPass').value;
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(res.user, { displayName: name });
+                    showToast("Account Created!");
+                }
+                closeModal('authModal');
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+            hideLoading();
+        };
+
+        window.handleLogout = () => {
+            signOut(auth);
+            showToast("Logged out successfully");
+            navigate('home');
+        };
+
+        // Orders System
+        window.submitFinalOrder = async () => {
+            const utr = document.getElementById('utrNumber').value.trim();
+            if(utr.length < 10) return showToast("Enter valid 12-digit UTR", "error");
+            
+            showLoading();
+            try {
+                const orderId = push(ref(db, 'orders')).key;
+                const total = window.cart.reduce((s, i) => s + parseFloat(i.price), 0);
+                const orderData = {
+                    userId: window.currentUser.uid,
+                    userEmail: window.currentUser.email,
+                    utrId: utr,
+                    items: window.cart,
+                    total: total,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+
+                await set(ref(db, `orders/${orderId}`), orderData);
+                await set(ref(db, `users/${window.currentUser.uid}/purchases/${orderId}`), { orderId, date: orderData.createdAt });
+                
+                window.cart = [];
+                saveCart();
+                updateCartUI();
+                closeModal('paymentModal');
+                showToast("Order Placed! Check 'My Orders' for status.");
+                navigate('orders');
+            } catch (e) {
+                showToast("Failed to place order", "error");
+            }
+            hideLoading();
+        };
+
+        // Chat System
+        function loadChat() {
+            if(!window.currentUser) return;
+            onValue(ref(db, `chats/${window.currentUser.uid}/messages`), (snap) => {
+                const box = document.getElementById('chatBox');
+                box.innerHTML = '';
+                if(snap.exists()){
+                    Object.values(snap.val()).forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = `msg ${m.sender === 'user' ? 'user' : 'admin'}`;
+                        div.innerText = m.message;
+                        box.appendChild(div);
+                    });
+                    box.scrollTop = box.scrollHeight;
+                }
+            });
+        }
+
+        window.sendMessage = async () => {
+            const input = document.getElementById('msgInput');
+            const msg = input.value.trim();
+            if(!msg || !window.currentUser) return;
+            
+            const msgRef = push(ref(db, `chats/${window.currentUser.uid}/messages`));
+            await set(msgRef, { message: msg, sender: 'user', time: new Date().toISOString() });
+            await update(ref(db, `chats/${window.currentUser.uid}/info`), {
+                userName: window.currentUser.displayName,
+                lastMsg: msg,
+                email: window.currentUser.email,
+                lastUpdate: new Date().toISOString()
+            });
+            input.value = '';
+        };
+
+        // Helper for Refreshing UI based on current active tab
+        function refreshCurrentPage() {
+            const activeNav = document.querySelector('.nav-item.active').id;
+            if(activeNav === 'nav-home') renderProducts(window.products);
+            if(activeNav === 'nav-subs') renderSubscriptions();
+            if(activeNav === 'nav-orders') renderOrders();
+            if(activeNav === 'nav-profile') renderProfile();
+        }
+    </script>
+
+    <script>
+        // UI Navigation Logic
+        function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+        
+        function showToast(msg, type="success") {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `notification-toast show ${type}`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function toggleSidebar(id) {
+            document.getElementById(id).classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function closeSidebars() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('cartSidebar').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function toggleAuthMode(isSignup) {
+            document.getElementById('loginFields').style.display = isSignup ? 'none' : 'block';
+            document.getElementById('signupFields').style.display = isSignup ? 'block' : 'none';
+            document.getElementById('authTitle').innerText = isSignup ? 'Create Store Account' : 'Login to Store';
+        }
+
+        function navigate(page) {
+            closeSidebars();
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const content = document.getElementById('contentGrid');
+            const title = document.getElementById('pageTitle');
+            const search = document.getElementById('searchBox');
+            
+            content.className = 'products-grid';
+            search.style.display = (page === 'home') ? 'block' : 'none';
+
+            if(page === 'home') {
+                document.getElementById('nav-home').classList.add('active');
+                title.innerText = "Premium Services";
+                renderProducts(window.products);
+            } else if(page === 'subs') {
+                document.getElementById('nav-subs').classList.add('active');
+                title.innerText = "Membership Plans";
+                content.className = 'products-grid subscription-grid';
+                renderSubscriptions();
+            } else if(page === 'orders') {
+                document.getElementById('nav-orders').classList.add('active');
+                title.innerText = "Order History";
+                renderOrders();
+            } else if(page === 'profile') {
+                document.getElementById('nav-profile').classList.add('active');
+                title.innerText = "My Profile";
+                renderProfile();
+            } else if(page === 'support') {
+                if(!window.currentUser) return openModal('authModal');
+                openModal('supportModal');
+            }
+        }
+
+        // Render Functions
+        function renderProducts(data) {
+            const grid = document.getElementById('contentGrid');
+            grid.innerHTML = '';
+            if(data.length === 0) { grid.innerHTML = "<p style='grid-column:1/3; text-align:center; padding:50px; color:#555;'>No services found.</p>"; return; }
+            
+            data.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'product-card';
+                div.onclick = () => openProductDetails(p);
+                div.innerHTML = `
+                    <img src="${p.imageUrl}" class="product-image">
+                    <div class="product-title">${p.title}</div>
+                    <div class="price-tag">₹${p.discountedPrice}</div>
+                    <button class="btn btn-primary" style="margin-top:10px; font-size:11px; padding:8px;" onclick="event.stopPropagation(); addToCart('${p.id}')">Add to Cart</button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderSubscriptions() {
+            const grid = document.getElementById('contentGrid');
+            grid.innerHTML = '';
+            if(window.subscriptions.length === 0) { grid.innerHTML = "<p style='text-align:center; padding:50px; color:#555;'>No plans available.</p>"; return; }
+
+            window.subscriptions.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'sub-card';
+                div.innerHTML = `
+                    <h3>${s.planName}</h3>
+                    <div class="sub-price">₹${s.price}</div>
+                    <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Access for ${s.duration} Days</p>
+                    <button class="btn btn-primary" onclick="buySubNow('${s.id}')">Activate Plan</button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        async function renderOrders() {
+            if(!window.currentUser) {
+                document.getElementById('contentGrid').innerHTML = `<div style="text-align:center; padding:50px;"><button class="btn btn-primary" onclick="openModal('authModal')">Login to view orders</button></div>`;
+                return;
+            }
+            showLoading();
+            const grid = document.getElementById('contentGrid');
+            grid.innerHTML = '';
+            
+            try {
+                const res = await fetch(`https://selll-d5149-default-rtdb.firebaseio.com/users/${window.currentUser.uid}/purchases.json`);
+                const purchaseIds = await res.json();
+                
+                if(!purchaseIds) {
+                    grid.innerHTML = "<p style='text-align:center; padding:50px; color:#555;'>You haven't ordered anything yet.</p>";
+                } else {
+                    const ids = Object.keys(purchaseIds).reverse();
+                    for(let id of ids) {
+                        const orderRes = await fetch(`https://selll-d5149-default-rtdb.firebaseio.com/orders/${id}.json`);
+                        const o = await orderRes.json();
+                        if(o) {
+                            const div = document.createElement('div');
+                            div.className = 'product-card';
+                            div.style.width = '100%';
+                            div.style.gridColumn = '1/3';
+                            div.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                    <span style="font-size:10px; color:#555;">ID: ${id.slice(-8)}</span>
+                                    <span style="font-size:10px; color:${o.status === 'confirmed' ? '#00ff88' : '#ffa500'}; font-weight:bold;">${o.status.toUpperCase()}</span>
+                                </div>
+                                <div style="font-weight:bold;">${o.items[0].title} ${o.items.length > 1 ? `+${o.items.length-1} more` : ''}</div>
+                                <div style="color:#00ff88; font-weight:bold; margin-top:5px;">₹${o.total}</div>
+                                <div style="font-size:10px; color:#333; margin-top:10px;">Placed on: ${new Date(o.createdAt).toLocaleString()}</div>
+                            `;
+                            grid.appendChild(div);
+                        }
+                    }
+                }
+            } catch(e) {}
+            hideLoading();
+        }
+
+        function renderProfile() {
+            const grid = document.getElementById('contentGrid');
+            grid.style.display = 'block';
+            grid.innerHTML = `
+                <div style="background:rgba(255,255,255,0.03); padding:30px; border-radius:20px; text-align:center;">
+                    <div style="width:80px; height:80px; background:#00ffff; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:#000; font-size:30px;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    ${window.currentUser ? `
+                        <h2 style="margin-bottom:5px;">${window.currentUser.displayName || 'User'}</h2>
+                        <p style="color:#555; margin-bottom:20px;">${window.currentUser.email}</p>
+                        <button class="btn btn-secondary" onclick="handleLogout()">Sign Out</button>
+                    ` : `
+                        <h2>Guest</h2>
+                        <p style="color:#555; margin-bottom:20px;">Please login to track orders</p>
+                        <button class="btn btn-primary" onclick="openModal('authModal')">Login Now</button>
+                    `}
+                </div>
+            `;
+        }
+
+        // Cart Logic
+        function addToCart(id) {
+            const p = window.products.find(x => x.id === id);
+            if(!p) return;
+            window.cart.push({ id: p.id, title: p.title, price: p.discountedPrice, img: p.imageUrl });
+            saveCart();
+            updateCartUI();
+            showToast("Added to cart!");
+        }
+
+        function removeFromCart(idx) {
+            window.cart.splice(idx, 1);
+            saveCart();
+            updateCartUI();
+        }
+
+        function saveCart() { localStorage.setItem('my_cart', JSON.stringify(window.cart)); }
+
+        function updateCartUI() {
+            const list = document.getElementById('cartItemsList');
+            const totalSec = document.getElementById('cartTotalSection');
+            const badge = document.getElementById('cartCount');
+            
+            list.innerHTML = '';
+            if(window.cart.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#444; margin-top:50px;'>Your cart is empty</p>";
+                totalSec.style.display = 'none';
+                badge.style.display = 'none';
+                return;
+            }
+
+            badge.innerText = window.cart.length;
+            badge.style.display = 'block';
+            totalSec.style.display = 'block';
+            
+            let total = 0;
+            window.cart.forEach((item, index) => {
+                total += parseFloat(item.price);
+                const div = document.createElement('div');
+                div.style.cssText = "display:flex; align-items:center; gap:10px; margin-bottom:15px; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;";
+                div.innerHTML = `
+                    <div style="flex:1;">
+                        <div style="font-size:13px; font-weight:600;">${item.title}</div>
+                        <div style="color:#00ff88; font-size:12px;">₹${item.price}</div>
+                    </div>
+                    <i class="fas fa-times" style="color:#ff006e;" onclick="removeFromCart(${index})"></i>
+                `;
+                list.appendChild(div);
+            });
+            document.getElementById('totalPrice').innerText = "₹" + total;
+        }
+
+        function processCheckout() {
+            if(!window.currentUser) {
+                closeSidebars();
+                return openModal('authModal');
+            }
+            closeSidebars();
+            openModal('paymentModal');
+        }
+
+        // Product Details
+        function openProductDetails(p) {
+            document.getElementById('modalImg').src = p.imageUrl;
+            document.getElementById('modalTitle').innerText = p.title;
+            document.getElementById('modalPrice').innerText = "₹" + p.discountedPrice;
+            document.getElementById('modalOldPrice').innerText = p.realPrice ? "₹" + p.realPrice : "";
+            document.getElementById('modalDesc').innerText = p.description || "Premium quality service guaranteed.";
+            
+            document.getElementById('modalCartBtn').onclick = () => { addToCart(p.id); closeModal('productModal'); };
+            document.getElementById('modalBuyBtn').onclick = () => {
+                window.cart = [{ id: p.id, title: p.title, price: p.discountedPrice, img: p.imageUrl }];
+                saveCart();
+                updateCartUI();
+                closeModal('productModal');
+                processCheckout();
+            };
+            openModal('productModal');
+        }
+
+        function buySubNow(id) {
+            const s = window.subscriptions.find(x => x.id === id);
+            if(!s) return;
+            if(!window.currentUser) return openModal('authModal');
+            
+            window.cart = [{ id: s.id, title: s.planName, price: s.price, img: '', isSub: true }];
+            saveCart();
+            updateCartUI();
+            processCheckout();
+        }
+
+        function handleSearch(val) {
+            const query = val.toLowerCase();
+            const filtered = window.products.filter(p => p.title.toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        // Initial UI Update
+        window.addEventListener('load', () => {
+            updateCartUI();
+            navigate('home');
+        });
+    </script>
 </body>
 </html>
