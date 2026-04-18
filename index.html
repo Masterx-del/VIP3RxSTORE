@@ -1,721 +1,1221 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Shop - Premium Store</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
-            color: #e0e0e0; min-height: 100vh; overflow-x: hidden;
-            padding-bottom: env(safe-area-inset-bottom, 80px);
-            padding-top: env(safe-area-inset-top, 0);
-            scroll-behavior: smooth;
-        }
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
-            z-index: 10000; display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.3s ease;
-        }
-        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .loading-spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%; border-top-color: #00ffff;
-            animation: spin 0.8s linear infinite; margin: 0 auto 15px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .notification-toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: rgba(10, 10, 10, 0.95); border: 1px solid #00ffff;
-            border-radius: 12px; padding: 12px 20px; color: #00ffff; z-index: 10001;
-            opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            width: 90%; max-width: 350px; text-align: center;
-        }
-        .notification-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .header {
-            background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 15px; position: sticky; top: 0; z-index: 1000;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .brand-name { font-size: 20px; font-weight: 700; color: #00ffff; }
-        .header-icon { position: relative; font-size: 20px; color: #00ffff; cursor: pointer; }
-        .badge {
-            position: absolute; top: -8px; right: -8px; background: #ff006e;
-            color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px;
-        }
-        .container { padding: 15px; }
-        .search-bar {
-            width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); color: #fff; margin-bottom: 20px;
-        }
-        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .product-card {
-            background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .product-image { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
-        .product-title { font-size: 14px; font-weight: 600; margin-bottom: 5px; height: 35px; overflow: hidden; }
-        .price { color: #00ff88; font-weight: 700; font-size: 16px; }
-        .btn {
-            width: 100%; padding: 10px; background: #00ffff; border: none; border-radius: 8px;
-            font-weight: 600; margin-top: 10px; cursor: pointer; color: #000;
-        }
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: #0a0a0a;
-            display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #333;
-        }
-        .nav-item { color: #666; font-size: 12px; text-align: center; cursor: pointer; }
-        .nav-item.active { color: #00ffff; }
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            z-index: 2000; align-items: flex-end;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            width: 100%; background: #121212; padding: 20px; border-radius: 20px 20px 0 0;
-            max-height: 80vh; overflow-y: auto;
-        }
-        .sidebar {
-            position: fixed; top: 0; right: -100%; width: 280px; height: 100%;
-            background: #111; z-index: 3000; transition: 0.3s; padding: 20px;
-        }
-        .sidebar.active { right: 0; }
-        .input-style {
-            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px;
-            background: #222; border: 1px solid #333; color: #fff;
-        }
-        .subscription-card {
-            background: rgba(0, 255, 255, 0.05); border: 1px solid #00ffff;
-            padding: 15px; border-radius: 12px; margin-bottom: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Premium Admin Panel v3.0</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+--bg-color: #f5f7fb;
+--card-bg: #ffffff;
+--text-primary: #1a1a1a;
+--text-secondary: #555555;
+--accent-cyan: #00bcd4;
+--accent-purple: #7c3aed;
+--accent-pink: #ff006e;
+--border-color: rgba(0, 0, 0, 0.08);
+--input-bg: #f9fafb;
+--shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+--drawer-bg: #ffffff;
+--nav-hover: rgba(0, 188, 212, 0.1);
+--transition: all 0.3s ease;
+}
+
+body.dark-mode {
+--bg-color: #0a0a0a;
+--card-bg: #161616;
+--text-primary: #e0e0e0;
+--text-secondary: #999999;
+--border-color: rgba(255, 255, 255, 0.1);
+--input-bg: rgba(255, 255, 255, 0.05);
+--shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+--drawer-bg: #111111;
+--nav-hover: rgba(0, 255, 255, 0.1);
+}
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+
+body {
+font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+background-color: var(--bg-color);
+color: var(--text-primary);
+min-height: 100vh;
+overflow-x: hidden;
+transition: background-color 0.3s ease;
+}
+
+/* --- THEME TOGGLE --- */
+.theme-toggle {
+position: fixed;
+top: 20px;
+right: 20px;
+width: 45px;
+height: 45px;
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+z-index: 1001;
+box-shadow: var(--shadow);
+color: var(--text-primary);
+}
+
+/* --- DRAWER --- */
+.drawer-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.4);
+backdrop-filter: blur(4px);
+z-index: 998;
+opacity: 0;
+visibility: hidden;
+transition: var(--transition);
+}
+
+.drawer-overlay.active {
+opacity: 1;
+visibility: visible;
+}
+
+.drawer {
+position: fixed;
+top: 0;
+left: 0;
+width: 280px;
+height: 100%;
+background: var(--drawer-bg);
+border-right: 1px solid var(--border-color);
+z-index: 999;
+transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+transform: translateX(-100%);
+overflow-y: auto;
+box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
+}
+
+.drawer.active {
+transform: translateX(0);
+}
+
+.drawer-header {
+padding: 30px 20px;
+border-bottom: 1px solid var(--border-color);
+}
+
+.drawer-close-btn {
+position: absolute;
+top: 15px;
+right: 15px;
+width: 32px;
+height: 32px;
+background: var(--input-bg);
+border: 1px solid var(--border-color);
+border-radius: 50%;
+color: var(--text-primary);
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.drawer-brand {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 20px;
+}
+
+.drawer-logo {
+width: 45px;
+height: 45px;
+border-radius: 10px;
+object-fit: cover;
+border: 2px solid var(--accent-cyan);
+}
+
+.drawer-brand-name {
+font-size: 18px;
+font-weight: 700;
+background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.drawer-user-info {
+padding: 12px;
+background: var(--input-bg);
+border-radius: 12px;
+font-size: 13px;
+}
+
+.drawer-nav-item {
+display: flex;
+align-items: center;
+gap: 15px;
+padding: 14px 20px;
+color: var(--text-secondary);
+text-decoration: none;
+transition: var(--transition);
+cursor: pointer;
+border-left: 4px solid transparent;
+font-weight: 500;
+}
+
+.drawer-nav-item:hover, .drawer-nav-item.active {
+background: var(--nav-hover);
+color: var(--accent-cyan);
+border-left-color: var(--accent-cyan);
+}
+
+/* --- BUTTONS --- */
+.menu-toggle {
+position: fixed;
+top: 20px;
+left: 20px;
+width: 45px;
+height: 45px;
+background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+border: none;
+border-radius: 12px;
+cursor: pointer;
+z-index: 100;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+.menu-toggle.hidden { display: none; }
+
+.menu-toggle span, .menu-toggle span::before, .menu-toggle span::after {
+width: 20px;
+height: 2px;
+background: #fff;
+display: block;
+transition: 0.3s;
+position: relative;
+}
+.menu-toggle span::before { content: ''; top: -6px; position: absolute; }
+.menu-toggle span::after { content: ''; bottom: -6px; position: absolute; }
+
+.btn {
+width: 100%;
+min-height: 48px;
+padding: 12px;
+background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+border: none;
+border-radius: 12px;
+color: #fff;
+font-weight: 600;
+cursor: pointer;
+transition: var(--transition);
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+
+.btn:active { transform: scale(0.98); }
+
+/* --- CARDS & GRIDS --- */
+.admin-container {
+padding: 85px 15px 30px;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.card {
+background: var(--card-bg);
+border-radius: 20px;
+padding: 20px;
+margin-bottom: 20px;
+border: 1px solid var(--border-color);
+box-shadow: var(--shadow);
+}
+
+.card-title {
+font-size: 1.25rem;
+margin-bottom: 20px;
+font-weight: 700;
+color: var(--text-primary);
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+/* DASHBOARD GRID UPDATE */
+.stats-grid {
+display: grid;
+gap: 15px;
+grid-template-columns: repeat(2, 1fr);
+margin-bottom: 20px;
+}
+
+@media (min-width: 1024px) {
+.stats-grid {
+grid-template-columns: repeat(3, 1fr);
+}
+}
+
+.stat-card {
+background: var(--card-bg);
+padding: 20px;
+border-radius: 16px;
+text-align: center;
+border: 1px solid var(--border-color);
+transition: var(--transition);
+}
+
+.stat-card.clickable {
+cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+transform: translateY(-3px);
+box-shadow: 0 8px 20px rgba(0, 188, 212, 0.15);
+}
+
+.stat-value {
+font-size: 24px;
+font-weight: 800;
+color: var(--accent-cyan);
+margin-bottom: 5px;
+}
+
+.stat-label {
+font-size: 12px;
+color: var(--text-secondary);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+/* --- FORMS --- */
+.input-group { margin-bottom: 18px; }
+.input-group label {
+display: block;
+margin-bottom: 8px;
+font-size: 14px;
+font-weight: 600;
+color: var(--text-secondary);
+}
+
+.input-group input, .input-group textarea, .input-group select {
+width: 100%;
+padding: 14px;
+background: var(--input-bg);
+border: 1px solid var(--border-color);
+border-radius: 12px;
+color: var(--text-primary);
+font-size: 15px;
+transition: var(--transition);
+}
+
+.input-group input:focus {
+outline: none;
+border-color: var(--accent-cyan);
+box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+}
+
+/* --- RESPONSIVE TABLES / LISTS --- */
+.orders-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.order-card {
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+border-radius: 16px;
+padding: 15px;
+}
+
+.order-info {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+font-size: 13px;
+margin: 10px 0;
+}
+
+.order-field { font-weight: 600; color: var(--text-secondary); }
+.order-value { color: var(--text-primary); }
+
+/* --- MOBILE UI OPTIMIZATION --- */
+@media (max-width: 480px) {
+.admin-container { padding-top: 80px; }
+.card { padding: 15px; }
+.btn { min-height: 44px; font-size: 14px; }
+.stat-value { font-size: 20px; }
+.quick-actions { grid-template-columns: 1fr 1fr; }
+.product-card { grid-template-columns: 1fr; }
+}
+
+/* LOGIN / SETUP SCREEN */
+.login-container {
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+padding: 20px;
+background: var(--bg-color);
+}
+
+.login-card {
+background: var(--card-bg);
+width: 100%;
+max-width: 400px;
+padding: 35px 25px;
+border-radius: 24px;
+box-shadow: var(--shadow);
+border: 1px solid var(--border-color);
+}
+
+.login-title {
+font-size: 24px;
+font-weight: 800;
+text-align: center;
+margin-bottom: 30px;
+color: var(--text-primary);
+}
+
+/* TABS */
+.tab-content { display: none; animation: fadeIn 0.4s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* QUICK ACTIONS */
+.quick-actions {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+gap: 12px;
+margin-bottom: 20px;
+}
+
+.quick-action-btn {
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+padding: 15px;
+border-radius: 16px;
+text-align: center;
+cursor: pointer;
+transition: var(--transition);
+color: var(--text-primary);
+}
+
+.quick-action-btn:hover {
+border-color: var(--accent-cyan);
+transform: translateY(-2px);
+box-shadow: var(--shadow);
+}
+
+.quick-action-icon { font-size: 24px; margin-bottom: 8px; color: var(--accent-cyan); }
+
+/* PRODUCTS GRID */
+.products-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 15px;
+}
+
+.product-card {
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+border-radius: 16px;
+padding: 15px;
+display: flex;
+flex-direction: column;
+}
+
+.product-image {
+width: 100%;
+height: 160px;
+object-fit: cover;
+border-radius: 12px;
+margin-bottom: 12px;
+}
+
+/* MESSAGES */
+.success-message { color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; text-align: center; }
+.error-message { color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; text-align: center; }
+
+/* LOADER */
+.loading-overlay {
+position: fixed;
+inset: 0;
+background: rgba(255, 255, 255, 0.8);
+z-index: 10000;
+display: none;
+align-items: center;
+justify-content: center;
+backdrop-filter: blur(5px);
+}
+body.dark-mode .loading-overlay { background: rgba(0,0,0,0.8); }
+.loading-overlay.active { display: flex; }
+.spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* NOTIFICATION */
+.notification-toast {
+position: fixed;
+top: 25px;
+right: 25px;
+padding: 15px 25px;
+background: var(--text-primary);
+color: var(--card-bg);
+border-radius: 12px;
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+transform: translateX(150%);
+transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+z-index: 10001;
+font-weight: 600;
+}
+.notification-toast.show { transform: translateX(0); }
+
+/* SUPPORT CHAT MODAL */
+.chat-modal {
+position: fixed;
+inset: 0;
+z-index: 10000;
+background: rgba(0,0,0,0.5);
+display: none;
+padding: 10px;
+}
+.chat-modal.active { display: flex; align-items: flex-end; justify-content: center; }
+.chat-modal-content {
+background: var(--card-bg);
+width: 100%;
+max-width: 500px;
+height: 80vh;
+border-radius: 24px 24px 0 0;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+.chat-messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { max-width: 80%; padding: 12px; border-radius: 16px; font-size: 14px; line-height: 1.4; }
+.chat-msg.admin { align-self: flex-end; background: var(--accent-cyan); color: #fff; border-bottom-right-radius: 4px; }
+.chat-msg.user { align-self: flex-start; background: var(--input-bg); color: var(--text-primary); border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
+.chat-input-area { padding: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; }
+</style>
 </head>
-<body>
+<body class="light-mode">
 
-    <div class="loading-overlay" id="loadingOverlay">
-        <div style="text-align: center;">
-            <div class="loading-spinner"></div>
-            <div style="color:#00ffff">Connecting to Server...</div>
-        </div>
-    </div>
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="themeToggle" title="Switch Theme">
+<i class="fas fa-moon"></i>
+</button>
 
-    <div class="notification-toast" id="toast"></div>
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+<div style="text-align: center;">
+<div class="spinner"></div>
+<p style="margin-top: 15px; font-weight: 600; color: var(--text-primary);" id="loadingText">Loading...</p>
+</div>
+</div>
 
-    <div class="header">
-        <div class="brand-name" id="brandName">Premium Store</div>
-        <div class="header-icon" onclick="toggleCart()">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="badge" id="cartBadge" style="display:none">0</span>
-        </div>
-    </div>
+<!-- Notification -->
+<div class="notification-toast" id="notificationToast">Message here</div>
 
-    <div class="container" id="mainApp">
-        <input type="text" class="search-bar" placeholder="Search services..." oninput="search(this.value)">
-        <h3 id="pageTitle" style="margin-bottom:15px;">All Services</h3>
-        <div id="displayGrid" class="products-grid"></div>
-    </div>
+<!-- Sidebar Overlay -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" id="nav-home" onclick="navigate('home')"><i class="fas fa-home"></i><div>Home</div></div>
-        <div class="nav-item" id="nav-subs" onclick="navigate('subs')"><i class="fas fa-gem"></i><div>Subs</div></div>
-        <div class="nav-item" id="nav-orders" onclick="navigate('orders')"><i class="fas fa-history"></i><div>Orders</div></div>
-        <div class="nav-item" id="nav-profile" onclick="navigate('profile')"><i class="fas fa-user"></i><div>Profile</div></div>
-    </div>
+<!-- Menu Toggle -->
+<button class="menu-toggle" id="menuToggle">
+<span></span>
+</button>
 
-    <!-- Modals -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <h2 id="authTitle" style="margin-bottom:15px">Login</h2>
-            <div id="loginForm">
-                <input type="email" id="email" class="input-style" placeholder="Email">
-                <input type="password" id="pass" class="input-style" placeholder="Password">
-                <button class="btn" onclick="authAction('login')">Login</button>
-                <p style="margin-top:15px; text-align:center" onclick="toggleAuth(true)">New User? Register</p>
-            </div>
-            <div id="signupForm" style="display:none">
-                <input type="text" id="newName" class="input-style" placeholder="Full Name">
-                <input type="email" id="newEmail" class="input-style" placeholder="Email">
-                <input type="password" id="newPass" class="input-style" placeholder="Password (min 6)">
-                <button class="btn" onclick="authAction('signup')">Create Account</button>
-                <p style="margin-top:15px; text-align:center" onclick="toggleAuth(false)">Back to Login</p>
-            </div>
-            <button class="btn" style="background:#333; color:#fff" onclick="closeModal('authModal')">Cancel</button>
-        </div>
-    </div>
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+<div class="drawer-header">
+<button class="drawer-close-btn" id="drawerCloseBtn">×</button>
+<div class="drawer-brand">
+<img id="drawerLogo" class="drawer-logo" src="" alt="Logo" style="display:none;">
+<div id="drawerBrandName" class="drawer-brand-name">Admin Panel</div>
+</div>
+<div class="drawer-user-info">
+<strong id="drawerUserName" style="display:block; color: var(--accent-cyan);">Admin User</strong>
+<span id="drawerUserEmail" style="color: var(--text-secondary); font-size: 12px;">admin@example.com</span>
+</div>
+</div>
 
-    <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <h2 style="text-align:center">Complete Payment</h2>
-            <div style="background:#fff; padding:10px; width:200px; margin:15px auto; border-radius:10px;">
-                <img src="https://i.ibb.co/GQfzjpKT/Screenshot-2026-04-15-03-18-10-459-com-paytm-business.png" style="width:100%">
-            </div>
-            <p style="font-size:12px; text-align:center; color:#888">Scan QR and Pay, then enter UTR</p>
-            <input type="text" id="utrInput" class="input-style" placeholder="Enter 12 Digit UTR Number" style="margin-top:15px">
-            <button class="btn" onclick="placeOrder()">Confirm Order</button>
-            <button class="btn" style="background:#333; color:#fff" onclick="closeModal('paymentModal')">Close</button>
-        </div>
-    </div>
+<nav style="padding: 10px 0;">
+<div class="drawer-nav-item active" data-tab="dashboard"><i class="fas fa-home"></i> Dashboard</div>
+<div class="drawer-nav-item" data-tab="products"><i class="fas fa-box"></i> Products</div>
+<div class="drawer-nav-item" data-tab="orders"><i class="fas fa-shopping-cart"></i> Orders</div>
+<div class="drawer-nav-item" data-tab="coupons"><i class="fas fa-ticket-alt"></i> Coupons</div>
+<div class="drawer-nav-item" data-tab="subscriptions"><i class="fas fa-calendar-check"></i> Subscriptions</div>
+<div class="drawer-nav-item" data-tab="users"><i class="fas fa-users"></i> Users</div>
+<div class="drawer-nav-item" data-tab="support"><i class="fas fa-headset"></i> Support</div>
+<div class="drawer-nav-item" data-tab="brand"><i class="fas fa-palette"></i> Branding</div>
+<div class="drawer-nav-item" data-tab="contact"><i class="fas fa-phone"></i> Contact</div>
+<div class="drawer-nav-item" data-tab="settings"><i class="fas fa-cog"></i> Settings</div>
+</nav>
 
-    <div class="sidebar" id="cartSidebar">
-        <h3>Your Cart</h3>
-        <div id="cartItemsList" style="margin-top:20px"></div>
-        <div id="cartFooter" style="margin-top:20px; display:none">
-            <hr style="border:0; border-top:1px solid #333; margin-bottom:10px">
-            <div style="display:flex; justify-content:space-between"><span>Total:</span><span id="cartTotal" style="color:#00ff88">₹0</span></div>
-            <button class="btn" onclick="checkout()">Checkout</button>
-        </div>
-        <button class="btn" style="background:#333; color:#fff" onclick="toggleCart()">Close</button>
-    </div>
+<div style="padding: 20px; border-top: 1px solid var(--border-color); margin-top: auto;">
+<button class="btn" id="drawerLogoutBtn" style="background: var(--accent-pink);"><i class="fas fa-sign-out-alt"></i> Logout</button>
+</div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-        import { getDatabase, ref, onValue, set, push, get } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+<!-- Setup Screen -->
+<div id="setupScreen" class="login-container" style="display: none;">
+<div class="login-card">
+<h1 class="login-title">First Time Setup</h1>
+<div id="setupError" style="display: none;"></div>
+<div class="input-group">
+<label>Admin Name</label>
+<input type="text" id="setupName" placeholder="Your Name">
+</div>
+<div class="input-group">
+<label>Email</label>
+<input type="email" id="setupEmail" placeholder="admin@example.com">
+</div>
+<div class="input-group">
+<label>Password (min 8 chars)</label>
+<input type="password" id="setupPassword" placeholder="••••••••">
+</div>
+<div class="input-group">
+<label>Confirm Password</label>
+<input type="password" id="setupConfirmPassword" placeholder="••••••••">
+</div>
+<button class="btn" id="setupBtn">Create Master Admin</button>
+</div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
-            authDomain: "selll-d5149.firebaseapp.com",
-            databaseURL: "https://selll-d5149-default-rtdb.firebaseio.com",
-            projectId: "selll-d5149",
-            storageBucket: "selll-d5149.firebasestorage.app",
-            messagingSenderId: "633734276998",
-            appId: "1:633734276998:web:b486015bd345028a406e07"
-        };
+<!-- Login Screen -->
+<div id="loginScreen" class="login-container" style="display: none;">
+<div class="login-card">
+<h1 class="login-title">Admin Login</h1>
+<div id="loginError" style="display: none;"></div>
+<div class="input-group">
+<label>Email Address</label>
+<input type="email" id="loginEmail" placeholder="admin@example.com">
+</div>
+<div class="input-group">
+<label>Password</label>
+<input type="password" id="loginPassword" placeholder="••••••••">
+</div>
+<button class="btn" id="loginBtn">Login Now</button>
+</div>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+<!-- Admin Dashboard Container -->
+<div id="adminDashboard" class="admin-container" style="display: none;">
 
-        window.user = null;
-        window.products = [];
-        window.subscriptions = [];
-        window.cart = JSON.parse(localStorage.getItem('user_cart') || '[]');
+<!-- Dashboard Tab -->
+<div id="dashboardTab" class="tab-content active">
+<div class="card">
+<h2 class="card-title"><i class="fas fa-chart-line"></i> Overview</h2>
 
-        // Auth Listener with Persistence
-        onAuthStateChanged(auth, (u) => {
-            window.user = u;
-            document.getElementById('loadingOverlay').classList.add('hidden');
-            if(u) {
-                console.log("User Logged In:", u.email);
-            }
-        });
+<div class="quick-actions">
+  <div class="quick-action-btn" data-action="addProduct">
+    <div class="quick-action-icon"><i class="fas fa-plus-circle"></i></div>
+    <div style="font-size: 12px; font-weight: 600;">Add Product</div>
+  </div>
+  <div class="quick-action-btn" data-action="viewOrders">
+    <div class="quick-action-icon"><i class="fas fa-shopping-bag"></i></div>
+    <div style="font-size: 12px; font-weight: 600;">Orders</div>
+  </div>
+  <div class="quick-action-btn" data-action="createCoupon">
+    <div class="quick-action-icon"><i class="fas fa-tags"></i></div>
+    <div style="font-size: 12px; font-weight: 600;">Coupons</div>
+  </div>
+  <div class="quick-action-btn" data-action="viewUsers">
+    <div class="quick-action-icon"><i class="fas fa-user-friends"></i></div>
+    <div style="font-size: 12px; font-weight: 600;">Users</div>
+  </div>
+</div>
 
-        // Initialize Data
-        function init() {
-            onValue(ref(db, 'products'), (snap) => {
-                window.products = [];
-                if(snap.exists()) {
-                    Object.entries(snap.val()).forEach(([id, val]) => window.products.push({id, ...val}));
-                }
-                renderProducts(window.products);
-            });
+<!-- STATS GRID -->
+<div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
+  <div class="stat-card">
+    <div class="stat-value" id="dashTotalProducts">0</div>
+    <div class="stat-label">Products</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="dashTotalOrders">0</div>
+    <div class="stat-label">Orders</div>
+  </div>
 
-            onValue(ref(db, 'subscriptions'), (snap) => {
-                window.subscriptions = [];
-                if(snap.exists()) {
-                    Object.entries(snap.val()).forEach(([id, val]) => window.subscriptions.push({id, ...val}));
-                }
-            });
+  <div class="stat-card">
+    <div class="stat-value" id="dashTodayOrders">0</div>
+    <div class="stat-label">Today</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="dashTotalRevenue">₹0</div>
+    <div class="stat-label">Revenue</div>
+  </div>
 
-            onValue(ref(db, 'meta/brand'), (snap) => {
-                if(snap.exists() && snap.val().name) document.getElementById('brandName').innerText = snap.val().name;
-            });
+  <div class="stat-card">
+    <div class="stat-value" id="dashTotalUsers">0</div>
+    <div class="stat-label">Users</div>
+  </div>
+  <div class="stat-card clickable" onclick="showPendingOrders()">
+    <div class="stat-value" id="dashPendingOrders" style="color:#f59e0b;">0</div>
+    <div class="stat-label">New Orders</div>
+  </div>
 
-            updateCartBadge();
-        }
+  <div class="stat-card">
+    <div class="stat-value" id="dashTotalCoupons">0</div>
+    <div class="stat-label">Coupons</div>
+  </div>
+  <div class="stat-card clickable" onclick="viewSubscriptions()">
+    <div class="stat-value" id="dashTotalSubscriptions">0</div>
+    <div class="stat-label">Subscriptions</div>
+  </div>
+</div>
+</div>
+</div>
 
-        window.renderProducts = (list) => {
-            const grid = document.getElementById('displayGrid');
-            grid.innerHTML = '';
-            if(list.length === 0) { grid.innerHTML = '<p style="grid-column:1/-1;text-align:center">No items found.</p>'; return; }
-            list.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'product-card';
-                div.innerHTML = `
-                    <img src="${p.imageUrl}" class="product-image">
-                    <div class="product-title">${p.title}</div>
-                    <div class="price">₹${p.discountedPrice}</div>
-                    <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
-                `;
-                grid.appendChild(div);
-            });
-        };
+<!-- Products Tab -->
+<div id="productsTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Manage Product</h2>
+<div id="productSuccess" style="display: none;"></div>
+<input type="hidden" id="editProductId">
+<div class="input-group">
+<label>Product Title</label>
+<input type="text" id="productTitle">
+</div>
+<div class="input-group">
+<label>Main Image URL</label>
+<input type="text" id="productImageUrl">
+</div>
+<div class="input-group">
+<label>Original Price (₹)</label>
+<input type="number" id="productRealPrice">
+</div>
+<div class="input-group">
+<label>Sale Price (₹)</label>
+<input type="number" id="productDiscountPrice">
+</div>
+<div class="input-group">
+<label>Description</label>
+<textarea id="productDescription" rows="3"></textarea>
+</div>
+<div class="input-group">
+<label>Download/Access Link</label>
+<input type="text" id="productDownloadLink">
+</div>
+<button class="btn" id="saveProductBtn">Save Product</button>
+<button class="btn" id="clearProductBtn" style="background: #666; margin-top: 10px;">Clear Form</button>
+</div>
 
-        window.renderSubs = () => {
-            const grid = document.getElementById('displayGrid');
-            grid.innerHTML = '';
-            if(window.subscriptions.length === 0) { grid.innerHTML = '<p>No plans available.</p>'; return; }
-            window.subscriptions.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'subscription-card';
-                div.innerHTML = `
-                    <div style="font-weight:bold;font-size:18px">${s.planName}</div>
-                    <div style="color:#00ff88;font-size:22px;margin:5px 0">₹${s.price}</div>
-                    <div style="font-size:12px;color:#aaa">Validity: ${s.duration} Days</div>
-                    <button class="btn" onclick="buySub('${s.id}')">Subscribe</button>
-                `;
-                grid.appendChild(div);
-            });
-        };
+<div class="card">
+<h2 class="card-title">All Products</h2>
+<div id="productsGrid" class="products-grid"></div>
+</div>
+</div>
 
-        window.renderOrders = async () => {
-            if(!window.user) {
-                document.getElementById('displayGrid').innerHTML = '<button class="btn" onclick="openAuth()">Login to see orders</button>';
-                return;
-            }
-            const grid = document.getElementById('displayGrid');
-            grid.innerHTML = 'Loading orders...';
-            const snap = await get(ref(db, 'orders'));
-            grid.innerHTML = '';
-            let found = false;
-            if(snap.exists()) {
-                Object.entries(snap.val()).forEach(([id, o]) => {
-                    if(o.userId === window.user.uid) {
-                        found = true;
-                        const div = document.createElement('div');
-                        div.className = 'product-card';
-                        div.style.gridColumn = '1/-1';
-                        div.innerHTML = `
-                            <div style="display:flex;justify-content:space-between">
-                                <b>Order #${id.slice(-6)}</b>
-                                <span style="color:${o.status==='confirmed'?'#00ff88':'#ffa500'}">${o.status.toUpperCase()}</span>
-                            </div>
-                            <div style="font-size:12px;margin-top:5px">${o.items[0].title} ${o.items.length>1?'...':''}</div>
-                            <div style="color:#00ff88;margin-top:5px">₹${o.finalAmount}</div>
-                        `;
-                        grid.appendChild(div);
-                    }
-                });
-            }
-            if(!found) grid.innerHTML = '<p>No orders placed yet.</p>';
-        };
+<!-- Orders Tab -->
+<div id="ordersTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Customer Orders</h2>
+<div class="input-group">
+<label>Filter Orders</label>
+<select id="orderFilterSelect" onchange="window.reRenderOrders()">
+<option value="all">All Status</option>
+<option value="pending">Pending Only</option>
+<option value="confirmed">Confirmed Only</option>
+<option value="rejected">Rejected Only</option>
+<option value="subscription">Subscriptions Only</option>
+</select>
+</div>
+<div id="ordersList" class="orders-list"></div>
+</div>
+</div>
 
-        window.authAction = async (type) => {
-            const email = document.getElementById(type === 'login' ? 'email' : 'newEmail').value;
-            const pass = document.getElementById(type === 'login' ? 'pass' : 'newPass').value;
-            if(!email || !pass) return notify('Fill details', 'error');
-            
-            try {
-                if(type === 'login') {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    notify('Welcome Back!');
-                } else {
-                    const name = document.getElementById('newName').value;
-                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    await updateProfile(cred.user, { displayName: name });
-                    notify('Account Created!');
-                }
-                closeModal('authModal');
-            } catch(e) { notify(e.message, 'error'); }
-        };
+<!-- Coupons Tab -->
+<div id="couponsTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Manage Coupon</h2>
+<div id="couponSuccess" style="display: none;"></div>
+<input type="hidden" id="editCouponId">
+<div class="input-group">
+<label>Coupon Code</label>
+<input type="text" id="couponCode" placeholder="OFF50">
+</div>
+<div class="input-group">
+<label>Discount Value</label>
+<input type="number" id="couponDiscountValue">
+</div>
+<div class="input-group">
+<label>Type</label>
+<select id="couponDiscountType">
+<option value="percentage">Percentage (%)</option>
+<option value="fixed">Fixed Amount (₹)</option>
+</select>
+</div>
+<div class="input-group">
+<label>Usage Limit (People)</label>
+<input type="number" id="couponUsageLimit" placeholder="0 for unlimited">
+</div>
+<button class="btn" id="saveCouponBtn">Save Coupon</button>
+<button class="btn" id="clearCouponBtn" style="background: #666; margin-top: 10px;">Clear Form</button>
+</div>
+<div id="couponsGrid" class="products-grid"></div>
+</div>
 
-        window.placeOrder = async () => {
-            const utr = document.getElementById('utrInput').value;
-            if(utr.length < 10) return notify('Enter valid UTR');
-            if(!window.user) return openAuth();
+<!-- Subscriptions Tab -->
+<div id="subscriptionsTab" class="tab-content">
+<div class="card">
+<h2 class="card-title"><i class="fas fa-calendar-check"></i> Manage Subscription Plans</h2>
+<div id="subscriptionSuccess" style="display: none;"></div>
+<input type="hidden" id="editSubscriptionId">
+<div class="input-group">
+<label>Plan Name</label>
+<input type="text" id="subscriptionName" placeholder="Pro Plan">
+</div>
+<div class="input-group">
+<label>Price (₹)</label>
+<input type="number" id="subscriptionPrice">
+</div>
+<div class="input-group">
+<label>Duration (Days)</label>
+<select id="subscriptionDuration">
+<option value="3">3 Days</option>
+<option value="7">7 Days</option>
+<option value="15">15 Days</option>
+<option value="30">30 Days</option>
+<option value="90">90 Days</option>
+</select>
+</div>
+<div class="input-group">
+<label>Description</label>
+<textarea id="subscriptionDescription" rows="2"></textarea>
+</div>
+<div class="input-group">
+<label>Features (one per line)</label>
+<textarea id="subscriptionFeatures" rows="3" placeholder="Unlimited downloads&#10;Priority support&#10;Early access"></textarea>
+</div>
+<button class="btn" id="saveSubscriptionBtn">Save Subscription</button>
+<button class="btn" id="clearSubscriptionBtn" style="background: #666; margin-top: 10px;">Clear Form</button>
+</div>
 
-            const total = window.cart.reduce((s, i) => s + parseFloat(i.price), 0);
-            const orderData = {
-                userId: window.user.uid,
-                userEmail: window.user.email,
-                userName: window.user.displayName || 'User',
-                utrId: utr,
-                items: window.cart,
-                finalAmount: total,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
+<div class="card">
+<h2 class="card-title">All Subscription Plans</h2>
+<div id="subscriptionsGrid" class="products-grid"></div>
+</div>
+</div>
 
-            const newRef = push(ref(db, 'orders'));
-            await set(newRef, orderData);
-            
-            // Link to user's personal data
-            await set(ref(db, `users/${window.user.uid}/purchases/${newRef.key}`), { orderId: newRef.key });
+<!-- Users Tab -->
+<div id="usersTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">User Base</h2>
+<div id="usersGrid" class="products-grid"></div>
+</div>
+</div>
 
-            window.cart = [];
-            localStorage.setItem('user_cart', '[]');
-            updateCartBadge();
-            closeModal('paymentModal');
-            notify('Order Placed! Wait for confirmation.');
-            navigate('orders');
-        };
+<!-- Support Tab -->
+<div id="supportTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Support Tickets</h2>
+<div id="chatUsersList" class="orders-list"></div>
+</div>
+</div>
 
-        window.logout = () => { signOut(auth); notify('Logged out'); navigate('home'); };
+<!-- Branding Tab -->
+<div id="brandTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Branding</h2>
+<div id="brandSuccess" style="display: none;"></div>
+<div class="input-group">
+<label>Brand Name</label>
+<input type="text" id="brandName">
+</div>
+<div class="input-group">
+<label>Logo URL</label>
+<input type="text" id="brandLogoUrl">
+</div>
+<button class="btn" id="saveBrandBtn">Save Branding</button>
+</div>
+</div>
 
-        window.buySub = (id) => {
-            const s = window.subscriptions.find(x => x.id === id);
-            window.cart = [{ id: s.id, title: s.planName, price: s.price, isSubscription: true }];
-            if(!window.user) return openAuth();
-            document.getElementById('paymentModal').classList.add('active');
-        };
+<!-- Contact Tab -->
+<div id="contactTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Contact Details</h2>
+<div id="contactSuccess" style="display: none;"></div>
+<div class="input-group">
+<label>Email Support</label>
+<input type="email" id="contactEmail">
+</div>
+<div class="input-group">
+<label>Telegram Link</label>
+<input type="text" id="contactTelegram">
+</div>
+<button class="btn" id="saveContactBtn">Update Contact Info</button>
+</div>
+</div>
 
-        init();
-    </script>
+<!-- Settings Tab -->
+<div id="settingsTab" class="tab-content">
+<div class="card">
+<h2 class="card-title">Admin Info</h2>
+<div style="background: var(--input-bg); padding: 15px; border-radius: 12px; font-size: 14px;">
+<p><strong>Email:</strong> <span id="adminEmailDisplay"></span></p>
+<p style="margin-top: 10px;"><strong>Password:</strong> <span id="adminPasswordDisplay">••••••••</span></p>
+</div>
+</div>
+<div class="card">
+<h2 class="card-title" style="color: var(--accent-pink);">Danger Zone</h2>
+<button class="btn" id="clearAllOrdersBtn" style="background: #f59e0b; margin-bottom: 10px;">Clear All Orders</button>
+<button class="btn" id="clearAllDataBtn" style="background: var(--accent-pink);">Reset System (Wipe All)</button>
+</div>
+</div>
+</div>
 
-    <script>
-        function notify(msg, type='success') {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.className = 'notification-toast show';
-            if(type === 'error') t.style.borderColor = '#ff006e';
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
+<!-- Chat Modal -->
+<div class="chat-modal" id="chatModal">
+<div class="chat-modal-content">
+<div style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+<h3 id="chatModalTitle" style="font-size: 16px;">Support Chat</h3>
+<button onclick="closeChatModal()" style="border:none; background:none; font-size: 24px; cursor:pointer; color: var(--text-primary);">×</button>
+</div>
+<div class="chat-messages-container" id="chatMessagesContainer"></div>
+<div class="chat-input-area">
+<input type="text" id="chatInput" placeholder="Type message..." style="flex:1; padding: 12px; border:1px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-primary);">
+<button id="chatSendBtn" class="btn" style="width: 50px;"><i class="fas fa-paper-plane"></i></button>
+</div>
+</div>
+</div>
 
-        function navigate(page) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('nav-'+page).classList.add('active');
-            const grid = document.getElementById('displayGrid');
-            const title = document.getElementById('pageTitle');
-            
-            if(page === 'home') {
-                title.innerText = 'All Services';
-                renderProducts(window.products);
-            } else if(page === 'subs') {
-                title.innerText = 'Premium Subscriptions';
-                renderSubs();
-            } else if(page === 'orders') {
-                title.innerText = 'Order History';
-                renderOrders();
-            } else if(page === 'profile') {
-                title.innerText = 'My Account';
-                grid.innerHTML = `
-                    <div style="grid-column:1/-1; text-align:center; padding:20px; background:rgba(255,255,255,0.05); border-radius:15px;">
-                        <i class="fas fa-user-circle" style="font-size:50px; color:#00ffff"></i>
-                        <h3 style="margin:10px 0">${window.user ? (window.user.displayName || 'User') : 'Guest'}</h3>
-                        <p style="font-size:12px; color:#666">${window.user ? window.user.email : 'Log in to sync data'}</p>
-                        ${window.user ? '<button class="btn" style="background:#ff006e; color:#fff" onclick="logout()">Logout</button>' : '<button class="btn" onclick="openAuth()">Login / Sign Up</button>'}
-                    </div>
-                `;
-            }
-        }
+<!-- Firebase & Logic -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+import { getDatabase, ref, set, get, push, remove, onValue, update, off } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
-        function toggleCart() {
-            document.getElementById('cartSidebar').classList.toggle('active');
-            renderCartItems();
-        }
+const firebaseConfig = {
+apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
+authDomain: "selll-d5149.firebaseapp.com",
+databaseURL: "https://selll-d5149-default-rtdb.firebaseio.com",
+projectId: "selll-d5149",
+storageBucket: "selll-d5149.firebasestorage.app",
+messagingSenderId: "633734276998",
+appId: "1:633734276998:web:b486015bd345028a406e07"
+};
 
-        function addToCart(id) {
-            const p = window.products.find(x => x.id === id);
-            window.cart.push({ id: p.id, title: p.title, price: p.discountedPrice });
-            localStorage.setItem('user_cart', JSON.stringify(window.cart));
-            updateCartBadge();
-            notify('Added to cart');
-        }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-        function updateCartBadge() {
-            const b = document.getElementById('cartBadge');
-            if(window.cart.length > 0) { b.innerText = window.cart.length; b.style.display = 'block'; }
-            else { b.style.display = 'none'; }
-        }
+// Make globals for HTML onclicks
+window.auth = auth; window.db = db; window.dbRef = ref; window.dbSet = set;
+window.dbGet = get; window.dbPush = push; window.dbRemove = remove; window.dbOnValue = onValue;
+window.dbUpdate = update; window.dbOff = off; window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.signOut = signOut; window.createUserWithEmailAndPassword = createUserWithEmailAndPassword; window.updateProfile = updateProfile;
 
-        function renderCartItems() {
-            const list = document.getElementById('cartItemsList');
-            const footer = document.getElementById('cartFooter');
-            list.innerHTML = '';
-            if(window.cart.length === 0) { list.innerHTML = 'Your cart is empty'; footer.style.display = 'none'; return; }
-            
-            let total = 0;
-            window.cart.forEach((item, index) => {
-                total += parseFloat(item.price);
-                const div = document.createElement('div');
-                div.style.cssText = 'display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px';
-                div.innerHTML = `<span>${item.title}</span> <b>₹${item.price}</b> <i class="fas fa-trash" style="color:#ff006e" onclick="removeFromCart(${index})"></i>`;
-                list.appendChild(div);
-            });
-            document.getElementById('cartTotal').innerText = '₹' + total;
-            footer.style.display = 'block';
-        }
+// Explicitly set session persistence so it doesn't log out on page refresh on live hosting
+setPersistence(auth, browserLocalPersistence)
+  .catch((error) => {
+    console.error("Auth Persistence Error:", error);
+  });
 
-        function removeFromCart(index) {
-            window.cart.splice(index, 1);
-            localStorage.setItem('user_cart', JSON.stringify(window.cart));
-            updateCartBadge();
-            renderCartItems();
-        }
+// Theme Logic
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', () => {
+document.body.classList.toggle('dark-mode');
+const icon = themeToggle.querySelector('i');
+if(document.body.classList.contains('dark-mode')) {
+icon.className = 'fas fa-sun';
+localStorage.setItem('admin-theme', 'dark');
+} else {
+icon.className = 'fas fa-moon';
+localStorage.setItem('admin-theme', 'light');
+}
+});
 
-        function checkout() {
-            if(!window.user) return openAuth();
-            toggleCart();
-            document.getElementById('paymentModal').classList.add('active');
-        }
+if(localStorage.getItem('admin-theme') === 'dark') {
+document.body.classList.add('dark-mode');
+themeToggle.querySelector('i').className = 'fas fa-sun';
+}
 
-        function openAuth() { document.getElementById('authModal').classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function toggleAuth(showSignup) {
-            document.getElementById('loginForm').style.display = showSignup ? 'none' : 'block';
-            document.getElementById('signupForm').style.display = showSignup ? 'block' : 'none';
-            document.getElementById('authTitle').innerText = showSignup ? 'Create Account' : 'Login';
-        }
-        function search(q) {
-            const filtered = window.products.filter(p => p.title.toLowerCase().includes(q.toLowerCase()));
-            renderProducts(filtered);
-        }
-    </script>
-</body>
-</html>
-```
+// UI Helpers
+window.showLoading = (text = 'Loading...') => {
+document.getElementById('loadingText').textContent = text;
+document.getElementById('loadingOverlay').classList.add('active');
+};
+window.hideLoading = () => document.getElementById('loadingOverlay').classList.remove('active');
 
----
+window.showToast = (msg) => {
+const t = document.getElementById('notificationToast');
+t.textContent = msg; t.classList.add('show');
+setTimeout(() => t.classList.remove('show'), 3000);
+};
 
-### **Part 2: Admin Panel (admin.html)**
+// Global filter for orders
+let showOnlyPending = false;
+let globalOrdersData = null;
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Control Center</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --bg: #f5f7fb; --card: #ffffff; --primary: #00bcd4; --text: #333; --border: #eee; }
-        body.dark { --bg: #0a0a0a; --card: #161616; --primary: #00ffff; --text: #e0e0e0; --border: #222; }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
-        .sidebar { position:fixed; left:0; width:250px; height:100%; background:var(--card); border-right:1px solid var(--border); padding:20px; }
-        .main { margin-left:250px; padding:30px; }
-        .card { background:var(--card); padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid var(--border); }
-        .stats-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:25px; }
-        .stat-card { background:var(--card); padding:20px; border-radius:12px; text-align:center; border:1px solid var(--border); }
-        .stat-val { font-size:24px; font-weight:bold; color:var(--primary); }
-        .input-group { margin-bottom:15px; }
-        .input-group label { display:block; margin-bottom:5px; font-size:12px; color:#888; }
-        input, textarea, select { width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); }
-        .btn { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; background:var(--primary); color:#000; }
-        .btn-danger { background:#ff006e; color:#fff; }
-        .order-row { display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid var(--border); }
-        @media (max-width: 768px) {
-            .sidebar { width:60px; padding:10px; }
-            .sidebar span { display:none; }
-            .main { margin-left:60px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        .tab-content { display:none; }
-        .tab-content.active { display:block; }
-        .nav-link { padding:12px; cursor:pointer; border-radius:8px; margin-bottom:5px; display:flex; align-items:center; gap:10px; }
-        .nav-link:hover, .nav-link.active { background: var(--primary); color:#000; }
-    </style>
-</head>
-<body class="dark">
+// Navigation Logic
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('drawerOverlay');
+const menuToggle = document.getElementById('menuToggle');
 
-    <div class="sidebar">
-        <h2 style="margin-bottom:30px"><i class="fas fa-shield-alt"></i> <span>ADMIN</span></h2>
-        <div class="nav-link active" onclick="showTab('dash')"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></div>
-        <div class="nav-link" onclick="showTab('products')"><i class="fas fa-box"></i> <span>Products</span></div>
-        <div class="nav-link" onclick="showTab('orders')"><i class="fas fa-shopping-cart"></i> <span>Orders</span></div>
-        <div class="nav-link" onclick="showTab('subs')"><i class="fas fa-gem"></i> <span>Subscriptions</span></div>
-        <div class="nav-link" onclick="logout()" style="margin-top:50px; color:#ff006e"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></div>
-    </div>
+const toggleDrawer = () => {
+drawer.classList.toggle('active');
+overlay.classList.toggle('active');
+};
 
-    <div class="main">
-        <div id="dash" class="tab-content active">
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-val" id="s-rev">₹0</div><div>Total Revenue</div></div>
-                <div class="stat-card"><div class="stat-val" id="s-orders">0</div><div>Total Orders</div></div>
-                <div class="stat-card"><div class="stat-val" id="s-users">0</div><div>Users</div></div>
-                <div class="stat-card"><div class="stat-val" id="s-pending" style="color:#ff006e">0</div><div>Pending</div></div>
-            </div>
+menuToggle.addEventListener('click', toggleDrawer);
+document.getElementById('drawerCloseBtn').addEventListener('click', toggleDrawer);
+overlay.addEventListener('click', toggleDrawer);
 
-            <div class="card">
-                <h3>Recent Activity</h3>
-                <div id="recentOrders"></div>
-            </div>
-        </div>
+document.querySelectorAll('.drawer-nav-item').forEach(item => {
+item.addEventListener('click', () => {
+const tab = item.dataset.tab;
 
-        <div id="products" class="tab-content">
-            <div class="card">
-                <h3>Add / Edit Product</h3>
-                <div class="input-group">
-                    <label>Title</label><input type="text" id="p-title">
-                </div>
-                <div class="input-group">
-                    <label>Image URL</label><input type="text" id="p-img">
-                </div>
-                <div class="input-group">
-                    <label>Price (₹)</label><input type="number" id="p-price">
-                </div>
-                <button class="btn" onclick="saveProduct()">Save Product</button>
-            </div>
-            <div id="productsList"></div>
-        </div>
+if(tab === 'orders') {
+showOnlyPending = false;
+document.getElementById('orderFilterSelect').value = 'all';
+}
 
-        <div id="orders" class="tab-content">
-            <div class="card">
-                <h3>Customer Orders</h3>
-                <div id="ordersList"></div>
-            </div>
-        </div>
+document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+document.getElementById(tab + 'Tab').classList.add('active');
+document.querySelectorAll('.drawer-nav-item').forEach(i => i.classList.remove('active'));
+item.classList.add('active');
+if(window.innerWidth < 1024) toggleDrawer();
+window.scrollTo(0,0);
+});
+});
 
-        <div id="subs" class="tab-content">
-            <div class="card">
-                <h3>Manage Subscriptions</h3>
-                <div class="input-group">
-                    <label>Plan Name</label><input type="text" id="s-name">
-                </div>
-                <div class="input-group">
-                    <label>Price (₹)</label><input type="number" id="s-price">
-                </div>
-                <div class="input-group">
-                    <label>Duration (Days)</label><input type="number" id="s-days">
-                </div>
-                <button class="btn" onclick="saveSub()">Create Plan</button>
-            </div>
-            <div id="subsList"></div>
-        </div>
-    </div>
+// Auth State Observer
+onAuthStateChanged(auth, async (user) => {
+if(user) {
+document.getElementById('loginScreen').style.display = 'none';
+document.getElementById('setupScreen').style.display = 'none';
+document.getElementById('adminDashboard').style.display = 'block';
+menuToggle.classList.remove('hidden');
+document.getElementById('drawerUserName').textContent = user.displayName || 'Admin';
+document.getElementById('drawerUserEmail').textContent = user.email;
+document.getElementById('adminEmailDisplay').textContent = user.email;
+initData();
+} else {
+try {
+const snap = await get(ref(db, 'meta/adminSetup'));
+if(snap.exists() && snap.val().completed) {
+document.getElementById('loginScreen').style.display = 'flex';
+} else {
+document.getElementById('setupScreen').style.display = 'flex';
+}
+} catch (e) {
+console.error("Database connection issue. Check your Firebase Rules or API Key restrictions.");
+document.getElementById('loginScreen').style.display = 'flex';
+}
+document.getElementById('adminDashboard').style.display = 'none';
+menuToggle.classList.add('hidden');
+}
+});
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-        import { getDatabase, ref, onValue, set, push, remove, update } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+// Setup Action
+document.getElementById('setupBtn').addEventListener('click', async () => {
+const name = document.getElementById('setupName').value;
+const email = document.getElementById('setupEmail').value;
+const pass = document.getElementById('setupPassword').value;
+const cpass = document.getElementById('setupConfirmPassword').value;
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
-            authDomain: "selll-d5149.firebaseapp.com",
-            databaseURL: "https://selll-d5149-default-rtdb.firebaseio.com",
-            projectId: "selll-d5149",
-            storageBucket: "selll-d5149.firebasestorage.app",
-            messagingSenderId: "633734276998",
-            appId: "1:633734276998:web:b486015bd345028a406e07"
-        };
+if(!name || !email || !pass) return alert('Fill all fields');
+if(pass !== cpass) return alert('Passwords do not match');
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+showLoading('Creating Master Admin...');
+try {
+const cred = await createUserWithEmailAndPassword(auth, email, pass);
+await updateProfile(cred.user, { displayName: name });
+await set(ref(db, 'meta/adminSetup'), { completed: true, setupDate: new Date().toISOString() });
+hideLoading();
+} catch(e) {
+hideLoading();
+alert(e.message);
+}
+});
 
-        // Protection
-        onAuthStateChanged(auth, (user) => {
-            if(!user) {
-                // If not logged in on live, redirect or handle (locally we just show a message)
-                console.log("Admin not logged in");
-            }
-        });
+// Login Action
+document.getElementById('loginBtn').addEventListener('click', async () => {
+const email = document.getElementById('loginEmail').value;
+const pass = document.getElementById('loginPassword').value;
 
-        // Load All Data
-        function initAdmin() {
-            // Orders & Revenue Logic (Fix for ₹0 issue)
-            onValue(ref(db, 'orders'), (snap) => {
-                const list = document.getElementById('ordersList');
-                const recent = document.getElementById('recentOrders');
-                list.innerHTML = ''; recent.innerHTML = '';
-                
-                let totalRev = 0;
-                let totalOrders = 0;
-                let pendingCount = 0;
+if(!email || !pass) return alert('Enter credentials');
 
-                if(snap.exists()) {
-                    Object.entries(snap.val()).reverse().forEach(([id, o]) => {
-                        totalOrders++;
-                        
-                        // Fix: Revenue calculation (Ensure numeric)
-                        if(o.status === 'confirmed') {
-                            totalRev += parseFloat(o.finalAmount || 0);
-                        }
-                        if(o.status === 'pending') pendingCount++;
+showLoading('Verifying Admin...');
+try {
+await signInWithEmailAndPassword(auth, email, pass);
+hideLoading();
+} catch(e) {
+hideLoading();
+alert(e.message);
+}
+});
 
-                        const html = `
-                            <div class="order-row">
-                                <div>
-                                    <b>${o.userName}</b> (${o.userEmail})<br>
-                                    <small>UTR: ${o.utrId}</small>
-                                </div>
-                                <div>₹${o.finalAmount}</div>
-                                <div>
-                                    <select onchange="updateStatus('${id}', this.value)">
-                                        <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
-                                        <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Confirmed</option>
-                                        <option value="rejected" ${o.status==='rejected'?'selected':''}>Rejected</option>
-                                    </select>
-                                    <button class="btn-danger" onclick="deleteItem('orders/${id}')">X</button>
-                                </div>
-                            </div>
-                        `;
-                        list.innerHTML += html;
-                        if(totalOrders <= 5) recent.innerHTML += html;
-                    });
-                }
-                document.getElementById('s-rev').innerText = '₹' + totalRev;
-                document.getElementById('s-orders').innerText = totalOrders;
-                document.getElementById('s-pending').innerText = pendingCount;
-            });
+// Logout
+document.getElementById('drawerLogoutBtn').addEventListener('click', () => signOut(auth));
 
-            // Products
-            onValue(ref(db, 'products'), (snap) => {
-                const pList = document.getElementById('productsList');
-                pList.innerHTML = '';
-                if(snap.exists()) {
-                    Object.entries(snap.val()).forEach(([id, p]) => {
-                        pList.innerHTML += `
-                            <div class="order-row">
-                                <span>${p.title} - ₹${p.discountedPrice}</span>
-                                <button class="btn-danger" onclick="deleteItem('products/${id}')">Delete</button>
-                            </div>
-                        `;
-                    });
-                }
-            });
+// Data Loaders
+function initData() {
+onValue(ref(db, 'products'), (s) => renderProducts(s.val()));
+onValue(ref(db, 'orders'), (s) => {
+globalOrdersData = s.val();
+renderOrders(globalOrdersData);
+});
+onValue(ref(db, 'coupons'), (s) => renderCoupons(s.val()));
+onValue(ref(db, 'subscriptions'), (s) => renderSubscriptions(s.val()));
+onValue(ref(db, 'users'), (s) => renderUsers(s.val()));
+onValue(ref(db, 'chats'), (s) => renderChatUsers(s.val()));
+onValue(ref(db, 'meta/brand'), (s) => {
+if(s.exists()){
+const d = s.val();
+document.getElementById('brandName').value = d.name || '';
+document.getElementById('brandLogoUrl').value = d.logoUrl || '';
+document.getElementById('drawerBrandName').textContent = d.name || 'Admin Panel';
+if(d.logoUrl) {
+document.getElementById('drawerLogo').src = d.logoUrl;
+document.getElementById('drawerLogo').style.display = 'block';
+}
+}
+});
+onValue(ref(db, 'meta/contact'), (s) => {
+if(s.exists()){
+const d = s.val();
+document.getElementById('contactEmail').value = d.email || '';
+document.getElementById('contactTelegram').value = d.socialTelegram || '';
+}
+});
+}
 
-            // Users
-            onValue(ref(db, 'users'), (snap) => {
-                document.getElementById('s-users').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
-            });
+// Render Functions
+function renderProducts(data) {
+const g = document.getElementById('productsGrid'); g.innerHTML = '';
+let count = 0;
+if(data) {
+Object.entries(data).forEach(([id, p]) => {
+count++;
+const card = document.createElement('div');
+card.className = 'product-card';
+card.innerHTML = `
+<img src="${p.imageUrl}" class="product-image" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
+<div style="font-weight:700; margin-bottom:5px;">${p.title}</div>
+<div style="color:var(--accent-cyan); font-weight:700;">₹${p.discountedPrice}</div>
+<div style="display:flex; gap:5px; margin-top:auto; padding-top:10px;">
+<button class="btn" style="padding:5px; font-size:12px;" onclick="editProduct('${id}')">Edit</button>
+<button class="btn" style="padding:5px; font-size:12px; background:var(--accent-pink);" onclick="deleteProduct('${id}')">Del</button>
+</div>
+`;
+g.appendChild(card);
+});
+}
+document.getElementById('dashTotalProducts').textContent = count;
+}
 
-            // Subs
-            onValue(ref(db, 'subscriptions'), (snap) => {
-                const sList = document.getElementById('subsList');
-                sList.innerHTML = '';
-                if(snap.exists()) {
-                    Object.entries(snap.val()).forEach(([id, s]) => {
-                        sList.innerHTML += `<div class="order-row"><span>${s.planName} (${s.duration} Days)</span> <button class="btn-danger" onclick="deleteItem('subscriptions/${id}')">X</button></div>`;
-                    });
-                }
-            });
-        }
+window.reRenderOrders = () => renderOrders(globalOrdersData);
 
-        window.saveProduct = () => {
-            const title = document.getElementById('p-title').value;
-            const img = document.getElementById('p-img').value;
-            const price = document.getElementById('p-price').value;
-            if(!title || !price) return alert("Required fields!");
-            push(ref(db, 'products'), { title, imageUrl: img, discountedPrice: price, createdAt: new Date().toISOString() });
-            alert("Product Added");
-        };
+function renderOrders(data) {
+const l = document.getElementById('ordersList'); l.innerHTML = '';
+const filter = document.getElementById('orderFilterSelect').value;
+let total = 0, today = 0, rev = 0, pending = 0;
+const tStr = new Date().toDateString();
 
-        window.saveSub = () => {
-            const name = document.getElementById('s-name').value;
-            const price = document.getElementById('s-price').value;
-            const days = document.getElementById('s-days').value;
-            push(ref(db, 'subscriptions'), { planName: name, price: price, duration: days });
-            alert("Plan Created");
-        };
+if(data) {
+Object.entries(data).forEach(([id, o]) => {
+// FIXED PRICE ISSUE: Ab ye finalAmount, price, amount ya productSnapshot.discountedPrice kahin se bhi price dhund lega
+let rawPrice = o.finalAmount || o.price || o.totalAmount || o.amount || (o.productSnapshot ? o.productSnapshot.discountedPrice : 0) || 0;
+const price = parseFloat(rawPrice);
 
-        window.updateStatus = (id, status) => {
-            update(ref(db, `orders/${id}`), { status: status });
-        };
+const oDate = new Date(o.createdAt);
+const status = o.status || 'pending';
 
-        window.deleteItem = (path) => {
-            if(confirm("Are you sure?")) remove(ref(db, path));
-        };
+// Global calculations
+total++;
+if(oDate.toDateString() === tStr) today++;
+rev += price;
+if(status === 'pending') pending++;
 
-        window.logout = () => signOut(auth);
+// Filtering logic
+if(showOnlyPending && status !== 'pending') return;
+if(!showOnlyPending && filter !== 'all') {
+if(filter === 'subscription' && !o.isSubscription) return;
+if(filter !== 'subscription' && status !== filter) return;
+}
 
-        initAdmin();
-    </script>
+const card = document.createElement('div');
+card.className = 'order-card';
+card.innerHTML = `
+<div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--accent-cyan);">
+<span>ID: ${id.slice(-6).toUpperCase()} ${o.isSubscription ? '(SUB)' : ''}</span>
+<span>${oDate.toLocaleDateString()} ${oDate.toLocaleTimeString()}</span>
+</div>
+<div class="order-info">
+<div><span class="order-field">Product:</span><br><span class="order-value">${o.productSnapshot?.title || o.planName || 'N/A'}</span></div>
+<div><span class="order-field">Price:</span><br><span class="order-value">₹${price}</span></div>
+<div><span class="order-field">User Email:</span><br><span class="order-value">${o.userEmail || 'N/A'}</span></div>
+<div><span class="order-field">UTR / TxID:</span><br><span class="order-value" style="color: var(--accent-pink);">${o.utrId || 'N/A'}</span></div>
+</div>
+<div style="display:flex; gap:10px; margin-top:10px;">
+<select class="input-group" style="padding:8px; margin:0;" onchange="updateStatus('${id}', this.value)">
+<option value="pending" ${status==='pending'?'selected':''}>Pending</option>
+<option value="confirmed" ${status==='confirmed'?'selected':''}>Confirmed</option>
+<option value="rejected" ${status==='rejected'?'selected':''}>Rejected</option>
+</select>
+<button class="btn" style="width:40px; background:var(--accent-pink);" onclick="deleteOrder('${id}')"><i class="fas fa-trash"></i></button>
+</div>
+`;
+l.appendChild(card);
+});
+}
+document.getElementById('dashTotalOrders').textContent = total;
+document.getElementById('dashTodayOrders').textContent = today;
+document.getElementById('dashPendingOrders').textContent = pending;
+document.getElementById('dashTotalRevenue').textContent = '₹' + rev;
+}
 
-    <script>
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-    </script>
-</body>
-</html>
+function renderCoupons(data) {
+const g = document.getElementById('couponsGrid'); g.innerHTML = '';
+let c = 0;
+if(data) {
+Object.entries(data).forEach(([id, cp]) => {
+c++;
+const usage = cp.usedCount || 0;
+const limit = cp.usageLimit || 0;
+const card = document.createElement('div');
+card.className = 'product-card';
+card.innerHTML = `
+<div style="font-size:18px; font-weight:800; color:var(--accent-cyan);">${cp.code}</div>
+<div style="font-size:12px; margin:5px 0;">${cp.discountType === 'percentage' ? cp.discountValue+'%' : '₹'+cp.discountValue} OFF</div>
+<div style="font-size:12px; color:var(--text-secondary);">Used: <strong>${usage}</strong> / ${limit === 0 ? '∞' : limit}</div>
+<div style="display:flex; gap:5px; margin-top:auto; padding-top:10px;">
+<button class="btn" style="padding:5px; font-size:12px;" onclick="editCoupon('${id}')">Edit</button>
+<button class="btn" style="padding:5px; font-size:12px; background:var(--accent-pink);" onclick="deleteCoupon('${id}')">Del</button>
+</div>
+`;
+g.appendChild(card);
+});
+}
+document.getElementById('dashTotalCoupons').textContent = c;
+}
+
+// Render Subscriptions
+function renderSubscriptions(data) {
+const g = document.getElementById('subscriptionsGrid'); g.innerHTML = '';
+let count = 0;
+if(data) {
+Object.entries(data).forEach(([id, sub]) => {
+count++;
+const card = document.createElement('div');
+card.className = 'product-card';
+card.innerHTML = `
+<div style="font-weight:700;">${sub.planName || 'Unnamed Plan'}</div>
+<div style="color:var(--accent-cyan); font-size:22px; font-weight:800;">₹${sub.price || 0}</div>
+<div style="font-size:13px; color:var(--text-secondary);">${sub.duration || 0} Days • ${sub.description || ''}</div>
+<div style="display:flex; gap:5px; margin-top:auto; padding-top:10px;">
+<button class="btn" style="padding:5px; font-size:12px;" onclick="editSubscription('${id}')">Edit</button>
+<button class="btn"
