@@ -9,47 +9,42 @@
     
     <style>
         :root {
-            /* Beautiful Light Mode Colors */
-            --bg-color: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.85);
+            --bg-color: #f5f7fb;
+            --card-bg: rgba(255, 255, 255, 0.7);
             --card-solid: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --accent-cyan: #0ea5e9;
-            --accent-purple: #8b5cf6;
-            --accent-pink: #e2e8f0;
-            --border-color: rgba(0, 0, 0, 0.06);
-            --input-bg: rgba(241, 245, 249, 0.8);
-            --shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.8);
-            --nav-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --accent-cyan: #00bcd4;
+            --accent-purple: #7c3aed;
+            --accent-pink: #ff006e;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+            --nav-bg: rgba(255, 255, 255, 0.9);
             --transition: all 0.3s ease;
         }
 
         body.dark-mode {
-            /* Deep, Clean Dark Mode Colors */
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.8);
-            --card-solid: #1e293b;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --input-bg: rgba(15, 23, 42, 0.6);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.05);
-            --nav-bg: rgba(15, 23, 42, 0.95);
-            --accent-cyan: #38bdf8;
-            --accent-purple: #a78bfa;
-            --accent-pink: #1e293b;
+            --bg-color: #0a0a0a;
+            --card-bg: rgba(22, 22, 22, 0.7);
+            --card-solid: #161616;
+            --text-primary: #e0e0e0;
+            --text-secondary: #999999;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --nav-bg: rgba(20, 20, 20, 0.95);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-            background-color: #e2e8f0; 
+            background-color: #1a1a1a; 
             color: var(--text-primary);
-            overflow: hidden; 
+            overflow: hidden;
         }
 
         /* --- MOBILE APP WRAPPER --- */
@@ -58,9 +53,9 @@
             margin: 0 auto;
             background-color: var(--bg-color);
             height: 100vh;
-            height: 100dvh; 
+            height: 100dvh;
             position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.15);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -100,13 +95,11 @@
         
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes smoothSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- UI COMPONENTS --- */
         .card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
-        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: var(--text-primary); }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
 
         /* Offer Banner */
         .offer-banner { position: relative; border-radius: 16px; overflow: hidden; min-height: 110px; display: flex; align-items: flex-end; margin-bottom: 20px; background-size: cover; background-position: center; box-shadow: var(--shadow); }
@@ -116,44 +109,50 @@
         .offer-price { color: var(--accent-cyan); font-weight: 700; font-size: 16px; }
         .offer-old-price { text-decoration: line-through; color: #ccc; font-size: 13px; margin-left: 8px; }
 
-        /* Stacked Action Cards - Increased height, smaller text */
-        .action-cards-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
-        .action-card-row { background: var(--card-solid); border: var(--glass-border); display: flex; justify-content: space-between; align-items: center; padding: 18px 15px; border-radius: 14px; text-decoration: none; color: var(--text-primary); transition: var(--transition); box-shadow: var(--shadow); }
+        /* Smaller Stacked Action Cards */
+        .action-cards-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
+        .action-card-row { background: var(--card-solid); border: var(--glass-border); display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 12px; text-decoration: none; color: var(--text-primary); transition: var(--transition); box-shadow: var(--shadow); }
         .action-card-row:hover { transform: translateY(-2px); }
-        .action-text { font-size: 9.5px; font-weight: 700; flex: 1; padding-right: 10px; line-height: 1.3; }
-        .action-btn-small { display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 9px; font-weight: 800; white-space: nowrap; }
+        .action-text { font-size: 11px; font-weight: 700; flex: 1; padding-right: 10px; }
+        .action-btn-small { display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #0088cc, var(--accent-purple)); color: white; padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; white-space: nowrap; }
 
-        /* Smaller Social Media Category Grid */
+        /* Services Grid */
         .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
         .service-cat-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; padding: 12px 5px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: var(--transition); }
         .service-cat-card:active { transform: scale(0.95); }
         .service-cat-card i { font-size: 24px; margin-bottom: 6px; }
         .service-cat-name { font-size: 10px; font-weight: 700; color: var(--text-primary); }
 
-        /* INLINE CATEGORY PANE & PRODUCT LIST */
-        #categoryPane { display: none; padding-top: 20px; border-top: 1px dashed var(--border-color); margin-top: 15px; padding-bottom: 20px; }
-        .animated-list { animation: smoothSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Subcategory Cards */
+        .subcategory-card { background: var(--card-solid); border: var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: var(--transition); }
+        .subcategory-card:hover { transform: translateY(-2px); border-color: var(--accent-cyan); }
+        .subcategory-name { font-size: 14px; font-weight: 700; }
+        .subcategory-count { font-size: 12px; color: var(--text-secondary); background: var(--bg-color); padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
-        /* Product List Card (No Photo) */
+        /* Product List Card */
         .product-list-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-solid); border: var(--glass-border); border-radius: 12px; padding: 14px 15px; margin-bottom: 10px; box-shadow: var(--shadow); }
         .plc-info { flex: 1; padding-right: 10px; }
         .plc-name { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
         .plc-right { display: flex; align-items: center; gap: 12px; }
         .plc-price { font-weight: 800; color: var(--accent-cyan); font-size: 15px; }
-        .plc-buy { padding: 8px 16px; border-radius: 8px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; color: #ffffff; font-weight: 700; font-size: 12px; cursor: pointer; }
+        .plc-buy { padding: 8px 16px; border-radius: 8px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; color: white; font-weight: 600; font-size: 12px; cursor: pointer; }
+
+        /* Back button inside category pane */
+        .back-btn-cat { background: var(--input-bg); border: var(--glass-border); color: var(--text-primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+        .back-btn-cat:hover { background: var(--accent-cyan); color: #fff; }
 
         /* Subscriptions Grid */
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .item-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
         
-        .btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; border-radius: 10px; color: #ffffff; font-weight: 700; cursor: pointer; transition: var(--transition); text-align: center; font-size: 14px; }
+        .btn { width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: var(--transition); text-align: center; font-size: 14px; }
         .btn:active { transform: scale(0.96); }
 
         /* Forms & Inputs */
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .input-group input { width: 100%; padding: 14px; background: var(--input-bg); border: var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 14px; outline: none; transition: var(--transition); }
-        .input-group input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
+        .input-group input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2); }
 
         /* Orders List */
         .order-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow); }
@@ -167,14 +166,14 @@
         .chat-container { display: flex; flex-direction: column; height: 65vh; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
         .msg-bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
-        .msg-user { align-self: flex-end; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #ffffff; border-bottom-right-radius: 4px; }
+        .msg-user { align-self: flex-end; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; border-bottom-right-radius: 4px; }
         .msg-admin { align-self: flex-start; background: var(--card-solid); border: var(--glass-border); color: var(--text-primary); border-bottom-left-radius: 4px; }
         .chat-input-area { display: flex; gap: 10px; margin-top: 15px; }
         .chat-input-area input { flex: 1; border-radius: 20px; }
         .btn-send { width: 50px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; }
 
         /* Profile */
-        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 15px; font-weight: 800; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 15px; font-weight: 800; }
 
         /* --- STATIC BOTTOM NAVIGATION --- */
         .bottom-nav { 
@@ -194,32 +193,24 @@
         .nav-item.active { color: var(--accent-cyan); transform: translateY(-2px); }
         .nav-item i { font-size: 18px; }
 
-        /* --- CHECKOUT MODAL REDESIGNED --- */
-        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); display: flex; align-items: flex-end; justify-content: center; }
+        /* --- CHECKOUT MODAL --- */
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); display: flex; align-items: flex-end; justify-content: center; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .bottom-sheet { background: var(--card-solid); width: 100%; border-radius: 28px 28px 0 0; padding: 25px 20px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 95vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+        .bottom-sheet { background: var(--card-solid); width: 100%; border-radius: 24px 24px 0 0; padding: 25px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; }
         .modal-overlay.active .bottom-sheet { transform: translateY(0); }
         
         .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sheet-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .sheet-title { font-size: 18px; font-weight: 800; }
         
-        /* New Checkout Attractive Styles */
-        .checkout-item-box { background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(139, 92, 246, 0.08)); border: 1px solid rgba(139, 92, 246, 0.2); padding: 18px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .checkout-total-box { background: var(--input-bg); border: 1px dashed var(--border-color); padding: 15px; border-radius: 16px; margin-bottom: 20px; }
+        .checkout-summary { background: var(--bg-color); border-radius: 16px; padding: 15px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .checkout-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; display: none; }
         
-        .coupon-box { display: flex; gap: 8px; margin-bottom: 5px; }
-        .coupon-box input { flex: 1; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(14, 165, 233, 0.3); background: var(--card-solid); color: var(--text-primary); text-transform: uppercase; outline: none; font-size: 14px; font-weight: 600; transition: var(--transition); }
-        .coupon-box input:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
-        .btn-apply { padding: 0 18px; background: var(--text-primary); color: var(--card-solid); border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: var(--transition); }
-        .btn-apply:active { transform: scale(0.95); }
+        .coupon-box { display: flex; gap: 10px; margin-bottom: 10px; }
+        .coupon-box input { flex: 1; padding: 12px; border-radius: 10px; border: var(--glass-border); background: var(--bg-color); color: var(--text-primary); text-transform: uppercase; outline: none; }
+        .btn-apply { padding: 0 15px; background: var(--text-primary); color: var(--card-solid); border: none; border-radius: 10px; font-weight: 600; }
         
-        .upi-copy-box { background: rgba(14, 165, 233, 0.05); border: 2px dashed var(--accent-cyan); padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: var(--transition); }
-        .upi-copy-box:active { transform: scale(0.98); background: rgba(14, 165, 233, 0.1); }
-        .upi-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-purple); margin: 5px 0; user-select: all; }
-
-        /* Payment Icons Row - Fixed for Guaranteed UPI Visibility (Using Wikipedia's direct PNG thumbnail path) */
-        .payment-icons { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; padding: 10px; background: var(--input-bg); border-radius: 12px; }
-        .payment-icons img { height: 26px; object-fit: contain; background: #ffffff; padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .payment-box { background: rgba(0, 188, 212, 0.05); border: 1px solid rgba(0, 188, 212, 0.3); border-radius: 16px; padding: 15px; margin: 20px 0; text-align: center; }
+        .upi-text { font-size: 18px; font-weight: 800; letter-spacing: 1px; color: var(--accent-cyan); margin: 5px 0 10px; user-select: all; }
 
         /* Utilities */
         .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); background: var(--text-primary); color: var(--card-solid); padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 14px; z-index: 2000; transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -246,7 +237,6 @@
             <div id="brandName" class="brand-name">BrandStore</div>
         </div>
         <div class="header-actions">
-            <!-- Default light mode, moon icon to switch to dark -->
             <button class="icon-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
             <button class="icon-btn" id="headerProfileBtn"><i class="fas fa-user-circle"></i></button>
         </div>
@@ -307,20 +297,20 @@
                 </div>
             </div>
 
-            <!-- INLINE CATEGORY PANE -->
-            <div id="categoryPane">
+            <!-- INLINE CATEGORY & SUBCATEGORY PANE -->
+            <div id="categoryPane" style="display: none; padding-top: 20px; border-top: 1px dashed var(--border-color); margin-top: 15px; padding-bottom: 20px;">
                 <div style="margin-bottom: 20px;">
                     <h2 class="section-title" id="catTitle" style="margin:0;">Category Name</h2>
                 </div>
                 
                 <div id="catProductsList">
-                    <!-- Products populate here -->
+                    <!-- Subcategories or Products populate here -->
                 </div>
             </div>
 
         </div>
 
-        <!-- 2. SUBSCRIPTIONS TAB (COMPACT LAYOUT) -->
+        <!-- 2. SUBSCRIPTIONS TAB -->
         <div id="subsTab" class="tab-content">
             <h2 class="section-title">Premium Subscriptions</h2>
             <div id="subsGrid" class="grid" style="grid-template-columns: 1fr;">
@@ -393,7 +383,7 @@
                     <h2 id="profileName" style="font-size:20px; font-weight:800; margin-bottom:5px;">User Name</h2>
                     <p id="profileEmail" style="font-size:14px; color:var(--text-secondary); margin-bottom:25px;">user@example.com</p>
                     
-                    <button id="logoutBtn" class="btn" style="background: var(--accent-pink); color: var(--text-primary); width:auto; padding:10px 30px; display:inline-block;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    <button id="logoutBtn" class="btn" style="background: var(--accent-pink); width:auto; padding:10px 30px; display:inline-block;"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
             </div>
         </div>
@@ -409,93 +399,63 @@
         <a class="nav-item" data-target="profileTab" id="navProfileIcon"><i class="fas fa-user"></i>Profile</a>
     </nav>
 
-    <!-- CHECKOUT MODAL REDESIGNED WITH ATTRACTIVE COLORS & LOGOS -->
+    <!-- CHECKOUT MODAL -->
     <div class="modal-overlay" id="checkoutModal">
         <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">Checkout Summary</div>
+                <button class="icon-btn" onclick="closeCheckout()" style="background:transparent; border:none; box-shadow:none;"><i class="fas fa-times"></i></button>
+            </div>
             
-            <!-- STEP 1: SUMMARY -->
-            <div id="chkStep1">
-                <div class="sheet-header">
-                    <div class="sheet-title">
-                        <i class="fas fa-shopping-bag" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i> 
-                        Order Summary
-                    </div>
+            <div class="checkout-summary">
+                <img id="chkImg" class="checkout-img" src="" alt="Item">
+                <div>
+                    <div id="chkTitle" style="font-weight:700; font-size:15px; margin-bottom:4px;"></div>
+                    <div id="chkType" style="font-size:12px; color:var(--text-secondary);"></div>
                 </div>
-                
-                <div class="checkout-item-box">
-                    <div id="chkTitle" style="font-weight:800; font-size:16px; color: var(--text-primary);"></div>
-                    <div id="chkSubPriceTop" style="font-weight:800; color:var(--accent-cyan); font-size:18px;"></div>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px;"><i class="fas fa-ticket-alt"></i> Promo Code</label>
-                    <div class="coupon-box">
-                        <input type="text" id="chkCouponInput" placeholder="Enter coupon code">
-                        <button class="btn-apply" onclick="applyCoupon()">Apply</button>
-                    </div>
-                    <div id="chkCouponMsg" style="font-size:12px; margin-top:5px; font-weight:600;"></div>
-                </div>
-
-                <div class="checkout-total-box">
-                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:600; margin-bottom:12px; color:var(--text-secondary);">
-                        <span>Subtotal</span>
-                        <span id="chkSubtotal">₹0</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:20px; border-top:1px solid var(--border-color); padding-top:12px;">
-                        <span>Total to Pay</span>
-                        <span id="chkFinalPrice" style="color:var(--accent-purple);">₹0</span>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:12px;">
-                    <button class="btn" style="background:transparent; border:2px solid var(--border-color); color:var(--text-primary);" onclick="closeCheckout()">Cancel</button>
-                    <button class="btn" onclick="goToStep2()" style="box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);">Proceed to Pay <i class="fas fa-arrow-right" style="margin-left:5px;"></i></button>
+                <div style="margin-left:auto; text-align:right;">
+                    <div id="chkPrice" style="font-weight:800; color:var(--accent-cyan); font-size:16px;"></div>
                 </div>
             </div>
 
-            <!-- STEP 2: PAYMENT -->
-            <div id="chkStep2" style="display:none;">
-                <div class="sheet-header">
-                    <div class="sheet-title">
-                        <i class="fas fa-shield-check" style="color: #10b981;"></i> 
-                        Secure Payment
-                    </div>
-                    <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; display:flex; align-items:center; gap:4px;">
-                        <i class="fas fa-lock"></i> 100% Safe
-                    </div>
-                </div>
-                
-                <div style="text-align:center; font-size:14px; font-weight:700; margin-bottom:15px; color:var(--text-secondary);">
-                    Scan QR to Pay Instantly
-                </div>
-                
-                <img src="https://i.ibb.co/21hL1YjR/Screenshot-2026-04-18-14-19-22-775-com-paytm-business.png" alt="Scan to Pay" style="width: 160px; border-radius: 16px; margin: 0 auto 15px; display: block; border: 3px solid var(--accent-cyan); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.2);">
-                
-                <!-- Payment Icons Row - Fixed for Guaranteed UPI Visibility (Using Wikipedia's direct PNG thumbnail path) -->
-                <div class="payment-icons">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-transparent.png/320px-UPI-Logo-transparent.png" alt="UPI">
-                    <i class="fab fa-google-pay" style="font-size: 28px; color: var(--text-secondary);"></i>
-                    <i class="fab fa-amazon-pay" style="font-size: 24px; color: var(--text-secondary);"></i>
-                </div>
+            <div class="coupon-box">
+                <input type="text" id="chkCouponInput" placeholder="Enter Coupon Code">
+                <button class="btn-apply" onclick="applyCoupon()">APPLY</button>
+            </div>
+            <div id="chkCouponMsg" style="font-size:12px; margin-bottom:15px; font-weight:600;"></div>
 
-                <div class="upi-copy-box" onclick="copyUPI()">
-                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Or pay to this UPI ID (Tap to Copy)</div>
-                    <div class="upi-text" id="chkUpiId">sachuoxraut@fam</div>
-                    <i class="fas fa-copy" style="color: var(--accent-cyan); font-size: 16px; margin-top: 2px;"></i>
-                </div>
-                
-                <div class="input-group" style="margin-bottom: 25px;">
-                    <label style="margin-bottom: 8px; font-size: 13px;"><i class="fas fa-info-circle" style="color:var(--accent-purple); margin-right:4px;"></i> Enter 12-Digit UTR / Ref. No</label>
-                    <input type="number" id="chkUtrInput" placeholder="e.g. 312345678912" style="padding: 15px; font-size: 15px; text-align: center; font-weight: 700; letter-spacing: 1px;">
-                </div>
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:18px; border-top:1px dashed var(--border-color); padding-top:15px;">
+                <span>Final Amount</span>
+                <span id="chkFinalPrice" style="color:var(--accent-pink);">₹0</span>
+            </div>
 
-                <div style="display:flex; gap:12px;">
-                    <!-- Direct Cancel Button (Closes modal without going back) -->
-                    <button class="btn" style="background:transparent; border:2px solid var(--border-color); color:var(--text-primary);" onclick="closeCheckout()"><i class="fas fa-times" style="margin-right:5px;"></i> Cancel</button>
-                    <button class="btn" onclick="confirmPurchase()" style="box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); background: linear-gradient(135deg, #10b981, #059669); color: #fff;">Confirm Order <i class="fas fa-check-circle" style="margin-left:5px;"></i></button>
+            <div class="payment-box">
+                <div style="font-size:13px; font-weight:600;">Scan / Pay exactly <span id="chkPayAmt"></span> to this UPI ID</div>
+                <div class="upi-text" id="chkUpiId">sachuoxraut@fam</div>
+                <div style="font-size:11px; color:var(--text-secondary);">Tap UPI ID to copy</div>
+                
+                <!-- Static QR Code -->
+                <img src="https://i.ibb.co/21hL1YjR/Screenshot-2026-04-18-14-19-22-775-com-paytm-business.png" alt="Scan to Pay" style="width: 160px; border-radius: 12px; margin: 15px auto 5px; display: block; border: 2px solid var(--accent-cyan); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            </div>
+
+            <!-- DYNAMIC LINK & POLL INPUTS ADDED HERE -->
+            <div id="chkLinkContainer" style="display:none; padding-top: 10px;">
+                <div class="input-group">
+                    <label id="chkLinkLabel">Target Link</label>
+                    <input type="text" id="chkLinkInput" placeholder="Paste link here...">
+                </div>
+                <div class="input-group" id="chkPollContainer" style="display:none;">
+                    <label>Poll Vote Option</label>
+                    <input type="text" id="chkPollInput" placeholder="Enter option to vote for (e.g., Option 1)">
                 </div>
             </div>
 
+            <div class="input-group">
+                <label>Transaction ID / UTR Number (12 Digits)</label>
+                <input type="number" id="chkUtrInput" placeholder="e.g. 301234567890">
+            </div>
+
+            <button class="btn" onclick="confirmPurchase()" style="height:50px; font-size:16px;"><i class="fas fa-lock"></i> Place Secure Order</button>
         </div>
     </div>
 
@@ -533,9 +493,10 @@
     let couponsData = {};
     let checkoutItem = null;
     let checkoutFinalAmt = 0;
-    let checkoutBaseAmt = 0;
     let appliedCouponKey = null;
-    let userActiveSubs = {}; 
+
+    // View State for Inline Category View
+    let currentCatView = { level: 0, cat: '', subCat: '' }; // level 0=hidden, 1=subcat list, 2=product list
 
     // UI Helpers
     const showToast = (msg) => {
@@ -567,14 +528,17 @@
         tabContents.forEach(tc => tc.classList.remove('active'));
         document.getElementById(targetId).classList.add('active');
         
+        // Ensure category pane is hidden when navigating away
         if (targetId !== 'homeTab') {
             document.getElementById('categoryPane').style.display = 'none';
+            currentCatView.level = 0;
         }
 
         navItems.forEach(nav => {
             nav.classList.toggle('active', nav.dataset.target === targetId);
         });
         
+        // Reset scroll within the content area
         document.querySelector('.content-area').scrollTo(0,0);
     }
 
@@ -583,22 +547,72 @@
     });
     document.getElementById('headerProfileBtn').addEventListener('click', () => switchTab('profileTab'));
 
-    // Inline Scroll Category Logic (Added Smooth Scroll with delay)
+    // --- Category & SubCategory Dynamic Loading ---
+    
     window.openCategory = (catName) => {
-        document.getElementById('catTitle').textContent = catName;
+        currentCatView = { level: 1, cat: catName, subCat: '' };
+        
+        const catTitle = document.getElementById('catTitle');
+        catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
+        
         const list = document.getElementById('catProductsList');
+        list.innerHTML = '';
         
-        // Add animation class
-        list.classList.remove('animated-list');
-        void list.offsetWidth; // trigger reflow
-        list.classList.add('animated-list');
+        // Find which subcategories actually have products in this category
+        let subCatsMap = {};
+        Object.entries(productsData).forEach(([id, p]) => {
+            const pCat = p.category || 'Other';
+            if(pCat === catName) {
+                const sub = p.subCategory || 'General';
+                if(!subCatsMap[sub]) subCatsMap[sub] = 0;
+                subCatsMap[sub]++;
+            }
+        });
+
+        if(Object.keys(subCatsMap).length === 0) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No services currently available here.</p></div>';
+        } else {
+            Object.keys(subCatsMap).forEach(sub => {
+                list.innerHTML += `
+                    <div class="subcategory-card" onclick="openSubCategory('${catName}', '${sub}')">
+                        <div class="subcategory-name">${sub}</div>
+                        <div class="subcategory-count">${subCatsMap[sub]} <span style="font-weight:400;">Services</span> <i class="fas fa-chevron-right" style="font-size:10px;"></i></div>
+                    </div>
+                `;
+            });
+        }
+
+        const pane = document.getElementById('categoryPane');
+        pane.style.display = 'block';
         
+        setTimeout(() => {
+            const contentArea = document.querySelector('.content-area');
+            const targetPos = Math.max(0, pane.offsetTop - 40);
+            contentArea.scrollTo({ top: targetPos, behavior: 'smooth' });
+        }, 50);
+    };
+
+    window.openSubCategory = (catName, subCatName) => {
+        currentCatView = { level: 2, cat: catName, subCat: subCatName };
+        
+        const catTitle = document.getElementById('catTitle');
+        catTitle.innerHTML = `
+            <button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button>
+            <div style="line-height:1.2;">
+                <div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div>
+                <div style="font-size:18px;">${subCatName}</div>
+            </div>
+        `;
+        
+        const list = document.getElementById('catProductsList');
         list.innerHTML = '';
         
         let hasItems = false;
         Object.entries(productsData).forEach(([id, p]) => {
             const pCat = p.category || 'Other';
-            if(pCat === catName) {
+            const pSub = p.subCategory || 'General';
+            
+            if(pCat === catName && pSub === subCatName) {
                 hasItems = true;
                 list.innerHTML += `
                     <div class="product-list-card">
@@ -615,18 +629,15 @@
         });
 
         if(!hasItems) {
-            list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found in this category</p></div>';
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>';
         }
-
-        const pane = document.getElementById('categoryPane');
-        pane.style.display = 'block';
         
-        // Added smooth delay for an elegant scroll feel
         setTimeout(() => {
             const contentArea = document.querySelector('.content-area');
-            const targetPos = Math.max(0, pane.offsetTop - 20);
+            const pane = document.getElementById('categoryPane');
+            const targetPos = Math.max(0, pane.offsetTop - 40);
             contentArea.scrollTo({ top: targetPos, behavior: 'smooth' });
-        }, 300);
+        }, 50);
     };
 
     // Auth Listeners & Handlers
@@ -686,8 +697,6 @@
             document.getElementById('userProfileView').style.display = 'none';
             document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>';
             document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>';
-            userActiveSubs = {};
-            renderSubscriptions();
         }
     });
 
@@ -734,61 +743,42 @@
 
         onValue(ref(db, 'products'), s => {
             productsData = s.exists() ? s.val() : {};
+            
             if(document.getElementById('categoryPane').style.display === 'block') {
-                const activeCat = document.getElementById('catTitle').textContent;
-                openCategory(activeCat);
+                if(currentCatView.level === 1) {
+                    openCategory(currentCatView.cat);
+                } else if(currentCatView.level === 2) {
+                    openSubCategory(currentCatView.cat, currentCatView.subCat);
+                }
             }
         });
 
         onValue(ref(db, 'subscriptions'), s => {
+            const grid = document.getElementById('subsGrid');
             subsData = s.exists() ? s.val() : {};
-            renderSubscriptions();
+            if(!s.exists()) return grid.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No active plans</p></div>';
+            
+            grid.innerHTML = '';
+            Object.entries(subsData).forEach(([id, sub]) => {
+                let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:5px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan); margin-right:8px;"></i>${f}</li>`).join('');
+                grid.innerHTML += `
+                    <div class="item-card" style="padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <div style="font-size:18px; font-weight:800;">${sub.planName}</div>
+                            <div style="background:rgba(124, 58, 237, 0.1); color:var(--accent-purple); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div>
+                        </div>
+                        <div class="item-price" style="font-size:28px; margin-bottom:15px;">₹${sub.price}</div>
+                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:15px; border-bottom:1px dashed var(--border-color); padding-bottom:15px;">${sub.description || 'Premium access plan'}</p>
+                        <ul style="list-style:none; font-size:13px; margin-bottom:20px; color:var(--text-primary);">
+                            ${feats}
+                        </ul>
+                        <button class="btn" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>
+                    </div>
+                `;
+            });
         });
 
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
-    }
-
-    // Dynamic Subscription UI Rendering Function (COMPACT LAYOUT)
-    function renderSubscriptions() {
-        const grid = document.getElementById('subsGrid');
-        if(Object.keys(subsData).length === 0) return grid.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No plans available</p></div>';
-        
-        grid.innerHTML = '';
-        Object.entries(subsData).forEach(([id, sub]) => {
-            let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:4px; display:flex; align-items:flex-start; gap:6px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan); font-size:12px; margin-top:2px;"></i><span>${f}</span></li>`).join('');
-            
-            let btnHtml = `<button class="btn" style="padding:10px; font-size:13px;" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>`;
-            
-            // Overwrite button if user is currently actively subscribed to this plan
-            if(userActiveSubs[id] && userActiveSubs[id] > Date.now()) {
-                let diffMs = userActiveSubs[id] - Date.now();
-                let days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                let hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-                
-                btnHtml = `
-                    <div class="btn" style="background:var(--card-solid); border:1px solid #ef4444; color:var(--text-primary); cursor:default; pointer-events:none; padding:10px; font-size:13px;">
-                        <i class="fas fa-clock" style="color:#ef4444; margin-right:6px;"></i> Subscribed (<span style="color:#ef4444; font-weight:800;">${days}d ${hours}h left</span>)
-                    </div>
-                `;
-            }
-
-            grid.innerHTML += `
-                <div class="item-card" style="padding:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                        <div>
-                            <div style="font-size:16px; font-weight:800; line-height:1.2;">${sub.planName}</div>
-                            <div class="item-price" style="font-size:20px; font-weight:800; color:var(--text-primary); margin-top:4px;">₹${sub.price}</div>
-                        </div>
-                        <div style="background:rgba(124, 58, 237, 0.1); color:var(--accent-purple); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; white-space:nowrap;">${sub.duration} Days</div>
-                    </div>
-                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px; line-height:1.4; border-bottom:1px dashed var(--border-color); padding-bottom:10px;">${sub.description || 'Premium access plan'}</p>
-                    <ul style="list-style:none; font-size:12px; margin-bottom:12px; color:var(--text-primary); line-height:1.4;">
-                        ${feats}
-                    </ul>
-                    ${btnHtml}
-                </div>
-            `;
-        });
     }
 
     // Protected Data Loaders
@@ -797,12 +787,7 @@
         const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(currentUser.uid));
         onValue(q, s => {
             const list = document.getElementById('ordersList');
-            userActiveSubs = {}; // Clear active subs
-            
-            if(!s.exists()) {
-                renderSubscriptions(); // Refresh UI in case of changes
-                return list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>';
-            }
+            if(!s.exists()) return list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>';
             
             list.innerHTML = '';
             const arr =[];
@@ -810,17 +795,6 @@
             arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             arr.forEach(o => {
-                // Determine if this order enables an active subscription
-                if(o.isSubscription && o.status === 'confirmed' && o.productSnapshot) {
-                    let dur = parseInt(o.productSnapshot.duration) || 0;
-                    let start = new Date(o.createdAt).getTime();
-                    let expiry = start + (dur * 24 * 60 * 60 * 1000);
-                    
-                    if(Date.now() < expiry) {
-                        userActiveSubs[o.productId] = Math.max(userActiveSubs[o.productId] || 0, expiry);
-                    }
-                }
-
                 let statusBadge = '';
                 if(o.status === 'pending') statusBadge = '<span class="badge bg-pending">Pending Validation</span>';
                 else if(o.status === 'confirmed') statusBadge = '<span class="badge bg-confirmed">Confirmed</span>';
@@ -839,6 +813,8 @@
                         </div>
                         <div class="order-info">
                             <div><span>Item:</span> ${o.productSnapshot?.title || o.productSnapshot?.planName || 'Unknown'}</div>
+                            ${o.targetLink ? `<div><span>Link:</span> <a href="${o.targetLink.startsWith('http') ? o.targetLink : 'https://'+o.targetLink}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all;">${o.targetLink}</a></div>` : ''}
+                            ${o.pollOption ? `<div><span>Vote Option:</span> ${o.pollOption}</div>` : ''}
                             <div><span>Amount Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
                             <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
                             <div><span>UTR:</span> ${o.utrId}</div>
@@ -847,8 +823,6 @@
                     </div>
                 `;
             });
-            
-            renderSubscriptions(); // Trigger Subscriptions view refresh
         });
     }
 
@@ -891,7 +865,7 @@
         input.value = '';
     });
 
-    // CHECKOUT FLOW (TWO-STEP MODAL)
+    // CHECKOUT FLOW
     window.initCheckout = (id, type) => {
         if(!currentUser) {
             showToast('Please login to purchase!');
@@ -904,35 +878,74 @@
         
         checkoutItem.id = id;
         checkoutItem.purchaseType = type;
-        
-        checkoutBaseAmt = type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price);
-        checkoutFinalAmt = checkoutBaseAmt;
+        checkoutFinalAmt = type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price);
         appliedCouponKey = null;
 
+        const imgEl = document.getElementById('chkImg');
+        if(checkoutItem.imageUrl) {
+            imgEl.src = checkoutItem.imageUrl;
+            imgEl.style.display = 'block';
+        } else {
+            imgEl.style.display = 'none';
+        }
+        
         document.getElementById('chkTitle').textContent = checkoutItem.title || checkoutItem.planName;
-        document.getElementById('chkSubPriceTop').textContent = `₹${checkoutBaseAmt}`;
-        document.getElementById('chkSubtotal').textContent = `₹${checkoutBaseAmt}`;
+        document.getElementById('chkType').textContent = type === 'product' ? 'Digital Service' : `${checkoutItem.duration} Days Subscription`;
+        document.getElementById('chkPrice').textContent = `₹${checkoutFinalAmt}`;
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt}`;
+        document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt}`;
         
         document.getElementById('chkCouponInput').value = '';
         document.getElementById('chkCouponMsg').textContent = '';
         document.getElementById('chkUtrInput').value = '';
+        document.getElementById('chkLinkInput').value = '';
+        document.getElementById('chkPollInput').value = '';
         
-        // Show Step 1, Hide Step 2
-        document.getElementById('chkStep1').style.display = 'block';
-        document.getElementById('chkStep2').style.display = 'none';
+        // DYNAMIC LINK LABELS LOGIC
+        if (type === 'product') {
+            document.getElementById('chkLinkContainer').style.display = 'block';
+            let cat = checkoutItem.category || '';
+            let sub = (checkoutItem.subCategory || '').toLowerCase();
+            let label = 'Target Link';
+            let showPoll = false;
+
+            if (cat === 'Instagram') {
+                if (sub.includes('follower')) label = 'Paste Your Profile Link';
+                else if (sub.includes('reel')) label = 'Reels Link';
+                else if (sub.includes('story view')) label = 'Username';
+                else if (sub.includes('poll')) { label = 'Story Link'; showPoll = true; }
+                else label = 'Post Link';
+            } else if (cat === 'YouTube') {
+                if (sub.includes('sub')) label = 'Channel Link';
+                else if (sub.includes('view') || sub.includes('watch')) label = 'Video Link';
+                else label = 'Post/Video Link';
+            } else if (cat === 'Facebook') {
+                if (sub.includes('group')) label = 'Group Link';
+                else if (sub.includes('follower')) label = 'Page/Profile Link';
+                else label = 'Post/Video Link';
+            } else if (cat === 'WhatsApp') {
+                if (sub.includes('follower')) label = 'Channel Link';
+                else label = 'Channel Post Link';
+            } else if (cat === 'Telegram') {
+                if (sub.includes('group')) label = 'Group Link';
+                else if (sub.includes('member')) label = 'Channel Link';
+                else if (sub.includes('poll')) { label = 'Post Link'; showPoll = true; }
+                else label = 'Post Link';
+            } else {
+                label = 'Target Link / Username';
+            }
+
+            document.getElementById('chkLinkLabel').textContent = label;
+            document.getElementById('chkLinkInput').placeholder = 'Enter ' + label;
+            document.getElementById('chkPollContainer').style.display = showPoll ? 'block' : 'none';
+        } else {
+            document.getElementById('chkLinkContainer').style.display = 'none';
+        }
 
         document.getElementById('checkoutModal').classList.add('active');
     };
 
-    window.closeCheckout = () => { 
-        document.getElementById('checkoutModal').classList.remove('active'); 
-    };
-
-    window.goToStep2 = () => {
-        document.getElementById('chkStep1').style.display = 'none';
-        document.getElementById('chkStep2').style.display = 'block';
-    };
+    window.closeCheckout = () => { document.getElementById('checkoutModal').classList.remove('active'); };
 
     window.applyCoupon = () => {
         const code = document.getElementById('chkCouponInput').value.trim().toUpperCase();
@@ -945,39 +958,51 @@
             if(cp.code === code && cp.isActive !== false) { validCoupon = cp; cKey = key; }
         });
 
-        // Error message in RED
         if(!validCoupon) {
             msg.textContent = 'Invalid or expired coupon!';
-            msg.style.color = '#ef4444'; 
+            msg.style.color = 'var(--accent-pink)';
             return;
         }
 
-        // Limit message in RED
         if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) {
             msg.textContent = 'Coupon limit reached!';
-            msg.style.color = '#ef4444'; 
+            msg.style.color = 'var(--accent-pink)';
             return;
         }
 
+        let basePrice = checkoutItem.purchaseType === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price);
         let discount = 0;
+        
         if(validCoupon.discountType === 'percentage') {
-            discount = checkoutBaseAmt * (parseFloat(validCoupon.discountValue) / 100);
+            discount = basePrice * (parseFloat(validCoupon.discountValue) / 100);
         } else {
             discount = parseFloat(validCoupon.discountValue);
         }
 
-        checkoutFinalAmt = Math.max(0, checkoutBaseAmt - discount);
+        checkoutFinalAmt = Math.max(0, basePrice - discount);
         appliedCouponKey = cKey;
 
         msg.textContent = `Coupon applied! You saved ₹${discount.toFixed(2)}`;
         msg.style.color = '#10b981';
         
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
+        document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
     };
 
     window.confirmPurchase = async () => {
         const utr = document.getElementById('chkUtrInput').value.trim();
         if(utr.length < 6) return showToast('Enter a valid UTR / Transaction ID');
+
+        // NEW: Validating dynamically generated link inputs
+        const targetLink = document.getElementById('chkLinkInput').value.trim();
+        const pollOption = document.getElementById('chkPollInput').value.trim();
+        
+        if (checkoutItem.purchaseType === 'product') {
+            if (!targetLink) return showToast('Please enter the required link/username');
+            if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
+                return showToast('Please enter the poll vote option');
+            }
+        }
 
         showLoader();
         try {
@@ -986,7 +1011,7 @@
             const utrSnapshot = await get(utrQuery);
             if (utrSnapshot.exists()) {
                 hideLoader();
-                return showToast('This UTR has already been used!');
+                return showToast('This UTR has already been used! Please contact support.');
             }
 
             const orderData = {
@@ -996,6 +1021,8 @@
                 userEmail: currentUser.email,
                 finalAmount: checkoutFinalAmt.toFixed(2),
                 utrId: utr,
+                targetLink: checkoutItem.purchaseType === 'product' ? targetLink : null,
+                pollOption: (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
                 isSubscription: checkoutItem.purchaseType === 'subscription'
@@ -1009,7 +1036,7 @@
             }
 
             closeCheckout();
-            showToast('Order Placed! Pending admin validation.');
+            showToast('Order Placed Successfully! Pending admin validation.');
             switchTab('ordersTab');
         } catch(e) {
             showToast('Error: ' + e.message);
@@ -1017,44 +1044,10 @@
         hideLoader();
     };
 
-    // --- BULLETPROOF COPY FUNCTION ---
-    window.copyUPI = () => {
-        const upiText = document.getElementById('chkUpiId').textContent;
-        
-        // Use modern clipboard API if available & secure
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(upiText).then(() => {
-                showToast('UPI ID Copied!');
-            }).catch(() => fallbackCopy(upiText));
-        } else {
-            // Fallback for older browsers, webviews, or non-https connections
-            fallbackCopy(upiText);
-        }
-    };
-
-    function fallbackCopy(text) {
-        var textArea = document.createElement("textarea");
-        textArea.value = text;
-        
-        // Prevent scrolling to bottom
-        textArea.style.position = "fixed";
-        textArea.style.top = "0";
-        textArea.style.left = "-9999px";
-        
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-            var successful = document.execCommand('copy');
-            if(successful) showToast('UPI ID Copied!');
-            else showToast('Failed to copy. Please select manually.');
-        } catch (err) {
-            showToast('Failed to copy.');
-        }
-        
-        document.body.removeChild(textArea);
-    }
+    document.getElementById('chkUpiId').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('chkUpiId').textContent);
+        showToast('UPI ID Copied!');
+    });
 
     // Initialize App
     loadPublicData();
