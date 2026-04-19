@@ -147,6 +147,7 @@
         
         .btn { width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: var(--transition); text-align: center; font-size: 14px; }
         .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.8; }
 
         /* Forms & Inputs */
         .input-group { margin-bottom: 15px; }
@@ -490,13 +491,14 @@
     let currentUser = null;
     let productsData = {};
     let subsData = {};
+    let activeSubscriptions = {}; // Holds confirmed subscriptions states
     let couponsData = {};
     let checkoutItem = null;
     let checkoutFinalAmt = 0;
     let appliedCouponKey = null;
 
     // View State for Inline Category View
-    let currentCatView = { level: 0, cat: '', subCat: '' }; // level 0=hidden, 1=subcat list, 2=product list
+    let currentCatView = { level: 0, cat: '', subCat: '' };
 
     // UI Helpers
     const showToast = (msg) => {
@@ -538,7 +540,6 @@
             nav.classList.toggle('active', nav.dataset.target === targetId);
         });
         
-        // Reset scroll within the content area
         document.querySelector('.content-area').scrollTo(0,0);
     }
 
@@ -558,7 +559,6 @@
         const list = document.getElementById('catProductsList');
         list.innerHTML = '';
         
-        // Find which subcategories actually have products in this category
         let subCatsMap = {};
         Object.entries(productsData).forEach(([id, p]) => {
             const pCat = p.category || 'Other';
@@ -697,8 +697,48 @@
             document.getElementById('userProfileView').style.display = 'none';
             document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>';
             document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>';
+            activeSubscriptions = {};
+            renderSubscriptions();
         }
     });
+
+    // Render Subscriptions logic
+    function renderSubscriptions() {
+        const grid = document.getElementById('subsGrid');
+        if(!subsData || Object.keys(subsData).length === 0) {
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No active plans</p></div>';
+            return;
+        }
+        
+        grid.innerHTML = '';
+        Object.entries(subsData).forEach(([id, sub]) => {
+            let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:5px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan); margin-right:8px;"></i>${f}</li>`).join('');
+            
+            let actionHtml = `<button class="btn" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>`;
+            
+            // Check if user is currently subscribed
+            if (activeSubscriptions[id] && activeSubscriptions[id] > new Date()) {
+                const diffTime = Math.abs(activeSubscriptions[id] - new Date());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                actionHtml = `<button class="btn" style="background: var(--accent-pink); cursor: default; display: flex; justify-content: center; align-items: center; gap: 8px;" disabled><i class="fas fa-clock"></i> Subscribed (${diffDays} Days Left)</button>`;
+            }
+
+            grid.innerHTML += `
+                <div class="item-card" style="padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div style="font-size:18px; font-weight:800;">${sub.planName}</div>
+                        <div style="background:rgba(124, 58, 237, 0.1); color:var(--accent-purple); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div>
+                    </div>
+                    <div class="item-price" style="font-size:28px; margin-bottom:15px;">₹${sub.price}</div>
+                    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:15px; border-bottom:1px dashed var(--border-color); padding-bottom:15px;">${sub.description || 'Premium access plan'}</p>
+                    <ul style="list-style:none; font-size:13px; margin-bottom:20px; color:var(--text-primary);">
+                        ${feats}
+                    </ul>
+                    ${actionHtml}
+                </div>
+            `;
+        });
+    }
 
     // Public Data Loaders
     function loadPublicData() {
@@ -754,28 +794,8 @@
         });
 
         onValue(ref(db, 'subscriptions'), s => {
-            const grid = document.getElementById('subsGrid');
             subsData = s.exists() ? s.val() : {};
-            if(!s.exists()) return grid.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No active plans</p></div>';
-            
-            grid.innerHTML = '';
-            Object.entries(subsData).forEach(([id, sub]) => {
-                let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:5px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan); margin-right:8px;"></i>${f}</li>`).join('');
-                grid.innerHTML += `
-                    <div class="item-card" style="padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <div style="font-size:18px; font-weight:800;">${sub.planName}</div>
-                            <div style="background:rgba(124, 58, 237, 0.1); color:var(--accent-purple); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div>
-                        </div>
-                        <div class="item-price" style="font-size:28px; margin-bottom:15px;">₹${sub.price}</div>
-                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:15px; border-bottom:1px dashed var(--border-color); padding-bottom:15px;">${sub.description || 'Premium access plan'}</p>
-                        <ul style="list-style:none; font-size:13px; margin-bottom:20px; color:var(--text-primary);">
-                            ${feats}
-                        </ul>
-                        <button class="btn" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>
-                    </div>
-                `;
-            });
+            renderSubscriptions();
         });
 
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
@@ -787,7 +807,13 @@
         const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(currentUser.uid));
         onValue(q, s => {
             const list = document.getElementById('ordersList');
-            if(!s.exists()) return list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>';
+            activeSubscriptions = {}; // reset for fresh calculation
+
+            if(!s.exists()) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>';
+                renderSubscriptions();
+                return;
+            }
             
             list.innerHTML = '';
             const arr =[];
@@ -803,6 +829,19 @@
                 let actionHtml = '';
                 if(o.status === 'confirmed' && o.productSnapshot && o.productSnapshot.downloadLink) {
                     actionHtml = `<a href="${o.productSnapshot.downloadLink}" target="_blank" class="btn" style="display:inline-block; margin-top:10px; text-decoration:none;"><i class="fas fa-cloud-download-alt"></i> Access / Download</a>`;
+                }
+
+                // Calculate Subscriptions remaining days
+                if (o.status === 'confirmed' && o.isSubscription) {
+                    const subId = o.productId;
+                    const duration = parseInt(o.productSnapshot.duration || 0);
+                    const approvedAt = new Date(o.updatedAt || o.createdAt);
+                    const expiresAt = new Date(approvedAt.getTime() + duration * 24 * 60 * 60 * 1000);
+                    if (expiresAt > new Date()) {
+                        if (!activeSubscriptions[subId] || expiresAt > activeSubscriptions[subId]) {
+                            activeSubscriptions[subId] = expiresAt;
+                        }
+                    }
                 }
 
                 list.innerHTML += `
@@ -823,6 +862,9 @@
                     </div>
                 `;
             });
+
+            // Re-render subscriptions view to update buttons
+            renderSubscriptions();
         });
     }
 
@@ -839,7 +881,7 @@
                 const m = mSnap.val();
                 const div = document.createElement('div');
                 div.className = `msg-bubble ${m.sender === 'user' ? 'msg-user' : 'msg-admin'}`;
-                div.textContent = m.message;
+                div.textContent = m.message || m.text || ''; // Safely supports legacy text property
                 msgCont.appendChild(div);
             });
             msgCont.scrollTop = msgCont.scrollHeight;
@@ -902,8 +944,9 @@
         document.getElementById('chkPollInput').value = '';
         
         // DYNAMIC LINK LABELS LOGIC
+        document.getElementById('chkLinkContainer').style.display = 'block'; // Always show link container
+        
         if (type === 'product') {
-            document.getElementById('chkLinkContainer').style.display = 'block';
             let cat = checkoutItem.category || '';
             let sub = (checkoutItem.subCategory || '').toLowerCase();
             let label = 'Target Link';
@@ -939,7 +982,10 @@
             document.getElementById('chkLinkInput').placeholder = 'Enter ' + label;
             document.getElementById('chkPollContainer').style.display = showPoll ? 'block' : 'none';
         } else {
-            document.getElementById('chkLinkContainer').style.display = 'none';
+            // Label logic for Subscriptions
+            document.getElementById('chkLinkLabel').textContent = 'Reels Link';
+            document.getElementById('chkLinkInput').placeholder = 'Enter Reels Link';
+            document.getElementById('chkPollContainer').style.display = 'none';
         }
 
         document.getElementById('checkoutModal').classList.add('active');
@@ -993,12 +1039,12 @@
         const utr = document.getElementById('chkUtrInput').value.trim();
         if(utr.length < 6) return showToast('Enter a valid UTR / Transaction ID');
 
-        // NEW: Validating dynamically generated link inputs
         const targetLink = document.getElementById('chkLinkInput').value.trim();
         const pollOption = document.getElementById('chkPollInput').value.trim();
         
+        if (!targetLink) return showToast('Please enter the required link/username');
+
         if (checkoutItem.purchaseType === 'product') {
-            if (!targetLink) return showToast('Please enter the required link/username');
             if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
                 return showToast('Please enter the poll vote option');
             }
@@ -1006,7 +1052,6 @@
 
         showLoader();
         try {
-            // === UTR REUSE RESTRICTION CHECK ===
             const utrQuery = query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr));
             const utrSnapshot = await get(utrQuery);
             if (utrSnapshot.exists()) {
@@ -1021,7 +1066,7 @@
                 userEmail: currentUser.email,
                 finalAmount: checkoutFinalAmt.toFixed(2),
                 utrId: utr,
-                targetLink: checkoutItem.purchaseType === 'product' ? targetLink : null,
+                targetLink: targetLink,
                 pollOption: (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
