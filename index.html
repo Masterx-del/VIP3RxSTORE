@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Premium User Dashboard</title>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -85,7 +84,7 @@
 
         /* --- MAIN CONTENT AREA --- */
         .content-area { 
-            flex: 1; 
+            flex: 1;
             padding: 20px; 
             overflow-y: auto; 
             overflow-x: hidden; 
@@ -101,7 +100,6 @@
         .card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
 
-        /* Offer Banner */
         .offer-banner { position: relative; border-radius: 16px; overflow: hidden; min-height: 110px; display: flex; align-items: flex-end; margin-bottom: 20px; background-size: cover; background-position: center; box-shadow: var(--shadow); }
         .offer-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
         .offer-content { position: relative; z-index: 1; padding: 15px; color: #fff; width: 100%; }
@@ -109,27 +107,23 @@
         .offer-price { color: var(--accent-cyan); font-weight: 700; font-size: 16px; }
         .offer-old-price { text-decoration: line-through; color: #ccc; font-size: 13px; margin-left: 8px; }
 
-        /* Smaller Stacked Action Cards */
         .action-cards-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
         .action-card-row { background: var(--card-solid); border: var(--glass-border); display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 12px; text-decoration: none; color: var(--text-primary); transition: var(--transition); box-shadow: var(--shadow); }
         .action-card-row:hover { transform: translateY(-2px); }
         .action-text { font-size: 11px; font-weight: 700; flex: 1; padding-right: 10px; }
         .action-btn-small { display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #0088cc, var(--accent-purple)); color: white; padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; white-space: nowrap; }
 
-        /* Services Grid */
         .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
         .service-cat-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; padding: 12px 5px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: var(--transition); }
         .service-cat-card:active { transform: scale(0.95); }
         .service-cat-card i { font-size: 24px; margin-bottom: 6px; }
         .service-cat-name { font-size: 10px; font-weight: 700; color: var(--text-primary); }
 
-        /* Subcategory Cards */
         .subcategory-card { background: var(--card-solid); border: var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: var(--transition); }
         .subcategory-card:hover { transform: translateY(-2px); border-color: var(--accent-cyan); }
         .subcategory-name { font-size: 14px; font-weight: 700; }
         .subcategory-count { font-size: 12px; color: var(--text-secondary); background: var(--bg-color); padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
-        /* Product List Card */
         .product-list-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-solid); border: var(--glass-border); border-radius: 12px; padding: 14px 15px; margin-bottom: 10px; box-shadow: var(--shadow); }
         .plc-info { flex: 1; padding-right: 10px; }
         .plc-name { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
@@ -137,11 +131,9 @@
         .plc-price { font-weight: 800; color: var(--accent-cyan); font-size: 15px; }
         .plc-buy { padding: 8px 16px; border-radius: 8px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; color: white; font-weight: 600; font-size: 12px; cursor: pointer; }
 
-        /* Back button inside category pane */
         .back-btn-cat { background: var(--input-bg); border: var(--glass-border); color: var(--text-primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
         .back-btn-cat:hover { background: var(--accent-cyan); color: #fff; }
 
-        /* Subscriptions Grid */
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .item-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
         
@@ -149,7 +141,6 @@
         .btn:active { transform: scale(0.96); }
         .btn:disabled { opacity: 0.8; }
 
-        /* Forms & Inputs */
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .input-group input { width: 100%; padding: 14px; background: var(--input-bg); border: var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 14px; outline: none; transition: var(--transition); }
@@ -157,9 +148,21 @@
 
         /* Orders List */
         .order-card { background: var(--card-solid); border: var(--glass-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow); }
-        .order-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #fff; }
-        .bg-pending { background: #f59e0b; } .bg-confirmed { background: #10b981; } .bg-rejected { background: #ef4444; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        
+        /* Badges & Animations */
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #fff; font-weight: 700; }
+        .bg-pending { background: #f59e0b; } 
+        .bg-progress { background: #3b82f6; } 
+        .bg-completed { background: #10b981; } 
+        .bg-rejected { background: #ef4444; }
+        @keyframes pulseBadge {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulse-anim { animation: pulseBadge 1.5s ease-in-out infinite; display: inline-block; }
+
         .order-info { font-size: 13px; margin-bottom: 12px; line-height: 1.6; }
         .order-info span { color: var(--text-secondary); font-weight: 600; }
 
@@ -178,50 +181,40 @@
 
         /* --- STATIC BOTTOM NAVIGATION --- */
         .bottom-nav { 
-            position: relative; 
-            height: 55px; 
-            background: var(--nav-bg); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
-            border-top: var(--glass-border); 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            flex-shrink: 0;
-            z-index: 100; 
-        }
+            position: relative; height: 55px; background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: var(--glass-border); display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; z-index: 100; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); text-decoration: none; font-size: 10px; font-weight: 600; gap: 4px; cursor: pointer; transition: var(--transition); }
         .nav-item.active { color: var(--accent-cyan); transform: translateY(-2px); }
         .nav-item i { font-size: 18px; }
 
-        /* --- CHECKOUT MODAL --- */
+        /* --- COMPACT CHECKOUT MODAL --- */
         .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); display: flex; align-items: flex-end; justify-content: center; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .bottom-sheet { background: var(--card-solid); width: 100%; border-radius: 24px 24px 0 0; padding: 25px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; }
+        
+        .bottom-sheet { background: var(--card-solid); width: 100%; border-radius: 20px 20px 0 0; padding: 15px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; }
         .modal-overlay.active .bottom-sheet { transform: translateY(0); }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .sheet-title { font-size: 16px; font-weight: 800; }
+        .checkout-summary { background: var(--bg-color); border-radius: 12px; padding: 10px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; }
+        .checkout-img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; display: none; }
+        .coupon-box { display: flex; gap: 8px; margin-bottom: 8px; }
+        .coupon-box input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary); text-transform: uppercase; outline: none; font-size: 13px; }
+        .btn-apply { padding: 0 12px; background: var(--text-primary); color: var(--card-solid); border: none; border-radius: 8px; font-weight: 600; font-size: 12px; }
+        .payment-box { background: rgba(0, 188, 212, 0.05); border: 1px solid rgba(0, 188, 212, 0.3); border-radius: 12px; padding: 10px; margin: 12px 0; text-align: center; }
+        .upi-text { font-size: 16px; font-weight: 800; letter-spacing: 1px; color: var(--accent-cyan); margin: 3px 0 6px; user-select: all; cursor: pointer; }
         
-        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sheet-title { font-size: 18px; font-weight: 800; }
-        
-        .checkout-summary { background: var(--bg-color); border-radius: 16px; padding: 15px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
-        .checkout-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; display: none; }
-        
-        .coupon-box { display: flex; gap: 10px; margin-bottom: 10px; }
-        .coupon-box input { flex: 1; padding: 12px; border-radius: 10px; border: var(--glass-border); background: var(--bg-color); color: var(--text-primary); text-transform: uppercase; outline: none; }
-        .btn-apply { padding: 0 15px; background: var(--text-primary); color: var(--card-solid); border: none; border-radius: 10px; font-weight: 600; }
-        
-        .payment-box { background: rgba(0, 188, 212, 0.05); border: 1px solid rgba(0, 188, 212, 0.3); border-radius: 16px; padding: 15px; margin: 20px 0; text-align: center; }
-        .upi-text { font-size: 18px; font-weight: 800; letter-spacing: 1px; color: var(--accent-cyan); margin: 5px 0 10px; user-select: all; }
+        /* FIXED VISIBILITY FOR CHECKOUT INPUT BLOCKS */
+        .bottom-sheet .input-group { margin-bottom: 12px; }
+        .bottom-sheet .input-group label { font-weight: 700; color: var(--text-primary); margin-bottom: 6px; font-size: 13px; }
+        .bottom-sheet .input-group input { padding: 12px; font-size: 13px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); }
+        .bottom-sheet .btn { height: 44px; font-size: 14px; padding: 8px; margin-top: 10px; }
 
         /* Utilities */
-        .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); background: var(--text-primary); color: var(--card-solid); padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 14px; z-index: 2000; transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); background: var(--text-primary); color: var(--card-solid); padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 13px; z-index: 2000; transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 10px 30px rgba(0,0,0,0.2); white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis; }
         .toast.show { transform: translate(-50%, 0); }
-        
         .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .loader-overlay.active { display: flex; }
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); width: 100%; }
         .empty-state i { font-size: 40px; color: var(--border-color); margin-bottom: 15px; }
 
@@ -231,7 +224,6 @@
 
 <div class="app-container">
     
-    <!-- HEADER -->
     <header class="header">
         <div class="brand-info">
             <img id="brandLogo" class="brand-logo" src="" alt="Logo">
@@ -243,12 +235,9 @@
         </div>
     </header>
 
-    <!-- CONTENT AREA -->
     <main class="content-area">
 
-        <!-- 1. HOME TAB -->
         <div id="homeTab" class="tab-content active">
-            <!-- Smaller Offer Banner -->
             <div id="offerBanner" class="offer-banner" style="display:none;">
                 <div class="offer-content">
                     <h3 id="offerTitle" class="offer-title"></h3>
@@ -257,7 +246,6 @@
                 </div>
             </div>
 
-            <!-- Stacked Action Cards -->
             <div class="action-cards-stack">
                 <a href="#" target="_blank" id="contactLink" class="action-card-row">
                     <span class="action-text">For Support Contact Here</span>
@@ -269,7 +257,6 @@
                 </a>
             </div>
 
-            <!-- Services Grid -->
             <h2 class="section-title">Our Services</h2>
             <div class="services-grid">
                 <div class="service-cat-card" onclick="openCategory('Instagram')">
@@ -298,20 +285,16 @@
                 </div>
             </div>
 
-            <!-- INLINE CATEGORY & SUBCATEGORY PANE -->
             <div id="categoryPane" style="display: none; padding-top: 20px; border-top: 1px dashed var(--border-color); margin-top: 15px; padding-bottom: 20px;">
                 <div style="margin-bottom: 20px;">
                     <h2 class="section-title" id="catTitle" style="margin:0;">Category Name</h2>
                 </div>
-                
                 <div id="catProductsList">
-                    <!-- Subcategories or Products populate here -->
-                </div>
+                    </div>
             </div>
 
         </div>
 
-        <!-- 2. SUBSCRIPTIONS TAB -->
         <div id="subsTab" class="tab-content">
             <h2 class="section-title">Premium Subscriptions</h2>
             <div id="subsGrid" class="grid" style="grid-template-columns: 1fr;">
@@ -319,7 +302,6 @@
             </div>
         </div>
 
-        <!-- 3. ORDERS TAB -->
         <div id="ordersTab" class="tab-content">
             <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 20px;">
                 <button onclick="switchTab('homeTab')" class="icon-btn" style="width:35px; height:35px;"><i class="fas fa-arrow-left"></i></button>
@@ -330,7 +312,6 @@
             </div>
         </div>
 
-        <!-- 4. CHAT TAB -->
         <div id="chatTab" class="tab-content">
             <div class="card chat-container">
                 <div class="sheet-header" style="margin-bottom:0; padding-bottom:15px; border-bottom: 1px solid var(--border-color);">
@@ -347,9 +328,7 @@
             </div>
         </div>
 
-        <!-- 5. PROFILE & AUTH TAB -->
         <div id="profileTab" class="tab-content">
-            <!-- Login/Signup View -->
             <div id="authView" style="display:block;">
                 <div class="card">
                     <h2 class="section-title" id="authTitle">Welcome Back</h2>
@@ -377,7 +356,6 @@
                 </div>
             </div>
 
-            <!-- Profile View -->
             <div id="userProfileView" style="display:none;">
                 <div class="card" style="text-align:center;">
                     <div id="profileAvatar" class="profile-avatar">U</div>
@@ -391,7 +369,6 @@
 
     </main>
 
-    <!-- BOTTOM NAV (STATIC) -->
     <nav class="bottom-nav">
         <a class="nav-item active" data-target="homeTab"><i class="fas fa-home"></i>Home</a>
         <a class="nav-item" data-target="subsTab"><i class="fas fa-crown"></i>Premium</a>
@@ -400,54 +377,51 @@
         <a class="nav-item" data-target="profileTab" id="navProfileIcon"><i class="fas fa-user"></i>Profile</a>
     </nav>
 
-    <!-- CHECKOUT MODAL -->
     <div class="modal-overlay" id="checkoutModal">
         <div class="bottom-sheet">
             <div class="sheet-header">
                 <div class="sheet-title">Checkout Summary</div>
-                <button class="icon-btn" onclick="closeCheckout()" style="background:transparent; border:none; box-shadow:none;"><i class="fas fa-times"></i></button>
+                <button class="icon-btn" onclick="closeCheckout()" style="background:transparent; border:none; box-shadow:none; height: 30px; width: 30px;"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="checkout-summary">
                 <img id="chkImg" class="checkout-img" src="" alt="Item">
                 <div>
-                    <div id="chkTitle" style="font-weight:700; font-size:15px; margin-bottom:4px;"></div>
-                    <div id="chkType" style="font-size:12px; color:var(--text-secondary);"></div>
+                    <div id="chkTitle" style="font-weight:700; font-size:14px; margin-bottom:2px;"></div>
+                    <div id="chkType" style="font-size:11px; color:var(--text-secondary);"></div>
                 </div>
                 <div style="margin-left:auto; text-align:right;">
-                    <div id="chkPrice" style="font-weight:800; color:var(--accent-cyan); font-size:16px;"></div>
+                    <div id="chkPrice" style="font-weight:800; color:var(--accent-cyan); font-size:15px;"></div>
                 </div>
             </div>
 
             <div class="coupon-box">
-                <input type="text" id="chkCouponInput" placeholder="Enter Coupon Code">
+                <input type="text" id="chkCouponInput" placeholder="Enter Coupon">
                 <button class="btn-apply" onclick="applyCoupon()">APPLY</button>
             </div>
-            <div id="chkCouponMsg" style="font-size:12px; margin-bottom:15px; font-weight:600;"></div>
+            <div id="chkCouponMsg" style="font-size:11px; margin-bottom:10px; font-weight:600;"></div>
 
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:18px; border-top:1px dashed var(--border-color); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; border-top:1px dashed var(--border-color); padding-top:10px;">
                 <span>Final Amount</span>
                 <span id="chkFinalPrice" style="color:var(--accent-pink);">₹0</span>
             </div>
 
             <div class="payment-box">
-                <div style="font-size:13px; font-weight:600;">Scan / Pay exactly <span id="chkPayAmt"></span> to this UPI ID</div>
-                <div class="upi-text" id="chkUpiId">sachuoxraut@fam</div>
-                <div style="font-size:11px; color:var(--text-secondary);">Tap UPI ID to copy</div>
+                <div style="font-size:12px; font-weight:600;">Scan / Pay exactly <span id="chkPayAmt"></span> to this UPI ID</div>
+                <div class="upi-text" id="chkUpiId" title="Click to copy">sachuoxraut@fam</div>
+                <div style="font-size:10px; color:var(--text-secondary);">Tap UPI ID to copy</div>
                 
-                <!-- Static QR Code -->
-                <img src="https://i.ibb.co/21hL1YjR/Screenshot-2026-04-18-14-19-22-775-com-paytm-business.png" alt="Scan to Pay" style="width: 160px; border-radius: 12px; margin: 15px auto 5px; display: block; border: 2px solid var(--accent-cyan); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <img src="https://i.ibb.co/21hL1YjR/Screenshot-2026-04-18-14-19-22-775-com-paytm-business.png" alt="Scan to Pay" style="width: 120px; border-radius: 8px; margin: 8px auto 4px; display: block; border: 2px solid var(--accent-cyan); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             </div>
 
-            <!-- DYNAMIC LINK & POLL INPUTS ADDED HERE -->
-            <div id="chkLinkContainer" style="display:none; padding-top: 10px;">
+            <div id="chkLinkContainer" style="display:none;">
                 <div class="input-group">
                     <label id="chkLinkLabel">Target Link</label>
                     <input type="text" id="chkLinkInput" placeholder="Paste link here...">
                 </div>
                 <div class="input-group" id="chkPollContainer" style="display:none;">
                     <label>Poll Vote Option</label>
-                    <input type="text" id="chkPollInput" placeholder="Enter option to vote for (e.g., Option 1)">
+                    <input type="text" id="chkPollInput" placeholder="Enter option to vote for">
                 </div>
             </div>
 
@@ -456,21 +430,19 @@
                 <input type="number" id="chkUtrInput" placeholder="e.g. 301234567890">
             </div>
 
-            <button class="btn" onclick="confirmPurchase()" style="height:50px; font-size:16px;"><i class="fas fa-lock"></i> Place Secure Order</button>
+            <button class="btn" onclick="confirmPurchase()"><i class="fas fa-lock"></i> Secure Order</button>
         </div>
     </div>
 
 </div>
 
-<!-- UTILITIES -->
 <div class="toast" id="toastBox">Message</div>
 <div class="loader-overlay" id="loaderBox"><div class="spinner"></div></div>
 
-<!-- FIREBASE & JS LOGIC -->
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     // REPLACE WITH YOUR FIREBASE CONFIG
     const firebaseConfig = {
@@ -482,7 +454,6 @@
         messagingSenderId: "633734276998",
         appId: "1:633734276998:web:b486015bd345028a406e07"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -491,11 +462,12 @@
     let currentUser = null;
     let productsData = {};
     let subsData = {};
-    let activeSubscriptions = {}; // Holds confirmed subscriptions states
+    let activeSubscriptions = {}; 
     let couponsData = {};
     let checkoutItem = null;
     let checkoutFinalAmt = 0;
     let appliedCouponKey = null;
+    let notificationsBound = false;
 
     // View State for Inline Category View
     let currentCatView = { level: 0, cat: '', subCat: '' };
@@ -506,6 +478,24 @@
         t.textContent = msg; t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
     };
+
+    // Notification Helper (Live alerts)
+    const notifyLive = (msg) => {
+        showToast(msg);
+        if ("Notification" in window) {
+            const logo = document.getElementById('brandLogo').src || '';
+            if (Notification.permission === "granted") {
+                new Notification("Store Update", { body: msg, icon: logo });
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("Store Update", { body: msg, icon: logo });
+                    }
+                });
+            }
+        }
+    };
+
     const showLoader = () => document.getElementById('loaderBox').classList.add('active');
     const hideLoader = () => document.getElementById('loaderBox').classList.remove('active');
 
@@ -519,7 +509,6 @@
     // Navigation Logic
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
-    
     function switchTab(targetId) {
         if(!currentUser && (targetId === 'ordersTab' || targetId === 'chatTab')) {
             showToast('Please login to access this area.');
@@ -539,7 +528,6 @@
         navItems.forEach(nav => {
             nav.classList.toggle('active', nav.dataset.target === targetId);
         });
-        
         document.querySelector('.content-area').scrollTo(0,0);
     }
 
@@ -549,16 +537,13 @@
     document.getElementById('headerProfileBtn').addEventListener('click', () => switchTab('profileTab'));
 
     // --- Category & SubCategory Dynamic Loading ---
-    
     window.openCategory = (catName) => {
         currentCatView = { level: 1, cat: catName, subCat: '' };
-        
         const catTitle = document.getElementById('catTitle');
         catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
         
         const list = document.getElementById('catProductsList');
         list.innerHTML = '';
-        
         let subCatsMap = {};
         Object.entries(productsData).forEach(([id, p]) => {
             const pCat = p.category || 'Other';
@@ -584,7 +569,6 @@
 
         const pane = document.getElementById('categoryPane');
         pane.style.display = 'block';
-        
         setTimeout(() => {
             const contentArea = document.querySelector('.content-area');
             const targetPos = Math.max(0, pane.offsetTop - 40);
@@ -594,7 +578,6 @@
 
     window.openSubCategory = (catName, subCatName) => {
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
-        
         const catTitle = document.getElementById('catTitle');
         catTitle.innerHTML = `
             <button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button>
@@ -603,7 +586,6 @@
                 <div style="font-size:18px;">${subCatName}</div>
             </div>
         `;
-        
         const list = document.getElementById('catProductsList');
         list.innerHTML = '';
         
@@ -627,7 +609,7 @@
                 `;
             }
         });
-
+        
         if(!hasItems) {
             list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>';
         }
@@ -677,7 +659,7 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-
+    
     onAuthStateChanged(auth, user => {
         currentUser = user;
         if(user) {
@@ -687,20 +669,41 @@
             document.getElementById('profileEmail').textContent = user.email;
             document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             
+            // Request Notification Permission for Live Notifications
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+
             loadOrders();
             loadChat();
             if(document.getElementById('profileTab').classList.contains('active')){
                  switchTab('homeTab'); 
             }
+            bindRealTimeNotifications(user.uid);
         } else {
             document.getElementById('authView').style.display = 'block';
             document.getElementById('userProfileView').style.display = 'none';
             document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>';
             document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>';
             activeSubscriptions = {};
+            notificationsBound = false;
             renderSubscriptions();
         }
     });
+
+    // Real-Time Notification Logic for Order Updates
+    function bindRealTimeNotifications(uid) {
+        if(notificationsBound) return;
+        notificationsBound = true;
+        const userOrdersQuery = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
+        
+        onChildChanged(userOrdersQuery, (snap) => {
+             const o = snap.val();
+             if(o && o.status) {
+                 notifyLive(`🔔 Order #${snap.key.slice(-6).toUpperCase()} is now ${o.status.toUpperCase()}`);
+             }
+        });
+    }
 
     // Render Subscriptions logic
     function renderSubscriptions() {
@@ -721,7 +724,7 @@
                 const diffTime = Math.abs(activeSubscriptions[id] - new Date());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 actionHtml = `<button class="btn" style="background: var(--accent-pink); cursor: default; display: flex; justify-content: center; align-items: center; gap: 8px;" disabled><i class="fas fa-clock"></i> Subscribed (${diffDays} Days Left)</button>`;
-            }
+             }
 
             grid.innerHTML += `
                 <div class="item-card" style="padding:20px;">
@@ -747,14 +750,14 @@
                 const d = s.val();
                 document.getElementById('brandName').textContent = d.name || 'Store';
                 if(d.logoUrl) {
-                    document.getElementById('brandLogo').src = d.logoUrl;
+                     document.getElementById('brandLogo').src = d.logoUrl;
                     document.getElementById('brandLogo').style.display = 'block';
                 }
             }
         });
 
         onValue(ref(db, 'meta/offers'), s => {
-            if(s.exists()){
+             if(s.exists()){
                 const d = s.val();
                 const banner = document.getElementById('offerBanner');
                 if(d.name && d.imageUrl) {
@@ -772,7 +775,7 @@
                 }
             }
         });
-
+        
         onValue(ref(db, 'meta/contact'), s => {
             if(s.exists() && s.val().socialTelegram){
                 if(document.getElementById('contactLink').getAttribute('href') === '#') {
@@ -780,7 +783,7 @@
                 }
             }
         });
-
+        
         onValue(ref(db, 'products'), s => {
             productsData = s.exists() ? s.val() : {};
             
@@ -792,12 +795,12 @@
                 }
             }
         });
-
+        
         onValue(ref(db, 'subscriptions'), s => {
             subsData = s.exists() ? s.val() : {};
             renderSubscriptions();
         });
-
+        
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
     }
 
@@ -822,17 +825,19 @@
 
             arr.forEach(o => {
                 let statusBadge = '';
-                if(o.status === 'pending') statusBadge = '<span class="badge bg-pending">Pending Validation</span>';
-                else if(o.status === 'confirmed') statusBadge = '<span class="badge bg-confirmed">Confirmed</span>';
+                // Dynamic Status rendering with animations
+                if(o.status === 'pending') statusBadge = '<span class="badge bg-pending pulse-anim">Pending Validation</span>';
+                else if(o.status === 'progress') statusBadge = '<span class="badge bg-progress pulse-anim">In Progress</span>';
+                else if(o.status === 'completed') statusBadge = '<span class="badge bg-completed">Completed</span>';
                 else statusBadge = '<span class="badge bg-rejected">Rejected</span>';
 
                 let actionHtml = '';
-                if(o.status === 'confirmed' && o.productSnapshot && o.productSnapshot.downloadLink) {
+                if(o.status === 'completed' && o.productSnapshot && o.productSnapshot.downloadLink) {
                     actionHtml = `<a href="${o.productSnapshot.downloadLink}" target="_blank" class="btn" style="display:inline-block; margin-top:10px; text-decoration:none;"><i class="fas fa-cloud-download-alt"></i> Access / Download</a>`;
                 }
 
                 // Calculate Subscriptions remaining days
-                if (o.status === 'confirmed' && o.isSubscription) {
+                if (o.status === 'completed' && o.isSubscription) {
                     const subId = o.productId;
                     const duration = parseInt(o.productSnapshot.duration || 0);
                     const approvedAt = new Date(o.updatedAt || o.createdAt);
@@ -856,7 +861,7 @@
                             ${o.pollOption ? `<div><span>Vote Option:</span> ${o.pollOption}</div>` : ''}
                             <div><span>Amount Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
                             <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
-                            <div><span>UTR:</span> ${o.utrId}</div>
+                            <div><span>UTR:</span> <span style="color:var(--text-primary);">${o.utrId}</span></div>
                         </div>
                         ${actionHtml}
                     </div>
@@ -877,6 +882,7 @@
                 msgCont.innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Send a message to start chatting</div>';
                 return;
             }
+          
             s.forEach(mSnap => {
                 const m = mSnap.val();
                 const div = document.createElement('div');
@@ -906,7 +912,7 @@
         
         input.value = '';
     });
-
+    
     // CHECKOUT FLOW
     window.initCheckout = (id, type) => {
         if(!currentUser) {
@@ -944,14 +950,13 @@
         document.getElementById('chkPollInput').value = '';
         
         // DYNAMIC LINK LABELS LOGIC
-        document.getElementById('chkLinkContainer').style.display = 'block'; // Always show link container
+        document.getElementById('chkLinkContainer').style.display = 'block';
         
         if (type === 'product') {
             let cat = checkoutItem.category || '';
             let sub = (checkoutItem.subCategory || '').toLowerCase();
             let label = 'Target Link';
             let showPoll = false;
-
             if (cat === 'Instagram') {
                 if (sub.includes('follower')) label = 'Paste Your Profile Link';
                 else if (sub.includes('reel')) label = 'Reels Link';
@@ -990,7 +995,7 @@
 
         document.getElementById('checkoutModal').classList.add('active');
     };
-
+    
     window.closeCheckout = () => { document.getElementById('checkoutModal').classList.remove('active'); };
 
     window.applyCoupon = () => {
@@ -1003,7 +1008,7 @@
         Object.entries(couponsData).forEach(([key, cp]) => {
             if(cp.code === code && cp.isActive !== false) { validCoupon = cp; cKey = key; }
         });
-
+        
         if(!validCoupon) {
             msg.textContent = 'Invalid or expired coupon!';
             msg.style.color = 'var(--accent-pink)';
@@ -1027,21 +1032,19 @@
 
         checkoutFinalAmt = Math.max(0, basePrice - discount);
         appliedCouponKey = cKey;
-
         msg.textContent = `Coupon applied! You saved ₹${discount.toFixed(2)}`;
         msg.style.color = '#10b981';
         
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
         document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
     };
-
+    
     window.confirmPurchase = async () => {
         const utr = document.getElementById('chkUtrInput').value.trim();
         if(utr.length < 6) return showToast('Enter a valid UTR / Transaction ID');
 
         const targetLink = document.getElementById('chkLinkInput').value.trim();
         const pollOption = document.getElementById('chkPollInput').value.trim();
-        
         if (!targetLink) return showToast('Please enter the required link/username');
 
         if (checkoutItem.purchaseType === 'product') {
@@ -1072,7 +1075,7 @@
                 createdAt: new Date().toISOString(),
                 isSubscription: checkoutItem.purchaseType === 'subscription'
             };
-
+            
             await set(push(ref(db, 'orders')), orderData);
 
             if(appliedCouponKey) {
@@ -1081,23 +1084,48 @@
             }
 
             closeCheckout();
-            showToast('Order Placed Successfully! Pending admin validation.');
+            notifyLive('🎉 Order Placed Successfully! Pending admin validation.');
             switchTab('ordersTab');
         } catch(e) {
             showToast('Error: ' + e.message);
         }
         hideLoader();
     };
+    
+    // Bulletproof UPI Copy Helper for Mobile Browsers & In-app Webviews
+    function fallbackCopyText(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const success = document.execCommand('copy');
+            if(success) showToast('UPI ID Copied!');
+            else showToast('Failed to copy');
+        } catch (err) {
+            showToast('Failed to copy');
+        }
+        textArea.remove();
+    }
 
     document.getElementById('chkUpiId').addEventListener('click', () => {
-        navigator.clipboard.writeText(document.getElementById('chkUpiId').textContent);
-        showToast('UPI ID Copied!');
+        const upiText = document.getElementById('chkUpiId').textContent;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(upiText)
+                .then(() => showToast('UPI ID Copied!'))
+                .catch(() => fallbackCopyText(upiText));
+        } else {
+            fallbackCopyText(upiText);
+        }
     });
-
+    
     // Initialize App
     loadPublicData();
     window.switchTab = switchTab;
-
 </script>
 
 </body>
