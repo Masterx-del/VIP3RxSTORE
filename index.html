@@ -500,6 +500,12 @@
 
                 <div id="chkLinkContainer" style="display:none;">
                     <div class="input-group"><label id="chkLinkLabel">Target Link</label><input type="text" id="chkLinkInput" placeholder="Paste link here..."></div>
+                    <div id="chkExtraLinksContainer" style="display:none;">
+                        <div class="input-group"><label>Link 2</label><input type="text" id="chkLinkInput2" placeholder="Paste link 2 here..."></div>
+                        <div class="input-group"><label>Link 3</label><input type="text" id="chkLinkInput3" placeholder="Paste link 3 here..."></div>
+                        <div class="input-group"><label>Link 4</label><input type="text" id="chkLinkInput4" placeholder="Paste link 4 here..."></div>
+                        <div class="input-group"><label>Link 5</label><input type="text" id="chkLinkInput5" placeholder="Paste link 5 here..."></div>
+                    </div>
                     <div class="input-group" id="chkPollContainer" style="display:none;"><label>Poll Vote Option</label><input type="text" id="chkPollInput" placeholder="Enter option to vote for"></div>
                 </div>
 
@@ -719,7 +725,7 @@
                         <span style="font-weight:700; color:#f59e0b; font-size:13px;">Pending Admin Validation</span>
                     </div>`;
                 } else if(o.status === 'progress') {
-                    let estTimeStr = (o.estTime && o.estTime.trim() !== '') ? o.estTime : "16 Mins";
+                    let estTimeStr = (o.estTime && o.estTime.trim() !== '') ? o.estTime : (o.productSnapshot?.avgTime && o.productSnapshot.avgTime.trim() !== '' ? o.productSnapshot.avgTime : "16 Mins");
                     let totalMins = 60; 
                     let str = estTimeStr.toLowerCase();
                     let hrsMatch = str.match(/(\d+)\s*(h|hr|hrs|hour|hours)/);
@@ -762,6 +768,10 @@
                         <div class="order-info">
                             <div><span>Item:</span> <strong style="color:var(--text-primary);">${o.productSnapshot?.title || o.productSnapshot?.planName || 'Unknown'}</strong></div>
                             ${o.targetLink ? `<div><span>Link:</span> <a href="${o.targetLink.startsWith('http') ? o.targetLink : 'https://'+o.targetLink}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink}</a></div>` : ''}
+                            ${o.targetLink2 ? `<div><span>Link 2:</span> <a href="${o.targetLink2.startsWith('http') ? o.targetLink2 : 'https://'+o.targetLink2}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink2}</a></div>` : ''}
+                            ${o.targetLink3 ? `<div><span>Link 3:</span> <a href="${o.targetLink3.startsWith('http') ? o.targetLink3 : 'https://'+o.targetLink3}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink3}</a></div>` : ''}
+                            ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
+                            ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
                             ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
                             <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
                             <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
@@ -836,7 +846,7 @@
 
         const imgEl = document.getElementById('chkImg'); if(checkoutItem.imageUrl) { imgEl.src = checkoutItem.imageUrl; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
         document.getElementById('chkTitle').textContent = checkoutItem.title || checkoutItem.planName; document.getElementById('chkType').textContent = type === 'product' ? 'Digital Service' : `${checkoutItem.duration} Days Subscription`; document.getElementById('chkPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt}`;
-        document.getElementById('chkCouponInput').value = ''; document.getElementById('chkCouponMsg').textContent = ''; document.getElementById('chkLinkInput').value = ''; document.getElementById('chkPollInput').value = '';
+        document.getElementById('chkCouponInput').value = ''; document.getElementById('chkCouponMsg').textContent = ''; document.getElementById('chkLinkInput').value = ''; document.getElementById('chkLinkInput2').value = ''; document.getElementById('chkLinkInput3').value = ''; document.getElementById('chkLinkInput4').value = ''; document.getElementById('chkLinkInput5').value = ''; document.getElementById('chkPollInput').value = '';
         
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
@@ -846,10 +856,14 @@
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
+            document.getElementById('chkExtraLinksContainer').style.display = 'none';
             let cat = checkoutItem.category || ''; let sub = (checkoutItem.subCategory || '').toLowerCase(); let label = 'Target Link'; let showPoll = false;
             if (cat === 'Instagram') { if (sub.includes('follower')) label = 'Paste Your Profile Link'; else if (sub.includes('reel')) label = 'Reels Link'; else if (sub.includes('story view')) label = 'Username'; else if (sub.includes('poll')) { label = 'Story Link'; showPoll = true; } else label = 'Post Link'; } else if (cat === 'YouTube') { if (sub.includes('sub')) label = 'Channel Link'; else if (sub.includes('view') || sub.includes('watch')) label = 'Video Link'; else label = 'Post/Video Link'; } else if (cat === 'Facebook') { if (sub.includes('group')) label = 'Group Link'; else if (sub.includes('follower')) label = 'Page/Profile Link'; else label = 'Post/Video Link'; } else if (cat === 'WhatsApp') { if (sub.includes('follower')) label = 'Channel Link'; else label = 'Channel Post Link'; } else if (cat === 'Telegram') { if (sub.includes('group')) label = 'Group Link'; else if (sub.includes('member')) label = 'Channel Link'; else if (sub.includes('poll')) { label = 'Post Link'; showPoll = true; } else label = 'Post Link'; } else { label = 'Target Link / Username'; }
             document.getElementById('chkLinkLabel').textContent = label; document.getElementById('chkLinkInput').placeholder = 'Enter ' + label; document.getElementById('chkPollContainer').style.display = showPoll ? 'block' : 'none';
-        } else { document.getElementById('chkLinkLabel').textContent = 'Reels Link'; document.getElementById('chkLinkInput').placeholder = 'Enter Reels Link'; document.getElementById('chkPollContainer').style.display = 'none'; }
+        } else { 
+            document.getElementById('chkExtraLinksContainer').style.display = 'block';
+            document.getElementById('chkLinkLabel').textContent = 'Reels Link 1'; document.getElementById('chkLinkInput').placeholder = 'Enter Reels Link 1'; document.getElementById('chkPollContainer').style.display = 'none'; 
+        }
         document.getElementById('checkoutModal').classList.add('active');
     };
     
@@ -888,98 +902,147 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
     };
 
-    // --- BULLETPROOF MULTI-PROXY API VERIFICATION ---
+    // Helper: fetch with timeout
+    const fetchWithTimeout = (url, opts = {}, ms = 8000) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        return fetch(url, { ...opts, signal: controller.signal, cache: 'no-store' })
+            .finally(() => clearTimeout(timer));
+    };
+
+    // Helper: try all URLs in PARALLEL, return first valid JSON result
+    const raceFetch = async (urls, validateFn) => {
+        return new Promise((resolve) => {
+            let settled = false;
+            let pending = urls.length;
+            urls.forEach(({ url, opts }) => {
+                fetchWithTimeout(url, opts)
+                    .then(r => r.text())
+                    .then(text => {
+                        try {
+                            const json = JSON.parse(text);
+                            if (!settled && validateFn(json)) {
+                                settled = true;
+                                resolve({ json, text });
+                            }
+                        } catch(e) {}
+                    })
+                    .catch(() => {})
+                    .finally(() => { pending--; if(pending === 0 && !settled) resolve(null); });
+            });
+        });
+    };
+
     window.confirmPurchase = async () => { 
         const utr = currentOrderId; 
         if(!utr) return showToast('❌ Invalid Order ID');
         
-        const targetLink = document.getElementById('chkLinkInput').value.trim(); 
-        const pollOption = document.getElementById('chkPollInput').value.trim(); 
+        const targetLink  = document.getElementById('chkLinkInput').value.trim(); 
+        const pollOption  = document.getElementById('chkPollInput').value.trim(); 
+        const targetLink2 = document.getElementById('chkLinkInput2').value.trim();
+        const targetLink3 = document.getElementById('chkLinkInput3').value.trim();
+        const targetLink4 = document.getElementById('chkLinkInput4').value.trim();
+        const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
         
         showLoader();
         try {
-            const utrQuery = query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr)); 
-            const utrSnapshot = await get(utrQuery); 
-            if (utrSnapshot.exists()) { 
-                hideLoader(); 
-                return showToast('❌ This Order ID has already been used!'); 
-            }
+            // ── Step 1: duplicate UTR check ──────────────────────────────
+            const utrSnapshot = await get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))); 
+            if (utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID has already been used!'); }
 
+            // ── Step 2: Payment verification (ALL proxies in PARALLEL) ───
             const MERCHANT_ID = "MdXwlu49903940058924"; 
-            const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
-            
-            let result = null;
-            let fetchSuccess = false;
-
-            // 1. Direct Try
-            // 2. Corsproxy Fallback
-            // 3. Allorigins Fallback
-            // 4. Codetabs Fallback
-            const fetchUrls =[
-                verifyUrl,
-                `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`
+            const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
+            const verifyURLs  = [
+                { url: verifyUrl,                                                                    opts: {} },
+                { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`,                    opts: {} },
+                { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`,       opts: {} },
+                { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`,  opts: {} },
             ];
 
-            // Loop smoothly unnoticeable by user to bypass any blocked API requests
-            for (const url of fetchUrls) {
-                try {
-                    const res = await fetch(url, { cache: "no-store" });
-                    const textRes = await res.text();
-                    result = JSON.parse(textRes);
-                    
-                    if (result && typeof result.STATUS !== 'undefined') {
-                        fetchSuccess = true;
-                        break;
-                    }
-                } catch (e) {
-                    console.log("Fetch block avoided, trying next proxy route...");
-                }
-            }
+            const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
 
-            if (!fetchSuccess || !result) {
-                hideLoader(); 
-                return showToast("❌ Network Error. Make sure you are connected to internet.");
-            }
+            if (!verifyResult) { hideLoader(); return showToast("❌ Network Error. Check your internet connection."); }
 
-            if (result.STATUS === "TXN_SUCCESS" && result.RESPMSG === "Txn Success") {
-                const paidVal = parseFloat(result.TXNAMOUNT);
-
-                if (paidVal < checkoutFinalAmt) {
-                    hideLoader();
-                    return showToast(`❌ Amount mismatch! Total is ₹${checkoutFinalAmt} but you paid ₹${paidVal}`);
-                }
-
-                const orderData = { 
-                    productId: checkoutItem.id, 
-                    productSnapshot: checkoutItem, 
-                    userId: currentUser.uid, 
-                    userEmail: currentUser.email, 
-                    finalAmount: checkoutFinalAmt.toFixed(2), 
-                    utrId: utr,  
-                    targetLink: targetLink, 
-                    pollOption: (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null, 
-                    status: 'progress', 
-                    createdAt: new Date().toISOString(), 
-                    isSubscription: checkoutItem.purchaseType === 'subscription' 
-                };
-                
-                await set(push(ref(db, 'orders')), orderData);
-                
-                if(appliedCouponKey) { 
-                    const currentCount = couponsData[appliedCouponKey].usedCount || 0; 
-                    await update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: currentCount + 1 }); 
-                }
-                
-                closeCheckout(); 
-                notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
-                switchTab('ordersTab');
-                hideLoader(); 
-                
-            } else {
+            const result = verifyResult.json;
+            if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
                 hideLoader();
-                return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Wait 10 secs"));
+                return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Please wait 10 secs and retry."));
+            }
+
+            const paidVal = parseFloat(result.TXNAMOUNT);
+            if (paidVal < checkoutFinalAmt) {
+                hideLoader();
+                return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`);
+            }
+
+            // ── Step 3: Build order — set status based on API config ─────
+            const hasApiConfig = !!(
+                !( checkoutItem.purchaseType === 'subscription') &&
+                checkoutItem.apiUrl && checkoutItem.apiKey &&
+                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+            );
+
+            const orderData = { 
+                productId:       checkoutItem.id, 
+                productSnapshot: checkoutItem, 
+                userId:          currentUser.uid, 
+                userEmail:       currentUser.email, 
+                finalAmount:     checkoutFinalAmt.toFixed(2), 
+                utrId:           utr,  
+                targetLink,
+                targetLink2:     targetLink2 || null,
+                targetLink3:     targetLink3 || null,
+                targetLink4:     targetLink4 || null,
+                targetLink5:     targetLink5 || null,
+                pollOption:      (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null, 
+                status:          hasApiConfig ? 'progress' : 'pending',   // ← set progress immediately if API configured
+                createdAt:       new Date().toISOString(), 
+                isSubscription:  checkoutItem.purchaseType === 'subscription',
+                apiStatus:       hasApiConfig ? 'calling' : null,
+            };
+
+            // ── Step 4: Save order to Firebase FIRST (user sees progress) 
+            const newOrderRef = push(ref(db, 'orders'));
+            await set(newOrderRef, orderData);
+
+            if (appliedCouponKey) { 
+                const currentCount = couponsData[appliedCouponKey].usedCount || 0; 
+                await update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: currentCount + 1 }); 
+            }
+
+            // ── Step 5: Close checkout & show success IMMEDIATELY ────────
+            closeCheckout(); 
+            notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
+            switchTab('ordersTab');
+            hideLoader();
+
+            // ── Step 6: Call external API in BACKGROUND (non-blocking) ───
+            if (hasApiConfig) {
+                const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
+                const apiUrl     = checkoutItem.apiUrl;
+                const apiURLs    = [
+                    { url: apiUrl,                                                                              opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                    { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,                               opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                    { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
+                ];
+
+                raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
+                    .then(async apiResult => {
+                        if (!apiResult) {
+                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
+                            return;
+                        }
+                        const j = apiResult.json;
+                        const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                        const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                        if (!hasError) {
+                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: apiResult.text.substring(0,500) });
+                        } else {
+                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: apiResult.text.substring(0,500) });
+                        }
+                    })
+                    .catch(() => {});
             }
 
         } catch(e) { 
@@ -1002,3 +1065,4 @@
 
 </body>
 </html>
+
