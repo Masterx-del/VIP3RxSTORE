@@ -719,7 +719,6 @@
                         <span style="font-weight:700; color:#f59e0b; font-size:13px;">Pending Admin Validation</span>
                     </div>`;
                 } else if(o.status === 'progress') {
-                    // Update: Show default 16 Mins if time not provided by admin
                     let estTimeStr = (o.estTime && o.estTime.trim() !== '') ? o.estTime : "16 Mins";
                     let totalMins = 60; 
                     let str = estTimeStr.toLowerCase();
@@ -810,7 +809,6 @@
         input.value = '';
     });
 
-    // --- GENERATE ORDER ID ---
     function generateUTR(length = 12) {
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let utr = "";
@@ -818,7 +816,6 @@
         return utr;
     }
 
-    // --- UPDATE QR CODE DYNAMICALLY ---
     window.updateQRCode = (amount, orderId) => {
         const upiId = "Paytmqr6i3w0w@ptys"; 
         const upiName = "SACHIN SAYSING RAUT"; 
@@ -841,7 +838,6 @@
         document.getElementById('chkTitle').textContent = checkoutItem.title || checkoutItem.planName; document.getElementById('chkType').textContent = type === 'product' ? 'Digital Service' : `${checkoutItem.duration} Days Subscription`; document.getElementById('chkPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt}`;
         document.getElementById('chkCouponInput').value = ''; document.getElementById('chkCouponMsg').textContent = ''; document.getElementById('chkLinkInput').value = ''; document.getElementById('chkPollInput').value = '';
         
-        // Reset View to Step 1
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
 
@@ -857,7 +853,6 @@
         document.getElementById('checkoutModal').classList.add('active');
     };
     
-    // NAVIGATION FOR 2-STEP UI
     window.goToStep2 = () => {
         const targetLink = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption = document.getElementById('chkPollInput').value.trim(); 
@@ -893,6 +888,7 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
     };
 
+    // --- BULLETPROOF MULTI-PROXY API VERIFICATION ---
     window.confirmPurchase = async () => { 
         const utr = currentOrderId; 
         if(!utr) return showToast('❌ Invalid Order ID');
@@ -912,22 +908,39 @@
             const MERCHANT_ID = "MdXwlu49903940058924"; 
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             
-            let result;
-            try {
-                const apiRes = await fetch(verifyUrl);
-                const textRes = await apiRes.text();
-                result = JSON.parse(textRes);
-            } catch(e) {
-                console.log("Direct API blocked, using secure proxy fallback...");
+            let result = null;
+            let fetchSuccess = false;
+
+            // 1. Direct Try
+            // 2. Corsproxy Fallback
+            // 3. Allorigins Fallback
+            // 4. Codetabs Fallback
+            const fetchUrls =[
+                verifyUrl,
+                `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`
+            ];
+
+            // Loop smoothly unnoticeable by user to bypass any blocked API requests
+            for (const url of fetchUrls) {
                 try {
-                    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(verifyUrl);
-                    const proxyRes = await fetch(proxyUrl);
-                    const proxyData = await proxyRes.json();
-                    result = JSON.parse(proxyData.contents);
-                } catch(e2) {
-                    hideLoader(); 
-                    return showToast("💳 Payment Verifying, Wait 10-12 Sec...");
+                    const res = await fetch(url, { cache: "no-store" });
+                    const textRes = await res.text();
+                    result = JSON.parse(textRes);
+                    
+                    if (result && typeof result.STATUS !== 'undefined') {
+                        fetchSuccess = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.log("Fetch block avoided, trying next proxy route...");
                 }
+            }
+
+            if (!fetchSuccess || !result) {
+                hideLoader(); 
+                return showToast("❌ Network Error. Make sure you are connected to internet.");
             }
 
             if (result.STATUS === "TXN_SUCCESS" && result.RESPMSG === "Txn Success") {
@@ -962,7 +975,7 @@
                 closeCheckout(); 
                 notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
                 switchTab('ordersTab');
-                hideLoader(); // <- Fixed Loader stuck issue
+                hideLoader(); 
                 
             } else {
                 hideLoader();
