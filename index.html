@@ -344,6 +344,46 @@
 
         @keyframes stroke { 100% { stroke-dashoffset: 0; } }
         @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+
+        /* ── WALLET ── */
+        .wallet-card { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: var(--border-radius); padding: 20px; color: #fff; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .wallet-card::after { content:''; position:absolute; right:-20px; top:-20px; width:100px; height:100px; background:rgba(255,255,255,0.08); border-radius:50%; }
+        .wallet-balance { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .wallet-label { font-size: 12px; opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+        /* ── CART ── */
+        .cart-badge { position:absolute; top:-4px; right:-4px; background:var(--accent-pink); color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+        .cart-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-color); }
+        .cart-item:last-child { border-bottom:none; }
+        .cart-item-name { font-size:13px; font-weight:600; color:var(--text-primary); }
+        .cart-item-price { font-size:14px; font-weight:700; color:var(--accent-cyan); }
+        .cart-remove { background:none; border:none; color:var(--accent-pink); cursor:pointer; font-size:16px; padding:4px 8px; border-radius:6px; transition:var(--transition); }
+        .cart-remove:hover { background:rgba(225,29,72,0.1); }
+
+        /* ── NOTICE BANNER ── */
+        .notice-banner { background:linear-gradient(135deg,rgba(37,99,235,0.1),rgba(30,58,138,0.1)); border:1px solid rgba(37,99,235,0.3); border-radius:var(--border-radius); padding:14px 16px; margin-bottom:16px; display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+        .notice-banner.urgent { background:linear-gradient(135deg,rgba(225,29,72,0.1),rgba(239,68,68,0.1)); border-color:rgba(225,29,72,0.3); }
+        .notice-banner-icon { font-size:20px; flex-shrink:0; margin-top:2px; }
+        .notice-title { font-size:13px; font-weight:700; margin-bottom:3px; color:var(--text-primary); }
+        .notice-body { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+
+        /* ── BULK ORDER ── */
+        .bulk-badge { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:20px; margin-left:6px; }
+
+        /* ── SERVICE STATUS ── */
+        .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+        .status-dot.online { background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.2); }
+        .status-dot.slow { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,0.2); }
+        .status-dot.offline { background:#ef4444; box-shadow:0 0 0 2px rgba(239,68,68,0.2); }
+
+        /* ── REFERRAL ── */
+        .referral-code-box { background:var(--input-bg); border:2px dashed var(--accent-cyan); border-radius:10px; padding:16px; text-align:center; margin-bottom:16px; cursor:pointer; transition:var(--transition); }
+        .referral-code-box:hover { background:rgba(37,99,235,0.05); }
+        .referral-code { font-size:22px; font-weight:800; letter-spacing:4px; color:var(--accent-cyan); font-family:monospace; }
+
+        /* ── CART MODAL ── */
+        #cartModal .bottom-sheet { max-height: 85vh; }
+
     </style>
 </head>
 <body class="light-mode">
@@ -357,6 +397,7 @@
         </div>
         <div class="header-actions">
             <button class="icon-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
+            <button class="icon-btn" id="cartBtn" style="position:relative;" onclick="openCart()"><i class="fas fa-shopping-cart"></i><span class="cart-badge" id="cartCountBadge" style="display:none;">0</span></button>
             <button class="icon-btn" id="headerProfileBtn"><i class="fas fa-user"></i></button>
         </div>
     </header>
@@ -364,6 +405,7 @@
     <main class="content-area">
 
         <div id="homeTab" class="tab-content active">
+            <div id="noticeArea" style="margin-bottom:0;"></div>
             <div id="offerBanner" class="offer-banner" style="display:none;">
                 <div class="offer-content">
                     <h3 id="offerTitle" class="offer-title"></h3>
@@ -392,6 +434,9 @@
                 <div class="service-cat-card" onclick="openCategory('YouTube')"><i class="fab fa-youtube" style="color: #FF0000;"></i><div class="service-cat-name">YouTube</div></div>
                 <div class="service-cat-card" onclick="openCategory('Other')"><i class="fas fa-cubes" style="color: var(--accent-cyan);"></i><div class="service-cat-name">Other</div></div>
             </div>
+
+            <!-- SERVICE STATUS -->
+            <div id="serviceStatusArea" style="margin-top:20px; margin-bottom:10px;"></div>
 
             <div id="categoryPane" style="display: none; padding-top: 24px; border-top: 1px solid var(--border-color); margin-top: 20px; padding-bottom: 20px;">
                 <div style="margin-bottom: 20px;"><h2 class="section-title" id="catTitle" style="margin:0;">Category Name</h2></div>
@@ -441,6 +486,10 @@
                     <div id="signupNameGroup" class="input-group" style="display:none;">
                         <label>Full Name</label><input type="text" id="authName" placeholder="John Doe">
                     </div>
+                    <div id="signupReferralGroup" class="input-group" style="display:none;">
+                        <label>Referral Code <span style="font-weight:400;color:var(--text-secondary);">(Optional)</span></label>
+                        <input type="text" id="authReferral" placeholder="Enter friend's referral code" style="text-transform:uppercase;">
+                    </div>
                     <div class="input-group"><label>Email Address</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
                     <div class="input-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
                     
@@ -453,7 +502,35 @@
             </div>
 
             <div id="userProfileView" style="display:none;">
-                <div class="card" style="text-align:center; padding: 40px 20px;">
+                <!-- WALLET CARD -->
+                <div class="wallet-card">
+                    <div class="wallet-label">💰 Wallet Balance</div>
+                    <div class="wallet-balance">₹<span id="walletBalance">0.00</span></div>
+                    <div style="font-size:12px; opacity:0.75; margin-top:4px;">Available to use on orders</div>
+                </div>
+
+                <!-- REFERRAL -->
+                <div class="card" style="padding:20px;">
+                    <h3 class="section-title" style="font-size:14px; margin-bottom:12px;"><i class="fas fa-gift" style="color:var(--accent-cyan);"></i> Refer & Earn</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">Share your code — earn ₹<span id="referralRewardAmt">10</span> wallet credit for every friend who signs up!</p>
+                    <div class="referral-code-box" onclick="copyReferralCode()">
+                        <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">YOUR REFERRAL CODE</div>
+                        <div class="referral-code" id="myReferralCode">------</div>
+                        <div style="font-size:11px; color:var(--accent-cyan); margin-top:6px;"><i class="fas fa-copy"></i> Tap to copy</div>
+                    </div>
+                    <div style="display:flex; gap:12px; font-size:13px; text-align:center;">
+                        <div style="flex:1; background:var(--input-bg); border-radius:8px; padding:12px; border:1px solid var(--border-color);">
+                            <div style="font-size:20px; font-weight:800; color:var(--accent-cyan);" id="referralCount">0</div>
+                            <div style="color:var(--text-secondary);">Friends Referred</div>
+                        </div>
+                        <div style="flex:1; background:var(--input-bg); border-radius:8px; padding:12px; border:1px solid var(--border-color);">
+                            <div style="font-size:20px; font-weight:800; color:#10b981;" id="referralEarned">₹0</div>
+                            <div style="color:var(--text-secondary);">Total Earned</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="text-align:center; padding: 32px 20px;">
                     <div id="profileAvatar" class="profile-avatar">U</div>
                     <h2 id="profileName" style="font-size:22px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">User Name</h2>
                     <p id="profileEmail" style="font-size:14px; color:var(--text-secondary); margin-bottom:32px;">user@example.com</p>
@@ -551,6 +628,47 @@
         </div>
     </div>
 
+
+    <!-- CART MODAL -->
+    <div class="modal-overlay" id="cartModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title"><i class="fas fa-shopping-cart" style="color:var(--accent-cyan);"></i> My Cart</div>
+                <button class="icon-btn" onclick="closeCart()" style="background:transparent; border:none; box-shadow:none; height:32px; width:32px;"><i class="fas fa-times" style="font-size:18px;"></i></button>
+            </div>
+            <div id="cartItemsList" style="margin-bottom:16px; min-height:80px;"></div>
+            <div style="border-top:1px solid var(--border-color); padding-top:16px; margin-bottom:16px;">
+                <!-- WALLET USE -->
+                <div id="cartWalletRow" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:12px; background:rgba(37,99,235,0.06); border-radius:8px; border:1px solid rgba(37,99,235,0.2);">
+                    <div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary);">💰 Use Wallet Balance</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">Available: ₹<span id="cartWalletAvail">0</span></div>
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="useWalletChk" style="width:18px; height:18px; accent-color:var(--accent-cyan);" onchange="recalcCartTotal()">
+                        <span style="font-size:13px; font-weight:600; color:var(--accent-cyan);">Apply</span>
+                    </label>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                    <span>Total</span><span id="cartTotal" style="color:var(--accent-cyan);">₹0</span>
+                </div>
+                <div id="cartWalletDiscount" style="font-size:12px; color:#10b981; display:none;">🎉 Wallet discount applied!</div>
+            </div>
+            <button class="btn" onclick="proceedCartCheckout()"><i class="fas fa-bolt"></i> Checkout All Items</button>
+        </div>
+    </div>
+
+    <!-- NOTICE DETAIL MODAL -->
+    <div class="modal-overlay" id="noticeModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title" id="noticeModalTitle">Notice</div>
+                <button class="icon-btn" onclick="document.getElementById('noticeModal').classList.remove('active')" style="background:transparent; border:none; box-shadow:none; height:32px; width:32px;"><i class="fas fa-times" style="font-size:18px;"></i></button>
+            </div>
+            <div id="noticeModalBody" style="font-size:14px; color:var(--text-primary); line-height:1.7;"></div>
+        </div>
+    </div>
+
 </div>
 
 <div class="toast" id="toastBox"><i class="fas fa-info-circle"></i> <span>Message</span></div>
@@ -623,30 +741,129 @@
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName) { hasItems = true; list.innerHTML += `<div class="product-list-card"><div class="plc-info"><div class="plc-name">${p.title}</div></div><div class="plc-right"><div class="plc-price">₹${p.discountedPrice}</div><button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy</button></div></div>`; } });
+        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName) { hasItems = true; list.innerHTML += `<div class="product-list-card"><div class="plc-info"><div class="plc-name">${p.title}</div></div><div class="plc-right"><div class="plc-price">₹${p.discountedPrice}</div><div style="display:flex;gap:6px;"><button style="padding:7px 10px;border-radius:8px;background:var(--input-bg);border:1px solid var(--border-color);color:var(--accent-cyan);cursor:pointer;font-size:12px;transition:var(--transition);" onclick="addToCart('${id}','product')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button><button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy</button></div></div></div>`; } });
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
 
     let isSignupMode = false;
     document.getElementById('authToggleBtn').addEventListener('click', (e) => { 
-        e.preventDefault(); isSignupMode = !isSignupMode; document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back'; document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?'; document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up'; document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
+        e.preventDefault();
+        isSignupMode = !isSignupMode;
+        document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back';
+        document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely';
+        document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?';
+        document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up';
+        document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
+        document.getElementById('signupReferralGroup').style.display = isSignupMode ? 'block' : 'none';
+        if (isSignupMode) document.getElementById('authName').value = '';
     });
 
+    // Helper: switch to signup mode while keeping email & password pre-filled
+    function switchToSignup(prefillEmail, prefillPass) {
+        isSignupMode = true;
+        document.getElementById('authTitle').textContent = 'Create Account';
+        document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely';
+        document.getElementById('authToggleText').textContent = 'Already have an account?';
+        document.getElementById('authToggleBtn').textContent = 'Login';
+        document.getElementById('signupNameGroup').style.display = 'block';
+        document.getElementById('signupReferralGroup').style.display = 'block';
+        if (prefillEmail) document.getElementById('authEmail').value = prefillEmail;
+        if (prefillPass) document.getElementById('authPassword').value = prefillPass;
+        document.getElementById('authName').focus();
+        showToast('⚠️ Account not found. Please sign up first!');
+    }
+
     document.getElementById('authSubmitBtn').addEventListener('click', async () => { 
-        const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value; const name = document.getElementById('authName').value;
-        if(!email || !pass || (isSignupMode && !name)) return showToast('Fill all fields'); showLoader();
-        try { if(isSignupMode) { const cred = await createUserWithEmailAndPassword(auth, email, pass); await updateProfile(cred.user, { displayName: name }); await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString() }); showToast('Account Created!'); } else { await signInWithEmailAndPassword(auth, email, pass); showToast('Logged In Successfully'); } } catch(e) { showToast(e.message.replace('Firebase: ', '')); } hideLoader();
+        const email = document.getElementById('authEmail').value.trim();
+        const pass = document.getElementById('authPassword').value;
+        const name = document.getElementById('authName').value.trim();
+
+        if (!email || !pass) return showToast('Please fill email and password');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Please enter a valid email address');
+        if (pass.length < 6) return showToast('Password must be at least 6 characters');
+        if (isSignupMode && !name) return showToast('Please enter your full name');
+
+        showLoader();
+        try {
+            if (isSignupMode) {
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                await updateProfile(cred.user, { displayName: name });
+                const refCode = document.getElementById('authReferral').value.trim().toUpperCase();
+                let referredBy = null;
+                if (refCode) {
+                    const refSnap = await get(ref(db, `referralCodes/${refCode}`));
+                    if (refSnap.exists()) {
+                        referredBy = refSnap.val().uid;
+                    }
+                }
+                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referredBy || null });
+                await set(ref(db, `users/${cred.user.uid}/wallet`), { balance: 0 });
+                set(ref(db, `referralCodes/${generateReferralCode(cred.user.uid)}`), { uid: cred.user.uid });
+                // Give referrer their reward
+                if (referredBy) {
+                    get(ref(db, 'meta/referralReward')).then(rs => {
+                        const reward = rs.exists() ? parseFloat(rs.val()) : 10;
+                        addWalletCredit(referredBy, reward, `Referral reward - ${name} joined`);
+                        push(ref(db, `users/${referredBy}/referrals`), { uid: cred.user.uid, name, date: new Date().toISOString() });
+                    });
+                }
+                isSignupMode = false;
+                showToast('🎉 Account Created & Logged In!');
+            } else {
+                await signInWithEmailAndPassword(auth, email, pass);
+                showToast('✅ Logged In Successfully');
+            }
+        } catch(e) {
+            hideLoader();
+            const code = e.code || '';
+            // Agar user exist nahi karta → auto switch to signup with same email/pass
+            if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+                switchToSignup(email, pass);
+            } else if (code === 'auth/wrong-password') {
+                showToast('❌ Incorrect password. Please try again.');
+            } else if (code === 'auth/email-already-in-use') {
+                showToast('❌ This email is already registered. Please login instead.');
+            } else if (code === 'auth/too-many-requests') {
+                showToast('⚠️ Too many attempts. Please try again later.');
+            } else {
+                showToast(e.message.replace('Firebase: ', '').replace(/\s*\(auth\/.*\)\.?/, ''));
+            }
+            return;
+        }
+        hideLoader();
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
+    function updateProfileUI(displayName, email) {
+        const name = displayName && displayName.trim() ? displayName.trim() : (email ? email.split('@')[0] : 'User');
+        document.getElementById('profileName').textContent = name;
+        document.getElementById('profileEmail').textContent = email || '';
+        document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+    }
+
     onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
-            document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
+            document.getElementById('authView').style.display = 'none';
+            document.getElementById('userProfileView').style.display = 'block';
+
+            // Pehle jo available hai show karo, phir DB se fresh naam fetch karo
+            updateProfileUI(user.displayName, user.email);
+
+            // Firebase DB se naam fetch karo (displayName null ho sakta hai naye account mein)
+            get(ref(db, `users/${user.uid}/profile`)).then(snap => {
+                if (snap.exists() && snap.val().name) {
+                    updateProfileUI(snap.val().name, user.email);
+                }
+            }).catch(() => {});
+
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat();
+            loadWallet();
+            loadReferralData();
+            registerPushToken();
             if(document.getElementById('profileTab').classList.contains('active')){ switchTab('homeTab'); }
             bindRealTimeNotifications(user.uid);
         } else {
@@ -666,7 +883,7 @@
         grid.innerHTML = '';
         Object.entries(subsData).forEach(([id, sub]) => {
             let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan);"></i>${f}</li>`).join('');
-            let actionHtml = `<button class="btn" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>`;
+            let actionHtml = `<div style="display:flex;gap:8px;"><button class="btn btn-ghost" style="flex:1;padding:12px 8px;font-size:13px;" onclick="addToCart('${id}','subscription')"><i class="fas fa-cart-plus"></i></button><button class="btn" style="flex:3;" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button></div>`;
             if (activeSubscriptions[id] && activeSubscriptions[id] > new Date()) { const diffTime = Math.abs(activeSubscriptions[id] - new Date()); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); actionHtml = `<button class="btn" style="background: var(--text-secondary); cursor: default; display: flex; justify-content: center; align-items: center; gap: 8px;" disabled><i class="fas fa-clock"></i> Subscribed (${diffDays} Days Left)</button>`; }
             grid.innerHTML += `<div class="item-card" style="padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><div style="font-size:18px; font-weight:800; color:var(--text-primary);">${sub.planName}</div><div style="background:var(--input-bg); color:var(--accent-cyan); padding:4px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div></div><div class="item-price" style="font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:16px;">₹${sub.price}</div><p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:20px; line-height:1.5;">${sub.description || 'Premium access plan'}</p><ul style="list-style:none; font-size:13px; margin-bottom:24px; color:var(--text-primary);">${feats}</ul>${actionHtml}</div>`;
         });
@@ -779,6 +996,10 @@
                         </div>
                         ${estTimeHtml}
                         ${actionHtml}
+                        ${(o.status === 'completed' || o.status === 'rejected') ? `
+                        <button onclick="reOrder('${o.productId}','${o.isSubscription?'subscription':'product'}')" style="margin-top:10px; display:flex; align-items:center; gap:6px; background:var(--input-bg); border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; font-size:12px; font-weight:600; color:var(--accent-cyan); cursor:pointer; transition:var(--transition);">
+                            <i class="fas fa-redo-alt"></i> Re-Order
+                        </button>` : ''}
                     </div>
                 `;
             });
@@ -1060,8 +1281,261 @@
         if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(upiText).then(() => showToast('UPI ID Copied!')).catch(() => fallbackCopyText(upiText)); } else { fallbackCopyText(upiText); }
     });
 
+
+    // ─────────────────────────────────────────────
+    // WALLET SYSTEM
+    // ─────────────────────────────────────────────
+    let walletBalance = 0;
+
+    function loadWallet() {
+        if (!currentUser) return;
+        onValue(ref(db, `users/${currentUser.uid}/wallet`), s => {
+            walletBalance = s.exists() ? parseFloat(s.val().balance || 0) : 0;
+            document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+            document.getElementById('cartWalletAvail').textContent = walletBalance.toFixed(2);
+        });
+    }
+
+    async function addWalletCredit(uid, amount, reason) {
+        const walRef = ref(db, `users/${uid}/wallet`);
+        const snap = await get(walRef);
+        const current = snap.exists() ? parseFloat(snap.val().balance || 0) : 0;
+        await set(walRef, { balance: parseFloat((current + amount).toFixed(2)) });
+        await push(ref(db, `users/${uid}/walletHistory`), {
+            amount, reason, type: 'credit', date: new Date().toISOString()
+        });
+    }
+
+    async function deductWallet(uid, amount) {
+        const walRef = ref(db, `users/${uid}/wallet`);
+        const snap = await get(walRef);
+        const current = snap.exists() ? parseFloat(snap.val().balance || 0) : 0;
+        const newBal = Math.max(0, parseFloat((current - amount).toFixed(2)));
+        await set(walRef, { balance: newBal });
+    }
+
+    // ─────────────────────────────────────────────
+    // REFERRAL SYSTEM
+    // ─────────────────────────────────────────────
+    let referralReward = 10; // default ₹10
+
+    function generateReferralCode(uid) {
+        return uid.substring(0, 8).toUpperCase();
+    }
+
+    function loadReferralData() {
+        if (!currentUser) return;
+        const code = generateReferralCode(currentUser.uid);
+        document.getElementById('myReferralCode').textContent = code;
+        // set code in DB so others can look it up
+        set(ref(db, `referralCodes/${code}`), { uid: currentUser.uid });
+        // load referral reward config
+        get(ref(db, 'meta/referralReward')).then(s => {
+            if (s.exists()) referralReward = parseFloat(s.val()) || 10;
+            document.getElementById('referralRewardAmt').textContent = referralReward;
+        });
+        // load stats
+        get(ref(db, `users/${currentUser.uid}/referrals`)).then(s => {
+            if (s.exists()) {
+                const refs = s.val();
+                const count = Object.keys(refs).length;
+                const earned = count * referralReward;
+                document.getElementById('referralCount').textContent = count;
+                document.getElementById('referralEarned').textContent = '₹' + earned;
+            }
+        });
+    }
+
+    window.copyReferralCode = () => {
+        const code = document.getElementById('myReferralCode').textContent;
+        const text = `Join this awesome store and get instant discounts! Use my referral code: ${code}`;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => showToast('🔗 Referral link copied!'));
+        } else {
+            const ta = document.createElement('textarea'); ta.value = text;
+            document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+            document.body.removeChild(ta); showToast('🔗 Referral link copied!');
+        }
+    };
+
+    // ─────────────────────────────────────────────
+    // CART SYSTEM
+    // ─────────────────────────────────────────────
+    let cart = []; // [{id, type, item, price}]
+
+    function updateCartBadge() {
+        const badge = document.getElementById('cartCountBadge');
+        if (cart.length > 0) { badge.textContent = cart.length; badge.style.display = 'flex'; }
+        else { badge.style.display = 'none'; }
+    }
+
+    window.addToCart = (id, type) => {
+        if (!currentUser) { showToast('Please login to add to cart'); switchTab('profileTab'); return; }
+        const item = type === 'product' ? productsData[id] : subsData[id];
+        if (!item) return;
+        const existing = cart.find(c => c.id === id && c.type === type);
+        if (existing) { showToast('⚠️ Already in cart!'); return; }
+        const price = type === 'product' ? parseFloat(item.discountedPrice) : parseFloat(item.price);
+        cart.push({ id, type, item: {...item, id, purchaseType: type}, price });
+        updateCartBadge();
+        showToast('🛒 Added to cart!');
+    };
+
+    window.removeFromCart = (idx) => {
+        cart.splice(idx, 1);
+        updateCartBadge();
+        renderCartItems();
+    };
+
+    function recalcCartTotal() {
+        const total = cart.reduce((s, c) => s + c.price, 0);
+        const useWallet = document.getElementById('useWalletChk').checked;
+        const discount = useWallet ? Math.min(walletBalance, total) : 0;
+        const finalTotal = Math.max(0, total - discount);
+        document.getElementById('cartTotal').textContent = '₹' + finalTotal.toFixed(2);
+        document.getElementById('cartWalletDiscount').style.display = useWallet && discount > 0 ? 'block' : 'none';
+    }
+    window.recalcCartTotal = recalcCartTotal;
+
+    function renderCartItems() {
+        const el = document.getElementById('cartItemsList');
+        if (cart.length === 0) {
+            el.innerHTML = '<div class="empty-state" style="padding:30px 0;"><i class="fas fa-shopping-cart"></i><p>Cart is empty</p></div>';
+            document.getElementById('cartTotal').textContent = '₹0';
+            return;
+        }
+        el.innerHTML = cart.map((c, i) => `
+            <div class="cart-item">
+                <div>
+                    <div class="cart-item-name">${c.item.title || c.item.planName}</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">${c.type === 'subscription' ? c.item.duration + ' Days Plan' : 'Service'}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="cart-item-price">₹${c.price}</div>
+                    <button class="cart-remove" onclick="removeFromCart(${i})"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        `).join('');
+        recalcCartTotal();
+    }
+
+    window.openCart = () => {
+        renderCartItems();
+        document.getElementById('cartModal').classList.add('active');
+    };
+    window.closeCart = () => document.getElementById('cartModal').classList.remove('active');
+
+    window.proceedCartCheckout = () => {
+        if (cart.length === 0) return showToast('Cart is empty!');
+        // For simplicity: checkout first item, queue rest
+        closeCart();
+        const first = cart[0];
+        initCheckout(first.id, first.type);
+    };
+
+    // ─────────────────────────────────────────────
+    // RE-ORDER
+    // ─────────────────────────────────────────────
+    window.reOrder = (productId, type) => {
+        if (!productsData[productId] && !subsData[productId]) {
+            showToast('⚠️ Product no longer available'); return;
+        }
+        initCheckout(productId, type);
+        showToast('🔄 Re-order initiated!');
+    };
+
+    // ─────────────────────────────────────────────
+    // NOTIFICATIONS / NOTICES
+    // ─────────────────────────────────────────────
+    function loadNotices() {
+        onValue(ref(db, 'meta/notices'), s => {
+            const area = document.getElementById('noticeArea');
+            area.innerHTML = '';
+            if (!s.exists()) return;
+            const notices = s.val();
+            Object.entries(notices).forEach(([id, n]) => {
+                if (!n.isActive) return;
+                // Check if targeted to specific user or all
+                if (n.targetUid && currentUser && n.targetUid !== currentUser.uid) return;
+                if (n.targetUid && !currentUser) return;
+                const isUrgent = n.type === 'urgent';
+                const div = document.createElement('div');
+                div.className = 'notice-banner' + (isUrgent ? ' urgent' : '');
+                div.innerHTML = `
+                    <div class="notice-banner-icon">${isUrgent ? '🚨' : '📢'}</div>
+                    <div style="flex:1;">
+                        <div class="notice-title">${n.title || 'Notice'}</div>
+                        <div class="notice-body">${(n.body || '').substring(0, 80)}${(n.body||'').length > 80 ? '...' : ''}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:var(--text-secondary); font-size:12px;"></i>
+                `;
+                div.onclick = () => {
+                    document.getElementById('noticeModalTitle').textContent = n.title || 'Notice';
+                    document.getElementById('noticeModalBody').innerHTML = (n.body || '').replace(/\n/g, '<br>');
+                    document.getElementById('noticeModal').classList.add('active');
+                };
+                area.appendChild(div);
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────────
+    // SERVICE STATUS
+    // ─────────────────────────────────────────────
+    function loadServiceStatus() {
+        onValue(ref(db, 'meta/serviceStatus'), s => {
+            const area = document.getElementById('serviceStatusArea');
+            if (!s.exists() || !s.val().isVisible) { area.innerHTML = ''; return; }
+            const d = s.val();
+            const dotClass = d.status === 'online' ? 'online' : d.status === 'slow' ? 'slow' : 'offline';
+            const statusText = d.status === 'online' ? '✅ All services running normally' : d.status === 'slow' ? '⚠️ Some services are slower than usual' : '❌ Services temporarily unavailable';
+            area.innerHTML = `
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--border-radius); padding:12px 16px; display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                    <span class="status-dot ${dotClass}"></span>
+                    <span style="font-size:13px; font-weight:600; color:var(--text-primary); flex:1;">${statusText}</span>
+                    ${d.message ? `<span style="font-size:11px; color:var(--text-secondary);">${d.message}</span>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // ─────────────────────────────────────────────
+    // BULK ORDER (per product)
+    // ─────────────────────────────────────────────
+    window.initBulkOrder = (id, type) => {
+        if (!currentUser) { showToast('Please login first'); switchTab('profileTab'); return; }
+        const item = type === 'product' ? productsData[id] : subsData[id];
+        if (!item) return;
+        const qty = prompt(`Enter quantity for bulk order of "${item.title}":\n(Price per unit: ₹${item.discountedPrice || item.price})\nMin: 1, Max: 100`);
+        if (!qty || isNaN(qty) || parseInt(qty) < 1) return;
+        const q = Math.min(100, parseInt(qty));
+        const unitPrice = parseFloat(item.discountedPrice || item.price);
+        const total = (unitPrice * q).toFixed(2);
+        if (confirm(`Bulk Order: ${q} units\nTotal: ₹${total}\n\nProceed to payment?`)) {
+            // Store bulk qty then open checkout
+            window._bulkQty = q;
+            initCheckout(id, type);
+        }
+    };
+
+    // ─────────────────────────────────────────────
+    // PUSH NOTIFICATIONS (FCM-lite via Firebase)
+    // ─────────────────────────────────────────────
+    function registerPushToken() {
+        if (!currentUser) return;
+        // Save device info for admin targeting
+        if ('Notification' in window && Notification.permission === 'granted') {
+            update(ref(db, `users/${currentUser.uid}/profile`), {
+                pushEnabled: true, lastSeen: new Date().toISOString()
+            });
+        }
+    }
+
     loadPublicData(); window.switchTab = switchTab;
+    loadNotices();
+    loadServiceStatus();
 </script>
 
 </body>
 </html>
+
