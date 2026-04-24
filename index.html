@@ -630,97 +630,21 @@
 
     let isSignupMode = false;
     document.getElementById('authToggleBtn').addEventListener('click', (e) => { 
-        e.preventDefault();
-        isSignupMode = !isSignupMode;
-        document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back';
-        document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely';
-        document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?';
-        document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up';
-        document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
-        if (isSignupMode) document.getElementById('authName').value = '';
+        e.preventDefault(); isSignupMode = !isSignupMode; document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back'; document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?'; document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up'; document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
     });
 
-    // Helper: switch to signup mode while keeping email & password pre-filled
-    function switchToSignup(prefillEmail, prefillPass) {
-        isSignupMode = true;
-        document.getElementById('authTitle').textContent = 'Create Account';
-        document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely';
-        document.getElementById('authToggleText').textContent = 'Already have an account?';
-        document.getElementById('authToggleBtn').textContent = 'Login';
-        document.getElementById('signupNameGroup').style.display = 'block';
-        if (prefillEmail) document.getElementById('authEmail').value = prefillEmail;
-        if (prefillPass) document.getElementById('authPassword').value = prefillPass;
-        document.getElementById('authName').focus();
-        showToast('⚠️ Account not found. Please sign up first!');
-    }
-
     document.getElementById('authSubmitBtn').addEventListener('click', async () => { 
-        const email = document.getElementById('authEmail').value.trim();
-        const pass = document.getElementById('authPassword').value;
-        const name = document.getElementById('authName').value.trim();
-
-        if (!email || !pass) return showToast('Please fill email and password');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Please enter a valid email address');
-        if (pass.length < 6) return showToast('Password must be at least 6 characters');
-        if (isSignupMode && !name) return showToast('Please enter your full name');
-
-        showLoader();
-        try {
-            if (isSignupMode) {
-                const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                await updateProfile(cred.user, { displayName: name });
-                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString() });
-                isSignupMode = false;
-                showToast('🎉 Account Created & Logged In!');
-            } else {
-                await signInWithEmailAndPassword(auth, email, pass);
-                showToast('✅ Logged In Successfully');
-            }
-        } catch(e) {
-            hideLoader();
-            const code = e.code || '';
-            // Agar user exist nahi karta → auto switch to signup with same email/pass
-            if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
-                switchToSignup(email, pass);
-            } else if (code === 'auth/wrong-password') {
-                showToast('❌ Incorrect password. Please try again.');
-            } else if (code === 'auth/email-already-in-use') {
-                showToast('❌ This email is already registered. Please login instead.');
-            } else if (code === 'auth/too-many-requests') {
-                showToast('⚠️ Too many attempts. Please try again later.');
-            } else {
-                showToast(e.message.replace('Firebase: ', '').replace(/\s*\(auth\/.*\)\.?/, ''));
-            }
-            return;
-        }
-        hideLoader();
+        const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value; const name = document.getElementById('authName').value;
+        if(!email || !pass || (isSignupMode && !name)) return showToast('Fill all fields'); showLoader();
+        try { if(isSignupMode) { const cred = await createUserWithEmailAndPassword(auth, email, pass); await updateProfile(cred.user, { displayName: name }); await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString() }); showToast('Account Created!'); } else { await signInWithEmailAndPassword(auth, email, pass); showToast('Logged In Successfully'); } } catch(e) { showToast(e.message.replace('Firebase: ', '')); } hideLoader();
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    function updateProfileUI(displayName, email) {
-        const name = displayName && displayName.trim() ? displayName.trim() : (email ? email.split('@')[0] : 'User');
-        document.getElementById('profileName').textContent = name;
-        document.getElementById('profileEmail').textContent = email || '';
-        document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
-    }
-
     onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
-            document.getElementById('authView').style.display = 'none';
-            document.getElementById('userProfileView').style.display = 'block';
-
-            // Pehle jo available hai show karo, phir DB se fresh naam fetch karo
-            updateProfileUI(user.displayName, user.email);
-
-            // Firebase DB se naam fetch karo (displayName null ho sakta hai naye account mein)
-            get(ref(db, `users/${user.uid}/profile`)).then(snap => {
-                if (snap.exists() && snap.val().name) {
-                    updateProfileUI(snap.val().name, user.email);
-                }
-            }).catch(() => {});
-
+            document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat();
             if(document.getElementById('profileTab').classList.contains('active')){ switchTab('homeTab'); }
@@ -1141,4 +1065,3 @@
 
 </body>
 </html>
-
