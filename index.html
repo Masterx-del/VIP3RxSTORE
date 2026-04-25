@@ -1060,15 +1060,15 @@
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
 
-    // Helper: fetch with timeout
-    const fetchWithTimeout = (url, opts = {}, ms = 8000) => {
+    // Helper: fetch with timeout — 5s for snappy UX
+    const fetchWithTimeout = (url, opts = {}, ms = 5000) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), ms);
         return fetch(url, { ...opts, signal: controller.signal, cache: 'no-store' })
             .finally(() => clearTimeout(timer));
     };
 
-    // Helper: try all URLs in PARALLEL, return first valid JSON result
+    // Helper: race all URLs in PARALLEL, resolve on first valid JSON
     const raceFetch = async (urls, validateFn) => {
         return new Promise((resolve) => {
             let settled = false;
@@ -1079,7 +1079,6 @@
                     .then(text => {
                         try {
                             const json = JSON.parse(text);
-                            // If result matches the validation function, resolve immediately
                             if (!settled && validateFn(json)) {
                                 settled = true;
                                 resolve({ json, text });
@@ -1087,13 +1086,23 @@
                         } catch(e) {}
                     })
                     .catch(() => {})
-                    .finally(() => { 
-                        pending--; 
-                        if(pending === 0 && !settled) resolve(null); 
+                    .finally(() => {
+                        pending--;
+                        if (pending === 0 && !settled) resolve(null);
                     });
             });
         });
     };
+
+    // Build full proxy list for payment verify — more proxies = faster race
+    const buildVerifyURLs = (verifyUrl) => [
+        { url: verifyUrl, opts: {} },
+        { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`, opts: {} },
+        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`, opts: {} },
+        { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`, opts: {} },
+        { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`, opts: {} },
+        { url: `https://corsproxy.org/?${encodeURIComponent(verifyUrl)}`, opts: {} },
+    ];
 
     let currentUser = null; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
@@ -1403,12 +1412,7 @@
             // ── Step 2: Payment verification (ALL proxies in PARALLEL) ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
-            const verifyURLs = [
-                { url: verifyUrl, opts: {} },
-                { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`, opts: {} },
-                { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`, opts: {} },
-                { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`, opts: {} },
-            ];
+            const verifyURLs = buildVerifyURLs(verifyUrl);
             const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
             
             if(!verifyResult) { hideLoader(); return showToast("❌ Network Error. Check internet."); }
@@ -1740,13 +1744,7 @@
             const MERCHANT_ID = "MdXwlu49903940058924"; 
             const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             
-            const verifyURLs  =[
-                { url: verifyUrl,                                                                    opts: {} },
-                { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`,                    opts: {} },
-                { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`,       opts: {} },
-                { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`,  opts: {} },
-            ];
-
+            const verifyURLs = buildVerifyURLs(verifyUrl);
             const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
 
             if (!verifyResult) { 
@@ -1874,17 +1872,13 @@
         showLoader();
         try {
             const utr = 'WALLET_' + generateUTR(8);
-            
-            // Deduct Wallet Balance
             const newBal = walletBalance - checkoutFinalAmt;
-            await update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal });
-            await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() });
-            
-            walletBalance = newBal; // update locally immediately
 
-            // Order creation logic
+            // Update local balance immediately — instant UX
+            walletBalance = newBal;
+
             const hasApiConfig = !!(
-                !( checkoutItem.purchaseType === 'subscription') &&
+                !(checkoutItem.purchaseType === 'subscription') &&
                 checkoutItem.apiUrl && checkoutItem.apiKey &&
                 checkoutItem.serviceId && checkoutItem.quantity && targetLink
             );
@@ -1910,12 +1904,14 @@
             };
 
             const newOrderRef = push(ref(db, 'orders'));
-            await set(newOrderRef, orderData);
 
-            if (appliedCouponKey) { 
-                const currentCount = couponsData[appliedCouponKey].usedCount || 0; 
-                await update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: currentCount + 1 }); 
-            }
+            // Fire all Firebase writes IN PARALLEL — much faster than sequential awaits
+            await Promise.all([
+                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
+                push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
+                set(newOrderRef, orderData),
+                ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
+            ]);
 
             closeCheckout(); 
             notifyLive('✅ Wallet Payment Successful! Order Placed.'); 
@@ -2228,11 +2224,14 @@
         try {
             const utr = 'WALLET_' + generateUTR(8);
 
-            // Deduct Wallet Balance
+            // Deduct Wallet Balance — update locally first for instant UI
             const newBal = walletBalance - cartFinalAmt;
-            await update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal });
-            await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: cartFinalAmt, note: 'Paid for Cart Orders', utrId: utr, createdAt: new Date().toISOString() });
             walletBalance = newBal;
+            // Fire balance + history write in parallel (non-blocking to order saves)
+            Promise.all([
+                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
+                push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: cartFinalAmt, note: 'Paid for Cart Orders', utrId: utr, createdAt: new Date().toISOString() }),
+            ]).catch(()=>{});
 
             // Save orders and call external API if needed
             const promises = cart.map(async item => {
