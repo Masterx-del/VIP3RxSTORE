@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -559,7 +557,7 @@
             <div id="wfStep1">
                 <div class="input-group">
                     <label>Enter Amount (₹)</label>
-                    <input type="number" id="wfAmountInput" placeholder="e.g., 10" min="10">
+                    <input type="number" id="wfAmountInput" placeholder="e.g., 100" min="10">
                 </div>
                 <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
                     <span>Total Amount</span><span id="wfFinalPrice" style="color:var(--accent-cyan);">₹0</span>
@@ -736,6 +734,7 @@
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
+    let linkMgmtRules = {};
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -768,6 +767,12 @@
         if (targetId !== 'homeTab') { document.getElementById('categoryPane').style.display = 'none'; currentCatView.level = 0; }
         navItems.forEach(nav => { nav.classList.toggle('active', nav.dataset.target === targetId); });
         document.querySelector('.content-area').scrollTo(0,0);
+        // Reset userUnread badge when chat tab opened
+        if(targetId === 'chatTab' && currentUser) {
+            update(ref(db, `chats/${currentUser.uid}/info`), { userUnread: 0 });
+            const badge = document.getElementById('chatUnreadBadge');
+            if(badge) badge.style.display = 'none';
+        }
     }
     navItems.forEach(nav => { nav.addEventListener('click', () => switchTab(nav.dataset.target)); });
     document.getElementById('headerProfileBtn').addEventListener('click', () => switchTab('profileTab'));
@@ -862,7 +867,7 @@
         onValue(ref(db, `chats/${uid}/info`), snap => {
             if(!snap.exists()) return;
             const info = snap.val();
-            const unread = info.adminUnread || 0;
+            const unread = info.userUnread || 0;
             const badge = document.getElementById('chatUnreadBadge');
             if(badge) {
                 if(unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
@@ -1024,6 +1029,7 @@
         onValue(ref(db, 'meta/brand'), s => { if(s.exists()){ const d = s.val(); document.getElementById('brandName').textContent = d.name || 'Store'; if(d.logoUrl) { document.getElementById('brandLogo').src = d.logoUrl; document.getElementById('brandLogo').style.display = 'block'; } } });
         onValue(ref(db, 'meta/offers'), s => { if(s.exists()){ const d = s.val(); const banner = document.getElementById('offerBanner'); if(d.name && d.imageUrl) { banner.style.display = 'flex'; banner.style.backgroundImage = `url('${d.imageUrl}')`; document.getElementById('offerTitle').textContent = d.name; document.getElementById('offerDesc').textContent = d.description || ''; document.getElementById('offerPrice').textContent = `₹${d.newRate || 0}`; document.getElementById('offerOldPrice').textContent = `₹${d.oldRate || 0}`; document.getElementById('contactLink').href = d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'; document.getElementById('updatesLink').href = d.channelLink || '#'; } else { banner.style.display = 'none'; } } });
         onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
+        onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
         onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
@@ -1152,16 +1158,20 @@
         });
     }
 
-    document.getElementById('chatSendBtn').addEventListener('click', () => {
+    document.getElementById('chatSendBtn').addEventListener('click', async () => {
         if(!currentUser) return showToast('Please login');
         const input = document.getElementById('chatInput'); const msg = input.value.trim(); if(!msg) return;
 
         push(ref(db, `chats/${currentUser.uid}/messages`), { message: msg, sender: 'user', timestamp: new Date().toISOString() });
         
         const infoRef = ref(db, `chats/${currentUser.uid}/info`);
+        // Always get latest name from profile to ensure correct display
+        const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
+        const displayName = profileSnap.exists() ? (profileSnap.val().name || currentUser.displayName || 'User') : (currentUser.displayName || 'User');
+        
         get(infoRef).then(snap => {
             let unread = 1; if(snap.exists() && snap.val().adminUnread) { unread = snap.val().adminUnread + 1; }
-            update(infoRef, { userName: currentUser.displayName || 'User', lastMessage: msg, lastMessageTime: new Date().toISOString(), adminUnread: unread });
+            update(infoRef, { userName: displayName, lastMessage: msg, lastMessageTime: new Date().toISOString(), adminUnread: unread });
         });
         
         input.value = '';
@@ -1209,8 +1219,15 @@
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
             document.getElementById('chkExtraLinksContainer').style.display = 'none';
-            let cat = checkoutItem.category || ''; let sub = (checkoutItem.subCategory || '').toLowerCase(); let label = 'Target Link'; let showPoll = false;
-            if (cat === 'Instagram') { if (sub.includes('follower')) label = 'Paste Your Profile Link'; else if (sub.includes('reel')) label = 'Reels Link'; else if (sub.includes('story view')) label = 'Username'; else if (sub.includes('poll')) { label = 'Story Link'; showPoll = true; } else label = 'Post Link'; } else if (cat === 'YouTube') { if (sub.includes('sub')) label = 'Channel Link'; else if (sub.includes('view') || sub.includes('watch')) label = 'Video Link'; else label = 'Post/Video Link'; } else if (cat === 'Facebook') { if (sub.includes('group')) label = 'Group Link'; else if (sub.includes('follower')) label = 'Page/Profile Link'; else label = 'Post/Video Link'; } else if (cat === 'WhatsApp') { if (sub.includes('follower')) label = 'Channel Link'; else label = 'Channel Post Link'; } else if (cat === 'Telegram') { if (sub.includes('group')) label = 'Group Link'; else if (sub.includes('member')) label = 'Channel Link'; else if (sub.includes('poll')) { label = 'Post Link'; showPoll = true; } else label = 'Post Link'; } else { label = 'Target Link / Username'; }
+            let cat = checkoutItem.category || ''; let sub = checkoutItem.subCategory || ''; let label = 'Target Link'; let showPoll = false;
+            // Admin-defined rule takes priority
+            const ruleKey = `${cat}|${sub}`;
+            if (linkMgmtRules[ruleKey]) {
+                label = linkMgmtRules[ruleKey];
+            } else {
+                const subLow = sub.toLowerCase();
+                if (cat === 'Instagram') { if (subLow.includes('follower')) label = 'Paste Your Profile Link'; else if (subLow.includes('reel')) label = 'Reels Link'; else if (subLow.includes('story view')) label = 'Username'; else if (subLow.includes('poll')) { label = 'Story Link'; showPoll = true; } else label = 'Post Link'; } else if (cat === 'YouTube') { if (subLow.includes('sub')) label = 'Channel Link'; else if (subLow.includes('view') || subLow.includes('watch')) label = 'Video Link'; else label = 'Post/Video Link'; } else if (cat === 'Facebook') { if (subLow.includes('group')) label = 'Group Link'; else if (subLow.includes('follower')) label = 'Page/Profile Link'; else label = 'Post/Video Link'; } else if (cat === 'WhatsApp') { if (subLow.includes('follower')) label = 'Channel Link'; else label = 'Channel Post Link'; } else if (cat === 'Telegram') { if (subLow.includes('group')) label = 'Group Link'; else if (subLow.includes('member')) label = 'Channel Link'; else if (subLow.includes('poll')) { label = 'Post Link'; showPoll = true; } else label = 'Post Link'; } else { label = 'Target Link / Username'; }
+            }
             document.getElementById('chkLinkLabel').textContent = label; document.getElementById('chkLinkInput').placeholder = 'Enter ' + label; document.getElementById('chkPollContainer').style.display = showPoll ? 'block' : 'none';
         } else { 
             document.getElementById('chkExtraLinksContainer').style.display = 'block';
@@ -1564,7 +1581,8 @@
 
         // Render input for EVERY item uniquely using its index (idx)
         cont.innerHTML = cart.map((item, idx) => {
-            const label = item.product.linkLabel || 'Target Link';
+            const ruleKey = `${item.product.category||''}|${item.product.subCategory||''}`;
+            const label = linkMgmtRules[ruleKey] || item.product.linkLabel || 'Target Link';
             const linkHtml = `<div style="margin-top:8px;">
                 <div style="font-size:11px; color:var(--text-secondary); font-weight:600; margin-bottom:4px;">${label}</div>
                 <input type="text" id="cartLink_${idx}" placeholder="Enter ${label}" value="${item.link}" oninput="syncCartLink(${idx}, this.value)" style="width:100%; padding:8px 10px; border:1px solid var(--border-color); border-radius:6px; background:var(--input-bg); color:var(--text-primary); font-size:12px; outline:none;">
