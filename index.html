@@ -355,12 +355,33 @@
 
         @keyframes stroke { 100% { stroke-dashoffset: 0; } }
         @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+
+        /* ── ANNOUNCEMENT BANNER ── */
+        .ann-banner {
+            display: none; width: 100%; padding: 10px 16px;
+            font-size: 13px; font-weight: 600; text-align: center;
+            color: #fff; flex-shrink: 0; position: relative;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            animation: bannerSlideIn 0.4s ease;
+        }
+        .ann-banner.warn  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .ann-banner.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .ann-banner.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .ann-banner.visible { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .ann-banner-close { background: rgba(255,255,255,0.25); border: none; color: #fff; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-left: 6px; }
+        @keyframes bannerSlideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body class="light-mode">
 
 <div class="app-container">
     
+    <!-- ANNOUNCEMENT BANNER -->
+    <div class="ann-banner" id="annBanner">
+        <span id="annBannerText"></span>
+        <button class="ann-banner-close" onclick="document.getElementById('annBanner').classList.remove('visible');" title="Dismiss">×</button>
+    </div>
+
     <header class="header">
         <div class="brand-info">
             <img id="brandLogo" class="brand-logo" src="" alt="Logo">
@@ -1156,7 +1177,7 @@
         const catTitle = document.getElementById('catTitle');
         catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let subCatsMap = {};
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; if(pCat === catName) { const sub = p.subCategory || 'General'; if(!subCatsMap[sub]) subCatsMap[sub] = 0; subCatsMap[sub]++; } });
+        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; if(pCat === catName && p.isActive !== false) { const sub = p.subCategory || 'General'; if(!subCatsMap[sub]) subCatsMap[sub] = 0; subCatsMap[sub]++; } });
         if(Object.keys(subCatsMap).length === 0) { list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No services currently available here.</p></div>'; }
         else { Object.keys(subCatsMap).forEach(sub => { list.innerHTML += `<div class="subcategory-card" onclick="openSubCategory('${catName}', '${sub}')"><div class="subcategory-name">${sub}</div><div class="subcategory-count">${subCatsMap[sub]} <span style="font-weight:400;">Services</span> <i class="fas fa-chevron-right" style="font-size:10px;"></i></div></div>`; }); }
         const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
@@ -1167,7 +1188,7 @@
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName) { hasItems = true; 
+        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName && p.isActive !== false) { hasItems = true; 
             const avgTimeHtml = p.avgTime ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:3px;"><i class="fas fa-clock" style="font-size:10px;"></i> ~${p.avgTime}</div>` : '';
             const linkLabel = p.linkLabel || '';
             list.innerHTML += `<div class="product-list-card"><div class="plc-info"><div class="plc-name">${p.title}</div>${avgTimeHtml}${linkLabel ? `<div style="font-size:10px;color:var(--accent-cyan);margin-top:2px;"><i class="fas fa-link" style="font-size:9px;"></i> Requires: ${linkLabel}</div>` : ''}</div><div class="plc-right"><div class="plc-price">₹${p.discountedPrice}</div><div style="display:flex;gap:6px;"><button class="plc-buy" style="background:var(--input-bg);color:var(--accent-cyan);border:1px solid var(--accent-cyan);padding:8px 10px;" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button><button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy</button></div></div></div>`; } });
@@ -1478,6 +1499,23 @@
         onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
+
+        // ── ANNOUNCEMENT BANNER ──
+        onValue(ref(db, 'meta/announcement'), s => {
+            const banner = document.getElementById('annBanner');
+            const text = document.getElementById('annBannerText');
+            banner.classList.remove('visible', 'warn', 'danger', 'success');
+            if(s.exists()) {
+                const d = s.val();
+                if(d.active && d.message) {
+                    text.textContent = d.message;
+                    if(d.type === 'warn-banner') banner.classList.add('warn');
+                    else if(d.type === 'danger-banner') banner.classList.add('danger');
+                    else if(d.type === 'success-banner') banner.classList.add('success');
+                    banner.classList.add('visible');
+                }
+            }
+        });
     }
 
     function loadOrders() {
@@ -1645,6 +1683,7 @@
     window.initCheckout = (id, type) => { 
         if(!currentUser) { showToast('Please login to purchase!'); switchTab('profileTab'); return; }
         checkoutItem = type === 'product' ? productsData[id] : subsData[id]; if(!checkoutItem) return showToast('Item unavailable');
+        if(type === 'product' && checkoutItem.isActive === false) return showToast('⚠️ This service is currently unavailable');
         checkoutItem.id = id; checkoutItem.purchaseType = type; checkoutFinalAmt = type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price); appliedCouponKey = null;
 
         const imgEl = document.getElementById('chkImg'); if(checkoutItem.imageUrl) { imgEl.src = checkoutItem.imageUrl; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
@@ -1981,6 +2020,7 @@
         if(!currentUser) { showToast('Please login first!'); switchTab('profileTab'); return; }
         const p = productsData[id];
         if(!p) return showToast('Service unavailable');
+        if(p.isActive === false) return showToast('⚠️ This service is currently unavailable');
         const cartItem = { id, product: {...p, id}, link: '', qty: 1 };
         cart.push(cartItem);
         updateCartBadge();
