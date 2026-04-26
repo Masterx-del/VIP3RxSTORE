@@ -1104,8 +1104,8 @@
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
 
-    // Helper: fetch with timeout — 3s for ultra fast UX
-    const fetchWithTimeout = (url, opts = {}, ms = 3000) => {
+    // Helper: fetch with timeout — 1.5s for ultra fast UX
+    const fetchWithTimeout = (url, opts = {}, ms = 1500) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), ms);
         return fetch(url, { ...opts, signal: controller.signal, cache: 'no-store' })
@@ -1157,7 +1157,14 @@
     // Pre-warm proxies the moment checkout modal opens — cuts ~300ms off verification
     function prewarmProxies(verifyUrl) {
         const enc = encodeURIComponent(verifyUrl);
-        ['https://corsproxy.io/', 'https://api.allorigins.win/raw?url=', 'https://corsproxy.org/?'].forEach(proxy => {
+        [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.org/?',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://thingproxy.freeboard.io/fetch/',
+            'https://yacdn.org/proxy/',
+        ].forEach(proxy => {
             fetch(proxy + enc, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(2000) }).catch(()=>{});
         });
     }
@@ -1586,16 +1593,17 @@
         
         showLoader();
         try {
-            // ── Step 1: Duplicate UTR check in Firebase ──
-            const utrSnapshot = await get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr)));
-            if(utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID has already been used!'); }
-
-            // ── Step 2: Payment verification (ALL proxies in PARALLEL) ──
+            // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
-            const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
-            
+
+            const [utrSnapshot, verifyResult] = await Promise.all([
+                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+                raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
+            ]);
+
+            if(utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID has already been used!'); }
             if(!verifyResult) { hideLoader(); return showToast("❌ Network Error. Check internet."); }
             
             const result = verifyResult.json;
@@ -1924,8 +1932,9 @@
     };
 
     window.confirmPurchase = async () => { 
+        if (_guardOrder()) return;
         const utr = currentOrderId; 
-        if(!utr) return showToast('❌ Invalid Order ID');
+        if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
         
         const targetLink  = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption  = document.getElementById('chkPollInput').value.trim(); 
@@ -1936,22 +1945,23 @@
         
         showLoader();
         try {
-            // ── Step 1: Duplicate UTR check in Firebase ──
-            const utrSnapshot = await get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))); 
+            // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
+            const MERCHANT_ID = "MdXwlu49903940058924"; 
+            const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
+            const verifyURLs  = buildVerifyURLs(verifyUrl);
+
+            const [utrSnapshot, verifyResult] = await Promise.all([
+                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+                raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
+            ]);
+
             if (utrSnapshot.exists()) { 
-                hideLoader(); 
+                _unlockOrder(); hideLoader(); 
                 return showToast('❌ This Order ID has already been used!'); 
             }
 
-            // ── Step 2: Payment verification (ALL proxies in PARALLEL) ──
-            const MERCHANT_ID = "MdXwlu49903940058924"; 
-            const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
-            
-            const verifyURLs = buildVerifyURLs(verifyUrl);
-            const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
-
             if (!verifyResult) { 
-                hideLoader(); 
+                _unlockOrder(); hideLoader(); 
                 return showToast("❌ Network Error. Check your internet connection."); 
             }
 
@@ -1959,14 +1969,14 @@
             
             // ── Step 3: Validate Payment Status ──
             if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
-                hideLoader();
+                _unlockOrder(); hideLoader();
                 return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Please wait 10 secs and retry."));
             }
 
             // ── Step 4: Validate Paid Amount ──
             const paidVal = parseFloat(result.TXNAMOUNT);
             if (paidVal < checkoutFinalAmt) { 
-                hideLoader();
+                _unlockOrder(); hideLoader();
                 return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`);
             }
 
@@ -2004,6 +2014,7 @@
                 await update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: currentCount + 1 }); 
             }
 
+            _unlockOrder();
             closeCheckout(); 
             notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
             playOrderSuccessSound();
@@ -2049,12 +2060,14 @@
             }
 
         } catch(e) { 
+            _unlockOrder();
             hideLoader();
             showToast('❌ System Error: ' + e.message); 
         } 
     };
 
     window.confirmWalletPurchase = async () => {
+        if (_guardOrder()) return;
         const targetLink  = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption  = document.getElementById('chkPollInput').value.trim(); 
         const targetLink2 = document.getElementById('chkLinkInput2').value.trim();
@@ -2063,14 +2076,14 @@
         const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
 
         if (checkoutItem.purchaseType === 'product') { 
-            if (!targetLink) return showToast('Please enter the required link/username');
+            if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
             if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) { 
-                return showToast('Please enter the poll vote option'); 
+                _unlockOrder(); return showToast('Please enter the poll vote option'); 
             } 
         }
 
         if (walletBalance < checkoutFinalAmt) {
-            return showToast(`❌ Insufficient Wallet Balance! Need ₹${checkoutFinalAmt.toFixed(2)}`);
+            _unlockOrder(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${checkoutFinalAmt.toFixed(2)}`);
         }
 
         showLoader();
@@ -2117,6 +2130,7 @@
                 ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
             ]);
 
+            _unlockOrder();
             closeCheckout(); 
             notifyLive('✅ Wallet Payment Successful! Order Placed.'); 
             playOrderSuccessSound();
@@ -2161,6 +2175,7 @@
             }
 
         } catch (e) {
+            _unlockOrder();
             hideLoader();
             showToast('❌ System Error: ' + e.message);
         }
@@ -2181,6 +2196,12 @@
     let cartFinalAmt = 0;
     let cartAppliedCoupon = null;
     let cartCouponDiscount = 0;
+
+    // ── Duplicate-order guard ──────────────────────────────────────────────
+    let _isProcessingOrder = false;
+    function _lockOrder()   { _isProcessingOrder = true; }
+    function _unlockOrder() { _isProcessingOrder = false; }
+    function _guardOrder()  { if (_isProcessingOrder) { showToast('⏳ Please wait, processing...'); return true; } _lockOrder(); return false; }
 
     window.addToCart = (id) => {
         if(!currentUser) { showToast('Please login first!'); switchTab('profileTab'); return; }
@@ -2323,30 +2344,32 @@
     });
 
     window.confirmCartPurchase = async () => {
+        if (_guardOrder()) return;
         const utr = cartOrderId;
-        if(!utr) return showToast('❌ Invalid Order ID');
+        if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
         showLoader();
         try {
-            // ── Step 1: Duplicate UTR check in Firebase ──
-            const utrSnapshot = await get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr)));
-            if(utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID already used!'); }
-
-            // ── Step 2: Payment verification (ALL proxies in PARALLEL) ──
+            // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
-            
-            const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
-            if(!verifyResult) { hideLoader(); return showToast("❌ Network Error."); }
+
+            const [utrSnapshot, verifyResult] = await Promise.all([
+                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+                raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
+            ]);
+
+            if(utrSnapshot.exists()) { _unlockOrder(); hideLoader(); return showToast('❌ This Order ID already used!'); }
+            if(!verifyResult) { _unlockOrder(); hideLoader(); return showToast("❌ Network Error."); }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                hideLoader(); 
+                _unlockOrder(); hideLoader(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < cartFinalAmt) { hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
+            if(paidVal < cartFinalAmt) { _unlockOrder(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
 
             // Save one order per cart item and call external API if needed
             const promises = cart.map(async item => {
@@ -2407,22 +2430,24 @@
             sendTelegramOrderNotification(cart, paidVal, utr);
 
             cart = []; updateCartBadge();
+            _unlockOrder();
             closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
-        } catch(e) { hideLoader(); showToast('❌ Error: ' + e.message); }
+        } catch(e) { _unlockOrder(); hideLoader(); showToast('❌ Error: ' + e.message); }
     };
 
     window.confirmCartWalletPurchase = async () => {
-        if(cart.length === 0) return showToast('Cart is empty!');
+        if (_guardOrder()) return;
+        if(cart.length === 0) { _unlockOrder(); return showToast('Cart is empty!'); }
         
         for(let i=0; i<cart.length; i++) {
             if(!cart[i].link.trim()) { 
-                return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
+                _unlockOrder(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
             }
         }
 
         if (walletBalance < cartFinalAmt) {
-            return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
+            _unlockOrder(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
         }
 
         showLoader();
@@ -2495,9 +2520,11 @@
             sendTelegramOrderNotification(cart, cartFinalAmt, utr);
 
             cart = []; updateCartBadge();
+            _unlockOrder();
             closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
         } catch(e) { 
+            _unlockOrder();
             hideLoader(); showToast('❌ Error: ' + e.message); 
         }
     };
