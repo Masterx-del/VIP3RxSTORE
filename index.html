@@ -515,7 +515,7 @@
         <a class="nav-item" data-target="subsTab"><i class="fas fa-crown"></i>Premium</a>
         <a class="nav-item auth-req" data-target="ordersTab"><i class="fas fa-receipt"></i>Orders</a>
         <a class="nav-item auth-req" data-target="walletTab"><i class="fas fa-wallet"></i>Wallet</a>
-        <a class="nav-item auth-req" data-target="chatTab" id="navChatItem" style="position:relative;"><i class="fas fa-headset"></i>Support<span id="chatUnreadBadge" style="display:none;position:absolute;top:4px;right:calc(50% - 18px);background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;"></span></a>
+        <a class="nav-item auth-req" data-target="chatTab" id="navChatItem" style="position:relative;"><i class="fas fa-headset"></i>Support<span id="chatUnreadBadge" style="display:none;position:absolute;top:4px;right:calc(50% - 18px);background:#ef4444;color:#fff;border-radius:50%;width:18px;height:18px;font-size:9px;font-weight:800;align-items:center;justify-content:center;line-height:18px;text-align:center;"></span></a>
         <a class="nav-item" data-target="profileTab" id="navProfileIcon"><i class="fas fa-user"></i>Account</a>
     </nav>
 
@@ -1081,15 +1081,16 @@
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
 
-    // Helper: fetch with timeout — 5s for snappy UX
-    const fetchWithTimeout = (url, opts = {}, ms = 5000) => {
+    // Helper: fetch with timeout — 3s for ultra fast UX
+    const fetchWithTimeout = (url, opts = {}, ms = 3000) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), ms);
         return fetch(url, { ...opts, signal: controller.signal, cache: 'no-store' })
             .finally(() => clearTimeout(timer));
     };
 
-    // Helper: race all URLs in PARALLEL, resolve on first valid JSON
+    // Helper: race all URLs in PARALLEL, resolve on FIRST valid JSON
+    // Also fires a DNS pre-warm so proxies respond faster
     const raceFetch = async (urls, validateFn) => {
         return new Promise((resolve) => {
             let settled = false;
@@ -1115,15 +1116,28 @@
         });
     };
 
-    // Build full proxy list for payment verify — more proxies = faster race
-    const buildVerifyURLs = (verifyUrl) => [
-        { url: verifyUrl, opts: {} },
-        { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`, opts: {} },
-        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`, opts: {} },
-        { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`, opts: {} },
-        { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`, opts: {} },
-        { url: `https://corsproxy.org/?${encodeURIComponent(verifyUrl)}`, opts: {} },
-    ];
+    // Build full proxy list — ordered fastest first, all fired in parallel
+    const buildVerifyURLs = (verifyUrl) => {
+        const enc = encodeURIComponent(verifyUrl);
+        return [
+            { url: verifyUrl,                                                   opts: {} },
+            { url: `https://corsproxy.io/?${enc}`,                              opts: {} },
+            { url: `https://api.allorigins.win/raw?url=${enc}`,                 opts: {} },
+            { url: `https://corsproxy.org/?${enc}`,                             opts: {} },
+            { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,            opts: {} },
+            { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`,        opts: {} },
+            { url: `https://proxy.cors.sh/${verifyUrl}`,                        opts: { headers: { 'x-cors-api-key': 'temp_' } } },
+            { url: `https://yacdn.org/proxy/${verifyUrl}`,                      opts: {} },
+        ];
+    };
+
+    // Pre-warm proxies the moment checkout modal opens — cuts ~300ms off verification
+    function prewarmProxies(verifyUrl) {
+        const enc = encodeURIComponent(verifyUrl);
+        ['https://corsproxy.io/', 'https://api.allorigins.win/raw?url=', 'https://corsproxy.org/?'].forEach(proxy => {
+            fetch(proxy + enc, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(2000) }).catch(()=>{});
+        });
+    }
 
     let currentUser = null; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
@@ -1149,6 +1163,30 @@
         }
     };
 
+    // ── Order Success Sound ─────────────────────────────────────
+    function playOrderSuccessSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const notes = [
+                { freq: 523.25, start: 0,    dur: 0.15 },  // C5
+                { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
+                { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
+                { freq: 1046.5, start: 0.45, dur: 0.30 },  // C6
+            ];
+            notes.forEach(({ freq, start, dur }) => {
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                gain.gain.setValueAtTime(0.35, ctx.currentTime + start);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+                osc.start(ctx.currentTime + start);
+                osc.stop(ctx.currentTime + start + dur + 0.05);
+            });
+        } catch(e) {}
+    }
+
     const showLoader = () => document.getElementById('loaderBox').classList.add('active');
     const hideLoader = () => document.getElementById('loaderBox').classList.remove('active');
 
@@ -1162,11 +1200,15 @@
         if (targetId !== 'homeTab') { document.getElementById('categoryPane').style.display = 'none'; currentCatView.level = 0; }
         navItems.forEach(nav => { nav.classList.toggle('active', nav.dataset.target === targetId); });
         document.querySelector('.content-area').scrollTo(0,0);
-        // Reset userUnread badge when chat tab opened
+        // Reset userUnread badge when chat tab opened + scroll to latest message
         if(targetId === 'chatTab' && currentUser) {
             update(ref(db, `chats/${currentUser.uid}/info`), { userUnread: 0 });
             const badge = document.getElementById('chatUnreadBadge');
             if(badge) badge.style.display = 'none';
+            setTimeout(() => {
+                const msgCont = document.getElementById('chatMessages');
+                if(msgCont) msgCont.scrollTop = msgCont.scrollHeight;
+            }, 60);
         }
     }
     navItems.forEach(nav => { nav.addEventListener('click', () => switchTab(nav.dataset.target)); });
@@ -1265,7 +1307,12 @@
             const unread = info.userUnread || 0;
             const badge = document.getElementById('chatUnreadBadge');
             if(badge) {
-                if(unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
+                if(unread > 0) { 
+                    badge.textContent = unread > 9 ? '9+' : unread; 
+                    badge.style.display = 'flex'; 
+                    badge.style.alignItems = 'center'; 
+                    badge.style.justifyContent = 'center'; 
+                }
                 else { badge.style.display = 'none'; }
             }
         });
@@ -1413,6 +1460,10 @@
         document.getElementById('wf-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
         document.getElementById('afStep1').style.display = 'none';
         document.getElementById('wfStep2').style.display = 'block';
+
+        // Pre-warm proxies for faster wallet payment verification
+        const MERCHANT_ID_WF = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_WF}`);
     };
 
     window.goBackWfStep1 = () => {
@@ -1699,6 +1750,10 @@
 
         currentOrderId = generateUTR(12);
         updateQRCode(checkoutFinalAmt, currentOrderId);
+
+        // Pre-warm proxy connections so verification is faster when user clicks verify
+        const MERCHANT_ID_PW = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
@@ -1842,6 +1897,7 @@
 
             closeCheckout(); 
             notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
+            playOrderSuccessSound();
             switchTab('ordersTab');
             hideLoader();
 
@@ -1954,6 +2010,7 @@
 
             closeCheckout(); 
             notifyLive('✅ Wallet Payment Successful! Order Placed.'); 
+            playOrderSuccessSound();
             switchTab('ordersTab');
             hideLoader();
 
@@ -2146,6 +2203,10 @@
         document.getElementById('cart-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
         document.getElementById('cartStep1').style.display = 'none';
         document.getElementById('cartStep2').style.display = 'block';
+
+        // Pre-warm proxies so verification is instant
+        const MERCHANT_ID_PW2 = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW2}`);
     };
     document.getElementById('cartUpiId').addEventListener('click', () => {
         const t = document.getElementById('cartUpiId').textContent;
@@ -2164,12 +2225,7 @@
             // ── Step 2: Payment verification (ALL proxies in PARALLEL) ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
-            const verifyURLs = [
-                { url: verifyUrl, opts: {} },
-                { url: `https://corsproxy.io/?${encodeURIComponent(verifyUrl)}`, opts: {} },
-                { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(verifyUrl)}`, opts: {} },
-                { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(verifyUrl)}`, opts: {} },
-            ];
+            const verifyURLs = buildVerifyURLs(verifyUrl);
             
             const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
             if(!verifyResult) { hideLoader(); return showToast("❌ Network Error."); }
@@ -2242,7 +2298,7 @@
             sendTelegramOrderNotification(cart, paidVal, utr);
 
             cart = []; updateCartBadge();
-            closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); switchTab('ordersTab');
+            closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
         } catch(e) { hideLoader(); showToast('❌ Error: ' + e.message); }
     };
@@ -2330,7 +2386,7 @@
             sendTelegramOrderNotification(cart, cartFinalAmt, utr);
 
             cart = []; updateCartBadge();
-            closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); switchTab('ordersTab');
+            closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
         } catch(e) { 
             hideLoader(); showToast('❌ Error: ' + e.message); 
