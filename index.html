@@ -584,12 +584,14 @@
     border-radius: 22px;
     padding: 0;
     overflow: hidden;
-    max-height: 88vh;
-    max-height: 88dvh;
+    max-height: 92vh;
+    max-height: 92dvh;
     width: 100%;
     transform: scale(0.92) translateY(20px);
     transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
     opacity: 0;
+    display: flex;
+    flex-direction: column;
 }
 #walletFundModal.active .bottom-sheet {
     transform: scale(1) translateY(0);
@@ -653,6 +655,7 @@
 .af-body {
     padding: 14px 16px 20px;
     overflow-y: auto;
+    flex: 1;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -858,7 +861,7 @@
         </div>
 
         <!-- ── Step 1: Method + Amount ── -->
-        <div class="af-body" id="afStep1">
+        <div class="af-body" id="afStep1" style="flex:1; display:flex; flex-direction:column;">
 
             <!-- Payment Method Toggle -->
             <div class="af-methods">
@@ -944,37 +947,38 @@
         </div>
 
         <!-- ── Step 2: QR / Payment ── -->
-        <div class="af-body" id="wfStep2" style="display:none;">
-            <div class="payment-box">
-                <div class="secure-badge"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
-                <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom: 4px;">
-                    Pay exactly <span id="wfPayAmt" style="background:linear-gradient(135deg,#6366f1,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;font-weight:800;"></span>
-                </div>
-                <div class="qr-wrapper">
-                    <div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div>
-                    <div class="qr-corner qr-bl"></div><div class="qr-corner qr-br"></div>
-                    <img id="wf-dynamic-qr" src="" alt="Scan to Pay">
-                </div>
-                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom: 15px; display:flex; justify-content:center; align-items:center; gap:8px;">
-                    <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan to pay via Any UPI App</span>
-                </div>
-                <div class="upi-text" id="wfUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
-                <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
-                <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
-                    Ref ID: <b id="wfOrderIdDisplay" style="color:var(--accent-pink); font-family:monospace; font-size:15px; letter-spacing:1px;"></b>
-                    <div style="font-size:10px; margin-top:4px; color:var(--text-secondary);">* Do not change amount while paying</div>
+        <div id="wfStep2" style="display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0;">
+            <div class="af-body" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+                <div class="payment-box">
+                    <div class="secure-badge"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
+                    <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom: 4px;">
+                        Pay exactly <span id="wfPayAmt" style="background:linear-gradient(135deg,#6366f1,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;font-weight:800;"></span>
+                    </div>
+                    <div class="qr-wrapper">
+                        <div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div>
+                        <div class="qr-corner qr-bl"></div><div class="qr-corner qr-br"></div>
+                        <img id="wf-dynamic-qr" src="" alt="Scan to Pay">
+                    </div>
+                    <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom: 15px; display:flex; justify-content:center; align-items:center; gap:8px;">
+                        <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan to pay via Any UPI App</span>
+                    </div>
+                    <div class="upi-text" id="wfUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
+                    <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
+                        Ref ID: <b id="wfOrderIdDisplay" style="color:var(--accent-pink); font-family:monospace; font-size:15px; letter-spacing:1px;"></b>
+                        <div style="font-size:10px; margin-top:4px; color:var(--text-secondary);">* Do not change amount while paying</div>
+                    </div>
                 </div>
             </div>
-            <div class="input-group" style="display:none; margin-top:12px;">
-                <label>Enter UTR / Order Ref ID from your bank</label>
-                <input type="text" id="wfUtrInput" placeholder="Enter UTR number from payment app">
+            <!-- Sticky bottom buttons — ALWAYS visible -->
+            <div style="padding:12px 16px 16px; border-top:1px solid var(--border-color); background:var(--card-solid); flex-shrink:0;">
+                <button class="af-pay-btn" onclick="confirmWalletPayment()" style="margin-bottom:10px;">
+                    <i class="fas fa-lock"></i> I Have Paid. Verify Now
+                </button>
+                <button class="btn" style="background:transparent; color:var(--text-secondary); box-shadow:none; border:1px solid var(--border-color); margin-top:0; height:45px;" onclick="goBackWfStep1()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
             </div>
-            <button class="af-pay-btn" onclick="confirmWalletPayment()" style="margin-bottom:10px;">
-                <i class="fas fa-lock"></i> I Have Paid. Verify Now
-            </button>
-            <button class="btn" style="background:transparent; color:var(--text-secondary); box-shadow:none; border:1px solid var(--border-color); margin-top:0; height: 45px;" onclick="goBackWfStep1()">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
         </div>
 
     </div>
@@ -1459,7 +1463,7 @@
         const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent("SACHIN SAYSING RAUT")}&am=${wfAmount}&cu=INR&tr=${wfOrderId}`;
         document.getElementById('wf-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
         document.getElementById('afStep1').style.display = 'none';
-        document.getElementById('wfStep2').style.display = 'block';
+        document.getElementById('wfStep2').style.display = 'flex';
 
         // Pre-warm proxies for faster wallet payment verification
         const MERCHANT_ID_WF = "MdXwlu49903940058924";
