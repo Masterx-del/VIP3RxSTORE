@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1139,6 +1137,19 @@
         });
     };
 
+    // Helper: try URLs SEQUENTIALLY for SMM API — prevents duplicate orders at panel
+    const raceFetchSeq = async (urls, validateFn) => {
+        for (const { url, opts } of urls) {
+            try {
+                const r    = await fetchWithTimeout(url, opts, 4000);
+                const text = await r.text();
+                const json = JSON.parse(text);
+                if (validateFn(json)) return { json, text };
+            } catch(e) {}
+        }
+        return null;
+    };
+
     // Build full proxy list — ordered fastest first, all fired in parallel
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
@@ -2041,7 +2052,7 @@
                     { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
                 ];
 
-                raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
+                raceFetchSeq(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
                     .then(async apiResult => {
                         if (!apiResult) {
                             await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
@@ -2156,7 +2167,7 @@
                     { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
                 ];
 
-                raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
+                raceFetchSeq(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
                     .then(async apiResult => {
                         if (!apiResult) {
                             await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
@@ -2202,6 +2213,10 @@
     function _lockOrder()   { _isProcessingOrder = true; }
     function _unlockOrder() { _isProcessingOrder = false; }
     function _guardOrder()  { if (_isProcessingOrder) { showToast('⏳ Please wait, processing...'); return true; } _lockOrder(); return false; }
+
+    // ── SMM API single-call guard (prevents duplicate orders at SMM endpoint) ──
+    const _smmCalledKeys = new Set();
+    function _guardSmmCall(orderKey) { if (_smmCalledKeys.has(orderKey)) return true; _smmCalledKeys.add(orderKey); return false; }
 
     window.addToCart = (id) => {
         if(!currentUser) { showToast('Please login first!'); switchTab('profileTab'); return; }
@@ -2395,7 +2410,7 @@
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
                     ];
 
-                    raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
+                    raceFetchSeq(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
                         .then(async apiResult => {
                             if (!apiResult) {
                                 await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
@@ -2487,7 +2502,7 @@
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
                     ];
 
-                    raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
+                    raceFetchSeq(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
                         .then(async apiResult => {
                             if (!apiResult) {
                                 await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
