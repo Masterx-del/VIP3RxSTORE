@@ -339,6 +339,7 @@
         .empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); width: 100%; }
         .empty-state i { font-size: 48px; color: var(--border-color); margin-bottom: 16px; }
         .empty-state p { font-size: 14px; font-weight: 500; }
+        @keyframes skeletonPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         .progress-circle { position: relative; display: inline-block; }
         .progress-circle svg { transform: rotate(-90deg); }
@@ -1180,6 +1181,7 @@
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
+    let _productsLoaded = false;
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -1254,12 +1256,18 @@
         currentCatView = { level: 1, cat: catName, subCat: '' };
         const catTitle = document.getElementById('catTitle');
         catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
-        const list = document.getElementById('catProductsList'); list.innerHTML = ''; let subCatsMap = {};
+        const list = document.getElementById('catProductsList');
+        const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
+        setTimeout(() => { const contentArea = document.querySelector('.content-area'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
+        // Show skeleton while data loads on slow network
+        if (!_productsLoaded) {
+            list.innerHTML = `<div style="padding:8px 0;">${[1,2,3].map(()=>`<div style="background:var(--card-solid);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;"><div style="background:var(--border-color);border-radius:6px;height:14px;width:55%;animation:skeletonPulse 1.2s ease-in-out infinite;"></div><div style="background:var(--border-color);border-radius:6px;height:26px;width:80px;animation:skeletonPulse 1.2s ease-in-out infinite;"></div></div>`).join('')}</div>`;
+            return;
+        }
+        list.innerHTML = ''; let subCatsMap = {};
         Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; if(pCat === catName && p.isActive !== false) { const sub = p.subCategory || 'General'; if(!subCatsMap[sub]) subCatsMap[sub] = 0; subCatsMap[sub]++; } });
         if(Object.keys(subCatsMap).length === 0) { list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No services currently available here.</p></div>'; }
         else { Object.keys(subCatsMap).forEach(sub => { list.innerHTML += `<div class="subcategory-card" onclick="openSubCategory('${catName}', '${sub}')"><div class="subcategory-name">${sub}</div><div class="subcategory-count">${subCatsMap[sub]} <span style="font-weight:400;">Services</span> <i class="fas fa-chevron-right" style="font-size:10px;"></i></div></div>`; }); }
-        const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
-        setTimeout(() => { const contentArea = document.querySelector('.content-area'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
 
     window.openSubCategory = (catName, subCatName) => { 
@@ -1682,7 +1690,7 @@
         onValue(ref(db, 'meta/offers'), s => { if(s.exists()){ const d = s.val(); const banner = document.getElementById('offerBanner'); if(d.name && d.imageUrl) { banner.style.display = 'flex'; banner.style.backgroundImage = `url('${d.imageUrl}')`; document.getElementById('offerTitle').textContent = d.name; document.getElementById('offerDesc').textContent = d.description || ''; document.getElementById('offerPrice').textContent = `₹${d.newRate || 0}`; document.getElementById('offerOldPrice').textContent = `₹${d.oldRate || 0}`; document.getElementById('contactLink').href = d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'; document.getElementById('updatesLink').href = d.channelLink || '#'; } else { banner.style.display = 'none'; } } });
         onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
         onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
-        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
+        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
 
