@@ -1570,7 +1570,7 @@
             const tx = snap.val();
             if(!tx || !['credit','wallet_add','admin_credit','wallet_topup'].includes(tx.type)) return;
             sendTelegramChannelNotification(
-                '💳 <b>Wallet Funded!</b>\n\n➖ <b>User:</b> ' + (currentUser.email) + '\n💵 <b>Amount:</b> ₹' + parseFloat(tx.amount).toFixed(2) + '\n📝 <b>Note:</b> ' + (tx.note || 'Admin Credit') + '\n⏰ <b>Time:</b> ' + new Date().toLocaleString('en-IN')
+                '💰 <b>Wallet Funded!</b>\n\n👤 <b>User:</b> ' + (currentUser.email) + '\n💵 <b>Amount:</b> ₹' + parseFloat(tx.amount).toFixed(2) + '\n📝 <b>Note:</b> ' + (tx.note || 'Admin Credit') + '\n⏰ <b>Time:</b> ' + new Date().toLocaleString('en-IN')
             );
         });
     }
