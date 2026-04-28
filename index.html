@@ -1162,7 +1162,7 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged, onChildAdded } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
@@ -1563,6 +1563,15 @@
                 });
             }
             renderWalletHistory();
+        });
+        let _walletNotifInit = false;
+        onChildAdded(ref(db, `users/${currentUser.uid}/walletHistory`), snap => {
+            if(!_walletNotifInit) { _walletNotifInit = true; return; }
+            const tx = snap.val();
+            if(!tx || !['credit','wallet_add','admin_credit','wallet_topup'].includes(tx.type)) return;
+            sendTelegramChannelNotification(
+                '💰 <b>Wallet Funded!</b>\n\n👤 <b>User:</b> ' + (currentUser.email) + '\n💵 <b>Amount:</b> ₹' + parseFloat(tx.amount).toFixed(2) + '\n📝 <b>Note:</b> ' + (tx.note || 'Admin Credit') + '\n⏰ <b>Time:</b> ' + new Date().toLocaleString('en-IN')
+            );
         });
     }
 
@@ -2707,16 +2716,7 @@
             const itemLines = cartItems.map(i => `  ▸ ${i.product?.title || i.product?.planName || 'Service'}`).join('\n');
             const now = new Date().toLocaleString('en-IN');
 
-            const tgMsg =
-`📥 <b>New Order Received!</b>
-
-➞ <b>User:</b> ${currentUser.email}
-🛒 <b>Items:</b> ${cartItems.map(i => i.product?.title || i.product?.planName || 'Service').join(', ')}
-💳 <b>Method:</b> ${payLabel}
-
-💵 <b>Amount:</b> ₹${parseFloat(amount).toFixed(2)}
-📝 <b>UTR:</b> ${utr}
-⏰ <b>Time:</b> ${now}`;
+            const tgMsg = `🛒 <b>New Order Received!</b>\n\n👤 User: <code>${currentUser.email}</code>\n📦 Items:\n${itemLines}\n💳 Method: <b>${payLabel}</b>\n💰 Amount: <b>₹${parseFloat(amount).toFixed(2)}</b>\n🔖 UTR: <code>${utr}</code>\n⏰ Time: ${now}`;
 
             const sendMsg = (token, chatId) => {
                 const payload = {
@@ -2724,6 +2724,9 @@
                     text: tgMsg,
                     parse_mode: 'HTML'
                 };
+                if(targetLink) {
+                    payload.reply_markup = { inline_keyboard: [[{ text: '🔗 Open Link', url: targetLink }]] };
+                }
                 fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
                 }).catch(()=>{});
