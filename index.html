@@ -2712,21 +2712,46 @@
     async function sendTelegramOrderNotification(cartItems, amount, utr, targetLink) {
         try {
             const isWallet = utr.startsWith('WALLET_');
+            const payIcon  = isWallet ? '👛' : '💳';
             const payLabel = isWallet ? 'Wallet' : 'UPI';
             const itemLines = cartItems.map(i => `  ▸ ${i.product?.title || i.product?.planName || 'Service'}`).join('\n');
-            const now = new Date().toLocaleString('en-IN');
+            const userDisplayName = (currentUser.displayName || '').trim();
+            const now = new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+            const storeUrl = `${window.location.origin}${window.location.pathname}`;
+            const profileLink = `${storeUrl}?ref=${currentUser.uid}`;
 
-            const tgMsg = `🛒 <b>New Order Received!</b>\n\n👤 User: <code>${currentUser.email}</code>\n📦 Items:\n${itemLines}\n💳 Method: <b>${payLabel}</b>\n💰 Amount: <b>₹${parseFloat(amount).toFixed(2)}</b>\n🔖 UTR: <code>${utr}</code>\n⏰ Time: ${now}`;
+            const tgMsg =
+`━━━━━━━━━━━━━━━━━━━━━━
+🛒 <b>NEW ORDER RECEIVED!</b>
+━━━━━━━━━━━━━━━━━━━━━━
+
+👤 <b>Customer</b>
+├ Name: <b>${userDisplayName || 'N/A'}</b>
+└ Email: <code>${currentUser.email}</code>
+
+📦 <b>Items Ordered</b>
+${itemLines}
+
+${payIcon} <b>Payment</b>
+├ Method: <b>${payLabel}</b>
+├ Amount: <b>₹${parseFloat(amount).toFixed(2)}</b>
+└ Ref / UTR: <code>${utr}</code>
+
+🕐 <b>Time:</b> ${now}
+━━━━━━━━━━━━━━━━━━━━━━`;
 
             const sendMsg = (token, chatId) => {
                 const payload = {
                     chat_id: chatId,
                     text: tgMsg,
-                    parse_mode: 'HTML'
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: '🌐 Visit Store', url: storeUrl },
+                            { text: '👤 User Profile', url: profileLink }
+                        ]]
+                    }
                 };
-                if(targetLink) {
-                    payload.reply_markup = { inline_keyboard: [[{ text: '🔗 Open Link', url: targetLink }]] };
-                }
                 fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
                 }).catch(()=>{});
@@ -2735,8 +2760,16 @@
             get(ref(db, 'meta/telegramBot')).then(botSnap => {
                 if(botSnap.exists()) {
                     const { token, chatId } = botSnap.val();
-                    if(token && chatId) sendMsg(token, chatId);
+                    if(token && chatId) { sendMsg(token, chatId); return; }
                 }
+                get(ref(db, 'meta/contact')).then(metaSnap => {
+                    if(!metaSnap.exists()) return;
+                    get(ref(db, 'meta/telegramBot')).then(b2 => {
+                        if(!b2.exists()) return;
+                        const { token, chatId } = b2.val();
+                        if(token && chatId) sendMsg(token, chatId);
+                    }).catch(()=>{});
+                }).catch(()=>{});
             }).catch(()=>{});
         } catch(e) {}
     }
