@@ -2174,8 +2174,12 @@
                 let _apiCallFired = false; // prevent double API call from parallel proxies
                 const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
                 const apiUrl     = checkoutItem.apiUrl;
+                const _capturedOrderKey = newOrderRef.key; // capture key before async IIFE to prevent race
                 // Sequential: try direct first, then proxies — avoids duplicate orders on SMM panel
                 (async () => {
+                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                    const _existSnap = await get(ref(db, `orders/${_capturedOrderKey}/apiStatus`)).catch(()=>null);
+                    if (_existSnap && _existSnap.exists() && _existSnap.val() !== 'calling') return;
                     const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
@@ -2194,15 +2198,15 @@
                             const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
                             const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
                             if (!hasError) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
                             } else {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
                             }
                             break;
                         } catch(e) { continue; }
                     }
                     if(!_apiCallFired) {
-                        await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                        await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
                     }
                 })().catch(() => {});
             }
@@ -2300,7 +2304,11 @@
                 let _apiCallFiredW = false;
                 const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
                 const apiUrl     = checkoutItem.apiUrl;
+                const _capturedOrderKeyW = newOrderRef.key; // capture key before async IIFE to prevent race
                 (async () => {
+                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                    const _existSnapW = await get(ref(db, `orders/${_capturedOrderKeyW}/apiStatus`)).catch(()=>null);
+                    if (_existSnapW && _existSnapW.exists() && _existSnapW.val() !== 'calling') return;
                     const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
@@ -2319,15 +2327,15 @@
                             const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
                             const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
                             if (!hasError) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
                             } else {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
                             }
                             break;
                         } catch(e) { continue; }
                     }
                     if(!_apiCallFiredW) {
-                        await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                        await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
                     }
                 })().catch(() => {});
             }
@@ -2548,6 +2556,9 @@
                     const apiUrl     = item.product.apiUrl;
                     const _orderRefKey = newOrderRef.key;
                     (async () => {
+                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                        const _existSnapC = await get(ref(db, `orders/${_orderRefKey}/apiStatus`)).catch(()=>null);
+                        if (_existSnapC && _existSnapC.exists() && _existSnapC.val() !== 'calling') return;
                         let _apiFired = false;
                         const apiURLs = [
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
@@ -2647,6 +2658,9 @@
                     const apiUrl     = item.product.apiUrl;
                     const _wOrderRefKey = newOrderRef.key;
                     (async () => {
+                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                        const _existSnapCW = await get(ref(db, `orders/${_wOrderRefKey}/apiStatus`)).catch(()=>null);
+                        if (_existSnapCW && _existSnapCW.exists() && _existSnapCW.val() !== 'calling') return;
                         let _wApiFired = false;
                         const apiURLs = [
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
