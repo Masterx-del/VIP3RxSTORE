@@ -2509,9 +2509,15 @@
     });
 
     window.confirmCartPurchase = async () => {
-        if (_guardOrder()) return;
+        // ── Strict double-submit guard: disable button immediately ──
+        const cartVerifyBtn = document.querySelector('#cartStep2 .btn');
+        if(cartVerifyBtn && cartVerifyBtn.disabled) return;
+        if(cartVerifyBtn) { cartVerifyBtn.disabled = true; cartVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...'; }
+        const _resetCartBtn = () => { if(cartVerifyBtn) { cartVerifyBtn.disabled = false; cartVerifyBtn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now'; } };
+
+        if (_guardOrder()) { _resetCartBtn(); return; }
         const utr = cartOrderId;
-        if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
+        if(!utr) { _unlockOrder(); _resetCartBtn(); return showToast('❌ Invalid Order ID'); }
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
@@ -2524,17 +2530,17 @@
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
-            if(utrSnapshot.exists()) { _unlockOrder(); hideLoader(); return showToast('❌ This Order ID already used!'); }
-            if(!verifyResult) { _unlockOrder(); hideLoader(); return showToast("❌ Network Error."); }
+            if(utrSnapshot.exists()) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast('❌ This Order ID already used!'); }
+            if(!verifyResult) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast("❌ Network Error."); }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                _unlockOrder(); hideLoader(); 
+                _unlockOrder(); _resetCartBtn(); hideLoader(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < cartFinalAmt) { _unlockOrder(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
+            if(paidVal < cartFinalAmt) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
 
             // Save one order per cart item and call external API if needed
             const promises = cart.map(async item => {
@@ -2606,23 +2612,30 @@
 
             cart = []; updateCartBadge();
             _unlockOrder();
+            _resetCartBtn();
             closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
-        } catch(e) { _unlockOrder(); hideLoader(); showToast('❌ Error: ' + e.message); }
+        } catch(e) { _unlockOrder(); _resetCartBtn(); hideLoader(); showToast('❌ Error: ' + e.message); }
     };
 
     window.confirmCartWalletPurchase = async () => {
-        if (_guardOrder()) return;
-        if(cart.length === 0) { _unlockOrder(); return showToast('Cart is empty!'); }
+        // ── Strict double-submit guard: disable button immediately ──
+        const cartWalletBtn = document.getElementById('cartWalletBtn');
+        if(cartWalletBtn && cartWalletBtn.disabled) return;
+        if(cartWalletBtn) { cartWalletBtn.disabled = true; cartWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...'; }
+        const _resetCartWalletBtn = () => { if(cartWalletBtn) { cartWalletBtn.disabled = false; cartWalletBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`; } };
+
+        if (_guardOrder()) { _resetCartWalletBtn(); return; }
+        if(cart.length === 0) { _unlockOrder(); _resetCartWalletBtn(); return showToast('Cart is empty!'); }
         
         for(let i=0; i<cart.length; i++) {
             if(!cart[i].link.trim()) { 
-                _unlockOrder(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
+                _unlockOrder(); _resetCartWalletBtn(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
             }
         }
 
         if (walletBalance < cartFinalAmt) {
-            _unlockOrder(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
+            _unlockOrder(); _resetCartWalletBtn(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
         }
 
         showLoader();
@@ -2706,10 +2719,12 @@
 
             cart = []; updateCartBadge();
             _unlockOrder();
+            _resetCartWalletBtn();
             closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
         } catch(e) { 
             _unlockOrder();
+            _resetCartWalletBtn();
             hideLoader(); showToast('❌ Error: ' + e.message); 
         }
     };
