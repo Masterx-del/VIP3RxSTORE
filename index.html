@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1037,7 +1036,7 @@
                     </div>
                 </div>
 
-                <div class="coupon-box" id="chkCouponBox">
+                <div class="coupon-box">
                     <input type="text" id="chkCouponInput" placeholder="Enter Promo Code">
                     <button class="btn-apply" onclick="applyCoupon()">APPLY</button>
                 </div>
@@ -1054,16 +1053,12 @@
                     <div class="input-group" id="chkPollContainer" style="display:none;"><label>Poll Vote Option</label><input type="text" id="chkPollInput" placeholder="Enter option to vote for"></div>
                 </div>
 
-                <div id="chkTotalRow" style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
+                <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
                     <span>Total Amount</span><span id="chkFinalPrice" style="color:var(--accent-cyan);">₹0</span>
                 </div>
 
-                <div id="chkPaymentButtons">
-                    <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
-                    <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
-                </div>
-                
-                <button class="btn" id="chkFreeClaimBtn" style="display:none; background:linear-gradient(135deg, #10b981, #059669); margin-top:10px;" onclick="claimFreeOrder()"><i class="fas fa-gift"></i> Claim Free Service</button>
+                <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
+                <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
             </div>
 
             <!-- STEP 2: QR Code and Payment -->
@@ -1218,7 +1213,7 @@
     // Build full proxy list — ordered fastest first, all fired in parallel
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
-        return[
+        return [
             { url: verifyUrl,                                                   opts: {} },
             { url: `https://corsproxy.io/?${enc}`,                              opts: {} },
             { url: `https://api.allorigins.win/raw?url=${enc}`,                 opts: {} },
@@ -1232,7 +1227,8 @@
 
     // Pre-warm proxies the moment checkout modal opens — cuts ~300ms off verification
     function prewarmProxies(verifyUrl) {
-        const enc = encodeURIComponent(verifyUrl);[
+        const enc = encodeURIComponent(verifyUrl);
+        [
             'https://corsproxy.io/?',
             'https://api.allorigins.win/raw?url=',
             'https://corsproxy.org/?',
@@ -1250,7 +1246,6 @@
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
     let _productsLoaded = false;
-    let lastFreeOrderTime = 0;
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -1274,7 +1269,7 @@
     function playOrderSuccessSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes =[
+            const notes = [
                 { freq: 523.25, start: 0,    dur: 0.15 },  // C5
                 { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
                 { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
@@ -1343,69 +1338,22 @@
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-
-        // Collect matching products and sort: free first, paid after
-        const matchedProducts = [];
-        Object.entries(productsData).forEach(([id, p]) => { 
-            const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; 
-            if(pCat === catName && pSub === subCatName && p.isActive !== false) { 
-                matchedProducts.push([id, p]);
-            } 
-        });
-        // Sort: free (price===0) products come first
-        matchedProducts.sort(([, a], [, b]) => {
-            const aFree = parseFloat(a.discountedPrice) === 0 ? 0 : 1;
-            const bFree = parseFloat(b.discountedPrice) === 0 ? 0 : 1;
-            return aFree - bFree;
-        });
-
-        matchedProducts.forEach(([id, p]) => {
-            hasItems = true; 
-            
-            const isFree = parseFloat(p.discountedPrice) === 0;
-            let actionHtml = '';
-            
-            if (isFree) {
-                if (Date.now() - lastFreeOrderTime < 86400000) {
-                    const timeLeft = 86400000 - (Date.now() - lastFreeOrderTime);
-                    const h = Math.floor(timeLeft / 3600000);
-                    const m = Math.floor((timeLeft % 3600000) / 60000);
-                    actionHtml = `<div class="plc-actions"><button class="plc-buy" style="background:var(--text-secondary);cursor:not-allowed;" disabled><i class="fas fa-clock"></i> <span class="free-timer-display">Wait ${h}h ${m}m</span></button></div>`;
-                } else {
-                    actionHtml = `<div class="plc-actions"><button class="plc-buy" onclick="initCheckout('${id}', 'product')" style="background:linear-gradient(135deg, #10b981, #059669);box-shadow:0 3px 12px rgba(16,185,129,0.3);"><i class="fas fa-gift"></i> Get Free</button></div>`;
-                }
-            } else {
-                actionHtml = `<div class="plc-actions">
-                    <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
-                    <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
-                </div>`;
-            }
-
-            // Free card gets special green border + FREE badge + shimmer background
-            const freeCardStyle = isFree 
-                ? `border:2px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, var(--card-solid) 60%); position:relative; overflow:hidden;`
-                : '';
-            const freeBadgeHtml = isFree 
-                ? `<div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:0 10px 0 10px;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><i class="fas fa-star" style="font-size:9px;"></i> FREE</div>`
-                : '';
-            const freePriceStyle = isFree
-                ? `color:#10b981;`
-                : '';
-
-            list.innerHTML += `<div class="product-list-card" style="${freeCardStyle}">
-              ${freeBadgeHtml}
+        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName && p.isActive !== false) { hasItems = true; 
+            list.innerHTML += `<div class="product-list-card">
               <div class="plc-header">
                 <div class="plc-info"><div class="plc-name">${p.title}</div></div>
-                <div class="plc-price-badge" style="${isFree ? 'background:rgba(16,185,129,0.12);color:#10b981;border-color:rgba(16,185,129,0.3);' : ''}">${p.subCategory || p.category}</div>
+                <div class="plc-price-badge">${p.subCategory || p.category}</div>
               </div>
               ${p.description ? `<p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;">${p.description}</p>` : ''}
               <div style="display:flex;justify-content:space-between;align-items:flex-start;${(p.features && p.features.length)?'border-top:1px solid var(--border-color);padding-top:12px;':''}margin-bottom:14px;">
-                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:${isFree?'#10b981':'var(--accent-cyan)'};font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
-                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;${freePriceStyle}">${isFree ? 'FREE' : '₹'+p.discountedPrice}</div>
+                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:var(--accent-cyan);font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
+                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">₹${p.discountedPrice}</div>
               </div>
-              ${actionHtml}
-            </div>`; 
-        });
+              <div class="plc-actions">
+                <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
+                <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
+              </div>
+            </div>`; } });
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
@@ -1425,7 +1373,7 @@
             if(isSignupMode) { 
                 const cred = await createUserWithEmailAndPassword(auth, email, pass); 
                 await updateProfile(cred.user, { displayName: name }); 
-                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0, lastFreeOrderTime: 0 }); 
+                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
                 showToast('Account Created!'); 
             } else { 
                 await signInWithEmailAndPassword(auth, email, pass); 
@@ -1491,7 +1439,7 @@
     }
 
     // ── WALLET ────────────────────────────────────────────────────────────
-    let _allWalletTxns =[];
+    let _allWalletTxns = [];
     let _walletFilter = 'all';
 
     function _safeDate(val) {
@@ -1511,7 +1459,7 @@
     }
 
     function _isCreditTx(tx) {
-        return['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
+        return ['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
     }
     function _isOrderTx(tx) {
         const note = (tx.note||'').toLowerCase();
@@ -1540,7 +1488,7 @@
     function renderWalletHistory() {
         const hist = document.getElementById('walletHistory');
         if(!hist) return;
-        let txns =[..._allWalletTxns];
+        let txns = [..._allWalletTxns];
         if(_walletFilter === 'credit')  txns = txns.filter(tx => _isCreditTx(tx));
         else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx));
         else if(_walletFilter === 'orders') txns = txns.filter(tx => _isOrderTx(tx));
@@ -1590,7 +1538,6 @@
             if(!snap.exists()) return;
             const p = snap.val();
             walletBalance = parseFloat(p.walletBalance || 0);
-            lastFreeOrderTime = parseInt(p.lastFreeOrderTime || 0);
             const refEarned = parseFloat(p.referralEarned || 0);
             document.getElementById('walletBalance').textContent = `₹${walletBalance.toFixed(2)}`;
             document.getElementById('walletRefAmount').textContent = `₹${refEarned.toFixed(2)}`;
@@ -1602,7 +1549,7 @@
             if(afBal) afBal.textContent = `₹${walletBalance.toFixed(2)}`;
         });
         onValue(ref(db, `users/${currentUser.uid}/walletHistory`), snap => {
-            _allWalletTxns =[];
+            _allWalletTxns = [];
             if(snap.exists()) {
                 snap.forEach(c => {
                     const data = c.val();
@@ -2044,21 +1991,6 @@
         const chkBtn = document.getElementById('chkWalletBtn');
         if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
 
-        // Check if free
-        const isFree = type === 'product' && checkoutFinalAmt === 0;
-
-        if (isFree) {
-            document.getElementById('chkCouponBox').style.display = 'none';
-            document.getElementById('chkCouponMsg').style.display = 'none';
-            document.getElementById('chkPaymentButtons').style.display = 'none';
-            document.getElementById('chkFreeClaimBtn').style.display = 'block';
-        } else {
-            document.getElementById('chkCouponBox').style.display = 'flex';
-            document.getElementById('chkCouponMsg').style.display = 'block';
-            document.getElementById('chkPaymentButtons').style.display = 'block';
-            document.getElementById('chkFreeClaimBtn').style.display = 'none';
-        }
-
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
 
@@ -2066,10 +1998,8 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
 
         // Pre-warm proxy connections so verification is faster when user clicks verify
-        if (!isFree) {
-            const MERCHANT_ID_PW = "MdXwlu49903940058924";
-            prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
-        }
+        const MERCHANT_ID_PW = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
@@ -2132,104 +2062,6 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
     };
 
-    window.claimFreeOrder = async () => {
-        if (_guardOrder()) return;
-        const targetLink  = document.getElementById('chkLinkInput').value.trim();
-        const pollOption  = document.getElementById('chkPollInput').value.trim();
-
-        if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
-        if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
-            _unlockOrder(); return showToast('Please enter the poll vote option');
-        }
-
-        if (Date.now() - lastFreeOrderTime < 86400000) {
-            _unlockOrder(); return showToast('❌ You have already claimed a free service today!');
-        }
-
-        showLoader();
-        try {
-            const utr = 'FREE_' + generateUTR(8);
-
-            const hasApiConfig = !!(
-                checkoutItem.apiUrl && checkoutItem.apiKey &&
-                checkoutItem.serviceId && checkoutItem.quantity && targetLink
-            );
-
-            const orderData = {
-                productId:       checkoutItem.id,
-                productSnapshot: checkoutItem,
-                userId:          currentUser.uid,
-                userEmail:       currentUser.email,
-                finalAmount:     '0.00',
-                utrId:           utr,
-                targetLink,
-                pollOption:      document.getElementById('chkPollContainer').style.display === 'block' ? pollOption : null,
-                status:          hasApiConfig ? 'progress' : 'pending',
-                createdAt:       new Date().toISOString(),
-                isSubscription:  false,
-                apiStatus:       hasApiConfig ? 'calling' : null,
-                paymentMethod:   'free'
-            };
-
-            const newOrderRef = push(ref(db, 'orders'));
-            const newFreeTime = Date.now();
-
-            lastFreeOrderTime = newFreeTime;
-
-            await Promise.all([
-                update(ref(db, `users/${currentUser.uid}/profile`), { lastFreeOrderTime: newFreeTime }),
-                set(newOrderRef, orderData)
-            ]);
-
-            _unlockOrder();
-            closeCheckout();
-            notifyLive('✅ Free Service Claimed Successfully!');
-            playOrderSuccessSound();
-            switchTab('ordersTab');
-            hideLoader();
-
-            sendTelegramOrderNotification([{product: checkoutItem}], 0, utr, targetLink);
-
-            if (hasApiConfig) {
-                const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
-                const apiUrl     = checkoutItem.apiUrl;
-                const _freeOrderRefKey = newOrderRef.key;
-                (async () => {
-                    let _apiFiredFree = false;
-                    const apiURLs =[
-                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } }
-                    ];
-                    for(const { url, opts } of apiURLs) {
-                        if(_apiFiredFree) break;
-                        try {
-                            const r = await fetchWithTimeout(url, opts, 8000);
-                            const text = await r.text();
-                            let j; try { j = JSON.parse(text); } catch(e) { continue; }
-                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
-                            _apiFiredFree = true;
-                            const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
-                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
-                            if (!hasError) {
-                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
-                            } else {
-                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
-                            }
-                            break;
-                        } catch(e) { continue; }
-                    }
-                    if(!_apiFiredFree) await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
-                })().catch(() => {});
-            }
-
-        } catch (e) {
-            _unlockOrder();
-            hideLoader();
-            showToast('❌ System Error: ' + e.message);
-        }
-    };
-
     window.confirmPurchase = async () => {
         // ── Strict double-submit guard: disable button immediately ──
         const verifyBtn = document.querySelector('#chkStep2 .btn');
@@ -2255,7 +2087,7 @@
             const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs  = buildVerifyURLs(verifyUrl);
 
-            const[utrSnapshot, verifyResult] = await Promise.all([
+            const [utrSnapshot, verifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
@@ -2348,7 +2180,7 @@
                     // Server-side guard: abort if order already processed (e.g. duplicate trigger)
                     const _existSnap = await get(ref(db, `orders/${_capturedOrderKey}/apiStatus`)).catch(()=>null);
                     if (_existSnap && _existSnap.exists() && _existSnap.val() !== 'calling') return;
-                    const apiURLs =[
+                    const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2448,7 +2280,7 @@
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
                 push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
                 set(newOrderRef, orderData),
-                ...(appliedCouponKey ?[update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] :[]),
+                ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
             ]);
 
             _unlockOrder();
@@ -2477,7 +2309,7 @@
                     // Server-side guard: abort if order already processed (e.g. duplicate trigger)
                     const _existSnapW = await get(ref(db, `orders/${_capturedOrderKeyW}/apiStatus`)).catch(()=>null);
                     if (_existSnapW && _existSnapW.exists() && _existSnapW.val() !== 'calling') return;
-                    const apiURLs =[
+                    const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2525,7 +2357,7 @@
     });
 
     // ── CART SYSTEM ────────────────────────────────────────────────────────
-    let cart = []; //[{id, product, link, couponDiscount}]
+    let cart = []; // [{id, product, link, couponDiscount}]
     let cartOrderId = '';
     let cartFinalAmt = 0;
     let cartAppliedCoupon = null;
@@ -2728,7 +2560,7 @@
                         const _existSnapC = await get(ref(db, `orders/${_orderRefKey}/apiStatus`)).catch(()=>null);
                         if (_existSnapC && _existSnapC.exists() && _existSnapC.val() !== 'calling') return;
                         let _apiFired = false;
-                        const apiURLs =[
+                        const apiURLs = [
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2772,7 +2604,7 @@
             // Send Telegram notification (non-blocking)
             sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
 
-            cart =[]; updateCartBadge();
+            cart = []; updateCartBadge();
             _unlockOrder();
             closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
@@ -2830,7 +2662,7 @@
                         const _existSnapCW = await get(ref(db, `orders/${_wOrderRefKey}/apiStatus`)).catch(()=>null);
                         if (_existSnapCW && _existSnapCW.exists() && _existSnapCW.val() !== 'calling') return;
                         let _wApiFired = false;
-                        const apiURLs =[
+                        const apiURLs = [
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2872,7 +2704,7 @@
 
             sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
-            cart =[]; updateCartBadge();
+            cart = []; updateCartBadge();
             _unlockOrder();
             closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
@@ -2885,8 +2717,7 @@
     async function sendTelegramOrderNotification(cartItems, amount, utr, targetLink) {
         try {
             const isWallet = utr.startsWith('WALLET_');
-            const isFree = utr.startsWith('FREE_');
-            const payLabel = isFree ? 'Free Claim' : isWallet ? 'Wallet' : 'UPI';
+            const payLabel = isWallet ? 'Wallet' : 'UPI';
             const itemLines = cartItems.map(i => `  ▸ ${i.product?.title || i.product?.planName || 'Service'}`).join('\n');
             const now = new Date().toLocaleString('en-IN');
 
@@ -3064,21 +2895,6 @@
             }).catch(()=>{});
         } catch(e) {}
     }
-
-    // ── Start Free Timer updates globally ─────────────────────────
-    setInterval(() => {
-        const els = document.querySelectorAll('.free-timer-display');
-        if(els.length === 0) return;
-        const diff = Date.now() - lastFreeOrderTime;
-        if(diff >= 86400000) {
-            if(currentCatView.level === 2) openSubCategory(currentCatView.cat, currentCatView.subCat);
-        } else {
-            const timeLeft = 86400000 - diff;
-            const h = Math.floor(timeLeft / 3600000);
-            const m = Math.floor((timeLeft % 3600000) / 60000);
-            els.forEach(el => el.textContent = `Wait ${h}h ${m}m`);
-        }
-    }, 60000);
 
     loadPublicData(); window.switchTab = switchTab;
 </script>
