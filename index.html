@@ -1278,7 +1278,7 @@
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
     import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
@@ -1597,7 +1597,17 @@
                 showToast('Logged In Successfully'); 
             } 
         } catch(e) { 
+            hideLoader();
             if (!isSignupMode && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-login-credentials')) {
+                // Check if this email exists with Google provider
+                try {
+                    const methods = await fetchSignInMethodsForEmail(auth, email);
+                    if (methods.includes('google.com')) {
+                        // Email exists but with Google — offer to link accounts
+                        _showLinkAccountPrompt(email, pass);
+                        return;
+                    }
+                } catch(_) {}
                 showToast('Account not found. Switching to Sign Up...');
                 isSignupMode = true;
                 document.getElementById('authTitle').textContent = 'Create Account';
@@ -1605,14 +1615,101 @@
                 document.getElementById('authToggleText').textContent = 'Already have an account?';
                 document.getElementById('authToggleBtn').textContent = 'Login';
                 document.getElementById('signupNameGroup').style.display = 'block';
+            } else if (!isSignupMode && e.code === 'auth/wrong-password') {
+                // Wrong password — check if they also have Google linked
+                try {
+                    const methods = await fetchSignInMethodsForEmail(auth, email);
+                    if (methods.includes('google.com') && !methods.includes('password')) {
+                        showToast('⚠️ This account uses Google login. Try "Continue with Google".');
+                        return;
+                    }
+                } catch(_) {}
+                showToast('Incorrect password. Please try again.');
             } else {
                 showToast(e.message.replace('Firebase: ', '')); 
             }
+            return;
         } 
         hideLoader();
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    // ── ACCOUNT LINKING HELPERS ───────────────────────────────────────────
+
+    // Case 1: User tried email/password login but account only has Google provider
+    //         → Sign in with Google first, then link email/password credential
+    async function _showLinkAccountPrompt(email, password) {
+        hideLoader();
+        showToast('⚠️ This email uses Google login. Linking accounts...');
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account', login_hint: email });
+        try {
+            const googleCred = await signInWithPopup(auth, provider);
+            const user = googleCred.user;
+            // Link email/password to the Google account
+            const emailCred = EmailAuthProvider.credential(email, password);
+            await linkWithCredential(user, emailCred);
+            showToast('✅ Accounts linked! You can now login with email or Google.');
+        } catch(linkErr) {
+            if (linkErr.code === 'auth/popup-closed-by-user' || linkErr.code === 'auth/cancelled-popup-request') {
+                showToast('Linking cancelled. Try "Continue with Google".');
+            } else if (linkErr.code === 'auth/provider-already-linked') {
+                showToast('✅ Already linked! Logged in successfully.');
+            } else {
+                showToast('Could not link accounts: ' + linkErr.message.replace('Firebase: ', ''));
+            }
+        }
+    }
+
+    // Case 2: User tried Google login but account only has email/password provider
+    //         → Ask user to enter their password, then link Google credential
+    function _showLinkGooglePrompt(email, googleCredential) {
+        // Reuse auth form — show a special linking UI message
+        const authTitle = document.getElementById('authTitle');
+        const authToggleText = document.getElementById('authToggleText');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const emailInput = document.getElementById('authEmail');
+        const passInput = document.getElementById('authPassword');
+
+        if(authTitle) authTitle.textContent = 'Link Your Account';
+        if(authToggleText) authToggleText.textContent = `Enter your password for ${email} to link Google login:`;
+        if(authSubmitBtn) authSubmitBtn.innerHTML = '<i class="fas fa-link" style="font-size:12px;"></i> Link & Login';
+        if(emailInput) { emailInput.value = email; emailInput.readOnly = true; }
+        if(passInput) { passInput.value = ''; passInput.focus(); }
+        document.getElementById('signupNameGroup').style.display = 'none';
+
+        // One-time override for the submit button
+        const _origHandler = document.getElementById('authSubmitBtn').onclick;
+        async function _linkHandler() {
+            const pass = passInput.value.trim();
+            if (!pass) return showToast('Enter your password');
+            showLoader();
+            try {
+                // Sign in with email/password first
+                const emailCred = await signInWithEmailAndPassword(auth, email, pass);
+                // Then link Google credential to it
+                if (googleCredential) await linkWithCredential(emailCred.user, googleCredential);
+                showToast('✅ Google linked! You can now login with both.');
+            } catch(err) {
+                if (err.code === 'auth/wrong-password') {
+                    showToast('❌ Wrong password. Try again.');
+                } else if (err.code === 'auth/provider-already-linked') {
+                    showToast('✅ Already linked! Logged in.');
+                } else {
+                    showToast('Error: ' + err.message.replace('Firebase: ', ''));
+                }
+            }
+            // Restore normal UI
+            if(authTitle) authTitle.textContent = 'Welcome Back';
+            if(authToggleText) authToggleText.textContent = "Don't have an account?";
+            if(authSubmitBtn) { authSubmitBtn.innerHTML = '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; authSubmitBtn.onclick = null; }
+            if(emailInput) emailInput.readOnly = false;
+            hideLoader();
+        }
+        document.getElementById('authSubmitBtn').onclick = _linkHandler;
+        showToast('Enter your password to link Google to your account');
+    }
 
     // ── Handle Google Redirect Result (on page load after redirect) ──
     getRedirectResult(auth).then(async (cred) => {
@@ -1666,6 +1763,14 @@
             showToast('✅ Logged in with Google!');
             _resetBtn();
         } catch(e) {
+            // Account exists with email/password — link Google to existing account
+            if (e.code === 'auth/account-exists-with-different-credential') {
+                _resetBtn();
+                const googleCredential = GoogleAuthProvider.credentialFromError(e);
+                const existingEmail = e.customData?.email || '';
+                _showLinkGooglePrompt(existingEmail, googleCredential);
+                return;
+            }
             // Popup blocked (in-app browsers, some Android) → redirect fallback
             if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
                 showToast('Redirecting to Google...');
