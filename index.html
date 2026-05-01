@@ -1557,25 +1557,31 @@
         // Check daily usage for free services (Firebase date check) + start countdown
         if(freeItems.length > 0 && currentUser) {
             const today = new Date().toISOString().slice(0,10);
+            const yesterday = new Date(Date.now() - 24*60*60*1000).toISOString().slice(0,10);
             freeItems.forEach(([id]) => {
-                get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)).then(snap => {
+                // Check today AND yesterday (covers 24hr window crossing midnight)
+                Promise.all([
+                    get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)),
+                    get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${yesterday}/${id}`))
+                ]).then(([todaySnap, yestSnap]) => {
+                    const snap = todaySnap.exists() ? todaySnap : (yestSnap.exists() ? yestSnap : null);
                     const infoEl = document.getElementById(`freeInfo_${id}`);
                     const cardEl = document.getElementById(`plc_${id}`);
-                    if(snap.exists()) {
-                        // Calculate midnight (next reset) countdown
+                    if(snap) {
                         const claimedAt = new Date(snap.val());
-                        const nextReset = new Date(today);
-                        nextReset.setDate(nextReset.getDate() + 1); // tomorrow midnight
-
-                        if(cardEl) {
-                            const btn = cardEl.querySelector('.free-btn');
-                            if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Already Claimed'; btn.style.opacity = '0.6'; btn.style.cursor = 'not-allowed'; }
+                        const nextReset = new Date(claimedAt.getTime() + 24 * 60 * 60 * 1000);
+                        // Still within 24hr window?
+                        if(nextReset > new Date()) {
+                            if(cardEl) {
+                                const btn = cardEl.querySelector('.free-btn');
+                                if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Already Claimed'; btn.style.opacity = '0.6'; btn.style.cursor = 'not-allowed'; }
+                            }
+                            if(infoEl) {
+                                infoEl.className = 'free-used-info';
+                                _startFreeCountdown(infoEl, nextReset);
+                            }
                         }
-                        if(infoEl) {
-                            infoEl.className = 'free-used-info';
-                            // Start live countdown
-                            _startFreeCountdown(infoEl, nextReset);
-                        }
+                        // else: 24hrs passed — card stays claimable
                     }
                 }).catch(()=>{});
             });
@@ -1589,6 +1595,8 @@
 
     function _startFreeCountdown(el, resetTime) {
         const id = el.id;
+        // Extract service id from element id (format: freeInfo_{serviceId})
+        const serviceId = id.replace('freeInfo_', '');
         // Clear any existing timer for this element
         if(_freeCountdownTimers[id]) clearInterval(_freeCountdownTimers[id]);
 
@@ -1602,10 +1610,22 @@
             const now = Date.now();
             const diff = resetTime.getTime() - now;
             if(diff <= 0) {
+                // 24hrs done — reactivate card fully
                 el.className = 'free-daily-info';
-                el.innerHTML = '<i class="fas fa-gift"></i> Available now! Refresh to claim.';
+                el.innerHTML = '<i class="fas fa-gift"></i> Available now! Tap to claim.';
                 clearInterval(_freeCountdownTimers[id]);
                 delete _freeCountdownTimers[id];
+                // Re-enable the claim button
+                const cardEl = document.getElementById(`plc_${serviceId}`);
+                if(cardEl) {
+                    const btn = cardEl.querySelector('.free-btn');
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-gift"></i> Claim Free';
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    }
+                }
                 return;
             }
             const h = Math.floor(diff / 3600000);
@@ -2433,12 +2453,23 @@
         // Free service daily limit check — block if already claimed today
         if(isFreeService) {
             const today = new Date().toISOString().slice(0,10);
+            const yesterday = new Date(Date.now() - 24*60*60*1000).toISOString().slice(0,10);
             showLoader();
-            get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)).then(snap => {
+            Promise.all([
+                get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)),
+                get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${yesterday}/${id}`))
+            ]).then(([todaySnap, yestSnap]) => {
                 hideLoader();
-                if(snap.exists()) {
-                    showToast('⏳ Already claimed today! Come back tomorrow.');
-                    return;
+                const snap = todaySnap.exists() ? todaySnap : (yestSnap.exists() ? yestSnap : null);
+                if(snap) {
+                    const claimedAt = new Date(snap.val());
+                    const nextReset = new Date(claimedAt.getTime() + 24 * 60 * 60 * 1000);
+                    if(nextReset > new Date()) {
+                        const h = Math.floor((nextReset - new Date()) / 3600000);
+                        const m = Math.floor(((nextReset - new Date()) % 3600000) / 60000);
+                        showToast(`⏳ Already claimed! Try again in ${h}h ${m}m.`);
+                        return;
+                    }
                 }
                 _openCheckoutModal(id, type, isFreeService);
             }).catch(() => { hideLoader(); _openCheckoutModal(id, type, isFreeService); });
@@ -2876,13 +2907,24 @@
 
         // Double-check daily limit in Firebase (prevent race from double-tap)
         const today = new Date().toISOString().slice(0, 10);
+        const yesterday = new Date(Date.now() - 24*60*60*1000).toISOString().slice(0,10);
         const limitRef = ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${checkoutItem.id}`);
         showLoader();
         try {
-            const limitSnap = await get(limitRef);
-            if (limitSnap.exists()) {
-                _unlockOrder(); hideLoader();
-                return showToast('⏳ Already claimed today! Come back tomorrow.');
+            const [limitSnap, yestLimitSnap] = await Promise.all([
+                get(limitRef),
+                get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${yesterday}/${checkoutItem.id}`))
+            ]);
+            const existingClaim = limitSnap.exists() ? limitSnap : (yestLimitSnap.exists() ? yestLimitSnap : null);
+            if (existingClaim) {
+                const claimedAt = new Date(existingClaim.val());
+                const nextReset = new Date(claimedAt.getTime() + 24 * 60 * 60 * 1000);
+                if(nextReset > new Date()) {
+                    _unlockOrder(); hideLoader();
+                    const h = Math.floor((nextReset - new Date()) / 3600000);
+                    const m = Math.floor(((nextReset - new Date()) % 3600000) / 60000);
+                    return showToast(`⏳ Already claimed! Try again in ${h}h ${m}m.`);
+                }
             }
 
             const utr = 'FREE_' + generateUTR(8);
@@ -2941,7 +2983,7 @@
             }
             if(_infoEl) {
                 _infoEl.className = 'free-used-info';
-                const _nextReset = new Date(today); _nextReset.setDate(_nextReset.getDate() + 1);
+                const _nextReset = new Date(Date.now() + 24 * 60 * 60 * 1000);
                 _startFreeCountdown(_infoEl, _nextReset);
             }
 
