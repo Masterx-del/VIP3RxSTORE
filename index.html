@@ -2334,7 +2334,7 @@
         } catch (e) {
             _unlockOrder();
             hideLoader();
-            showToast('❌ System Error: ' + e.message);
+            showToast('❌ ' + (e.message || e.code || 'Unknown error'));
         }
     };
 
@@ -2420,9 +2420,19 @@
             };
 
             const newOrderRef = push(ref(db, 'orders'));
-            await set(newOrderRef, orderData);
-            await set(ref(db, `usedUTRs/${utr}`), { uid: currentUser.uid, ts: new Date().toISOString(), type: 'order' });
-            set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true).catch(()=>{});
+            const orderKey = newOrderRef.key;
+
+            // usedUTRs ko alag set() se likhna zaroori hai — !data.exists() rule
+            // root update() ke saath compatible nahi hota
+            await set(ref(db, `usedUTRs/${utr}`), { 
+                uid: currentUser.uid, ts: new Date().toISOString(), type: 'order' 
+            });
+
+            // Order aur orderRef ek saath
+            await update(ref(db, '/'), {
+                [`orders/${orderKey}`]: orderData,
+                [`users/${currentUser.uid}/orderRefs/${orderKey}`]: true,
+            });
 
             if (appliedCouponKey) { 
                 const currentCount = couponsData[appliedCouponKey].usedCount || 0; 
@@ -2452,7 +2462,7 @@
                 let _apiCallFired = false; // prevent double API call from parallel proxies
                 const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
                 const apiUrl     = checkoutItem.apiUrl;
-                const _capturedOrderKey = newOrderRef.key; // capture key before async IIFE to prevent race
+                const _capturedOrderKey = orderKey; // capture key before async IIFE to prevent race
                 // Sequential: try direct first, then proxies — avoids duplicate orders on SMM panel
                 (async () => {
                     // Client-side duplicate guard via _isProcessingOrder lock (already released above)
@@ -2493,7 +2503,7 @@
             _unlockOrder();
             _resetBtn();
             hideLoader();
-            showToast('❌ Error: ' + (e.message || e.code || 'Unknown')); 
+            showToast('❌ ' + (e.message || e.code || 'Unknown error')); 
         } 
     };
 
@@ -2552,13 +2562,19 @@
             };
 
             const newOrderRef = push(ref(db, 'orders'));
-            await set(newOrderRef, orderData);
-            await Promise.all([
-                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
-                push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
-                set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
-                ...(appliedCouponKey ?[update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] :[]),
-            ]);
+            const orderKey = newOrderRef.key;
+            const walletHistoryRef = push(ref(db, `users/${currentUser.uid}/walletHistory`));
+            const walletHistoryKey = walletHistoryRef.key;
+            const multiUpdate = {
+                [`orders/${orderKey}`]: orderData,
+                [`users/${currentUser.uid}/profile/walletBalance`]: newBal,
+                [`users/${currentUser.uid}/walletHistory/${walletHistoryKey}`]: { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() },
+                [`users/${currentUser.uid}/orderRefs/${orderKey}`]: true,
+            };
+            if (appliedCouponKey) {
+                multiUpdate[`coupons/${appliedCouponKey}/usedCount`] = (couponsData[appliedCouponKey].usedCount || 0) + 1;
+            }
+            await update(ref(db, '/'), multiUpdate);
 
             _unlockOrder();
             closeCheckout(); 
@@ -2618,7 +2634,7 @@
         } catch (e) {
             _unlockOrder();
             hideLoader();
-            showToast('❌ System Error: ' + e.message);
+            showToast('❌ ' + (e.message || e.code || 'Unknown error'));
         }
     };
 
