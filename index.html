@@ -2134,8 +2134,10 @@
                 const elapsed = Date.now() - created;
                 const pct = Math.min(99, Math.max(1, Math.round(elapsed / totalMs * 100)));
                 const col = pct < 30 ? '#3b82f6' : pct < 70 ? '#f59e0b' : '#10b981';
-                const remaining = Math.max(0, Math.round((totalMs - elapsed) / 60000));
-                const remStr = remaining >= 60 ? `${Math.floor(remaining/60)}h ${remaining%60}m left` : `${remaining}m left`;
+                const remaining = Math.max(0, totalMs - elapsed);
+                const remMins = Math.floor(remaining / 60000);
+                const remSecs = Math.floor((remaining % 60000) / 1000);
+                const remStr = remMins >= 60 ? `${Math.floor(remMins/60)}h ${remMins%60}m left` : remMins > 0 ? `${remMins}m ${remSecs}s left` : remSecs > 0 ? `${remSecs}s left` : 'Almost done';
                 const r = 28, circ = 2 * Math.PI * r, dash = circ - circ * pct / 100;
                 const ring = document.querySelector(`.uprog-ring-${id}`);
                 if (ring) { ring.setAttribute('stroke-dashoffset', dash.toFixed(2)); ring.setAttribute('stroke', col); }
@@ -2146,7 +2148,7 @@
                 const rem = document.querySelector(`.uprog-rem-${id}`);
                 if (rem) { rem.textContent = remStr; rem.style.color = col; }
             });
-        }, 10000);
+        }, 1000);
     }
 
     function loadChat() {
