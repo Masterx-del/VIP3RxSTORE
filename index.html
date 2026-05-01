@@ -2419,8 +2419,6 @@
                 apiStatus:       hasApiConfig ? 'calling' : null,
             };
 
-            // SEQUENTIAL: order first → then UTR lock
-            // If order write fails (permission error), UTR stays clean → user can retry
             const newOrderRef = push(ref(db, 'orders'));
             await set(newOrderRef, orderData);
             await set(ref(db, `usedUTRs/${utr}`), { uid: currentUser.uid, ts: new Date().toISOString(), type: 'order' });
@@ -2495,7 +2493,7 @@
             _unlockOrder();
             _resetBtn();
             hideLoader();
-            showToast('❌ System Error: ' + e.message); 
+            showToast('❌ Error: ' + (e.message || e.code || 'Unknown error')); 
         } 
     };
 
@@ -2553,16 +2551,13 @@
                 paymentMethod:   'wallet'
             };
 
-            // SEQUENTIAL: order first → then deduct wallet
-            // If order write fails, wallet is NOT deducted → user not charged without order
             const newOrderRef = push(ref(db, 'orders'));
             await set(newOrderRef, orderData);
-            // Order placed — now deduct wallet and save refs
             await Promise.all([
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
                 push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
                 set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
-                ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
+                ...(appliedCouponKey ?[update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] :[]),
             ]);
 
             _unlockOrder();
