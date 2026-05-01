@@ -391,6 +391,80 @@
 
         @keyframes bannerSlideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── PAYMENT VERIFICATION OVERLAY ── */
+        #payVerifyOverlay {
+            position: fixed; inset: 0; z-index: 3000;
+            background: rgba(15,23,42,0.85);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; gap: 0;
+        }
+        #payVerifyOverlay.active { display: flex; }
+        .pvo-card {
+            background: var(--card-solid, #fff);
+            border-radius: 24px;
+            padding: 36px 32px 32px;
+            text-align: center;
+            width: 280px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+            animation: pvoIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        @keyframes pvoIn { from{transform:scale(0.8) translateY(20px);opacity:0;} to{transform:scale(1) translateY(0);opacity:1;} }
+
+        /* Circular progress ring */
+        .pvo-ring-wrap { position:relative; width:72px; height:72px; margin:0 auto 20px; }
+        .pvo-ring-bg { stroke: var(--border-color, #e2e8f0); fill: none; }
+        .pvo-ring-fg {
+            fill: none;
+            stroke: #2563eb;
+            stroke-linecap: round;
+            transform-origin: center;
+            transform: rotate(-90deg);
+            stroke-dasharray: 185;
+            stroke-dashoffset: 185;
+            transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+            animation: pvoRingFill 3s linear forwards;
+        }
+        @keyframes pvoRingFill {
+            0%   { stroke-dashoffset: 185; stroke: #2563eb; }
+            40%  { stroke-dashoffset: 111; stroke: #3b82f6; }
+            75%  { stroke-dashoffset: 46;  stroke: #0ea5e9; }
+            100% { stroke-dashoffset: 0;   stroke: #10b981; }
+        }
+        .pvo-icon-center {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* Animated dots inside ring while verifying */
+        .pvo-dots { display: flex; gap: 5px; }
+        .pvo-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--accent-cyan, #2563eb);
+            animation: pvoDotBounce 0.9s ease-in-out infinite;
+        }
+        .pvo-dot:nth-child(2) { animation-delay: 0.15s; }
+        .pvo-dot:nth-child(3) { animation-delay: 0.30s; }
+        @keyframes pvoDotBounce { 0%,100%{transform:translateY(0);opacity:0.5;} 50%{transform:translateY(-6px);opacity:1;} }
+
+        /* Tick that appears after complete */
+        .pvo-tick-wrap { display:none; }
+        .pvo-tick-svg { width: 44px; height: 44px; }
+        .pvo-tick-circle {
+            stroke: #10b981; fill: none; stroke-width: 3;
+            stroke-dasharray: 166; stroke-dashoffset: 166;
+            animation: pvoCStroke 0.5s cubic-bezier(0.65,0,0.45,1) forwards;
+        }
+        .pvo-tick-check {
+            stroke: #10b981; fill: none; stroke-width: 3;
+            stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 48; stroke-dashoffset: 48;
+            animation: pvoCStroke 0.3s cubic-bezier(0.65,0,0.45,1) 0.5s forwards;
+        }
+        @keyframes pvoCStroke { 100%{ stroke-dashoffset:0; } }
+
+        .pvo-label { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px; }
+        .pvo-sublabel { font-size:12px; color:var(--text-secondary); font-weight:500; line-height:1.5; }
     </style>
 </head>
 <body class="light-mode">
@@ -523,7 +597,18 @@
                     <div class="input-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
                     
                     <button id="authSubmitBtn" class="btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login Securely</button>
-                    <div style="text-align:center; margin-top:20px; font-size:13px;">
+                    
+                    <div style="display:flex; align-items:center; gap:10px; margin:18px 0 4px;">
+                        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+                        <span style="font-size:12px; color:var(--text-secondary); font-weight:500; white-space:nowrap;">or continue with</span>
+                        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+                    </div>
+                    <button id="googleSignInBtn" type="button" style="width:100%; padding:13px 16px; background:var(--card-bg); border:1.5px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:var(--transition); margin-top:12px; font-family:inherit;">
+                        <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+                        Continue with Google
+                    </button>
+
+                    <div style="text-align:center; margin-top:18px; font-size:13px;">
                         <span id="authToggleText" style="color:var(--text-secondary);">Don't have an account?</span>
                         <a href="#" id="authToggleBtn" style="color:var(--accent-cyan); font-weight:600; text-decoration:none;">Sign Up</a>
                     </div>
@@ -1156,12 +1241,33 @@
     </div>
 </div>
 
+<!-- PAYMENT VERIFICATION OVERLAY -->
+<div id="payVerifyOverlay">
+    <div class="pvo-card">
+        <div class="pvo-ring-wrap">
+            <svg viewBox="0 0 72 72" width="72" height="72">
+                <circle class="pvo-ring-bg" cx="36" cy="36" r="29" stroke-width="5"/>
+                <circle class="pvo-ring-fg" id="pvoRingFg" cx="36" cy="36" r="29" stroke-width="5"/>
+            </svg>
+            <div class="pvo-icon-center" id="pvoIconCenter">
+                <div class="pvo-dots">
+                    <div class="pvo-dot"></div>
+                    <div class="pvo-dot"></div>
+                    <div class="pvo-dot"></div>
+                </div>
+            </div>
+        </div>
+        <div id="pvoLabel" class="pvo-label">Verifying Payment...</div>
+        <div id="pvoSublabel" class="pvo-sublabel">Please wait while we<br>confirm your transaction</div>
+    </div>
+</div>
+
 <div class="toast" id="toastBox"><i class="fas fa-info-circle"></i> <span>Message</span></div>
 <div class="loader-overlay" id="loaderBox"><div class="spinner"></div></div>
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
     import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
@@ -1175,8 +1281,8 @@
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
 
-    // Helper: fetch with timeout — 1.5s for ultra fast UX
-    const fetchWithTimeout = (url, opts = {}, ms = 1500) => {
+    // Helper: fetch with timeout — 3s for reliable network handling
+    const fetchWithTimeout = (url, opts = {}, ms = 3000) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), ms);
         return fetch(url, { ...opts, signal: controller.signal, cache: 'no-store' })
@@ -1292,6 +1398,51 @@
     const showLoader = () => document.getElementById('loaderBox').classList.add('active');
     const hideLoader = () => document.getElementById('loaderBox').classList.remove('active');
 
+    // ── Payment Verification Overlay ──────────────────────────────────────
+    function showPayVerify() {
+        const overlay = document.getElementById('payVerifyOverlay');
+        const ring    = document.getElementById('pvoRingFg');
+        const icon    = document.getElementById('pvoIconCenter');
+        const label   = document.getElementById('pvoLabel');
+        const sub     = document.getElementById('pvoSublabel');
+
+        // Reset ring animation
+        ring.style.animation = 'none';
+        ring.offsetWidth; // reflow
+        ring.style.animation = 'pvoRingFill 3s linear forwards';
+
+        // Show dots, hide tick
+        icon.innerHTML = `<div class="pvo-dots"><div class="pvo-dot"></div><div class="pvo-dot"></div><div class="pvo-dot"></div></div>`;
+        label.textContent  = 'Verifying Payment...';
+        sub.innerHTML      = 'Please wait while we<br>confirm your transaction';
+
+        overlay.classList.add('active');
+    }
+
+    function showPayVerifySuccess(onDone) {
+        const icon  = document.getElementById('pvoIconCenter');
+        const label = document.getElementById('pvoLabel');
+        const sub   = document.getElementById('pvoSublabel');
+
+        // Swap dots → animated tick
+        icon.innerHTML = `
+            <svg class="pvo-tick-svg" viewBox="0 0 52 52">
+                <circle class="pvo-tick-circle" cx="26" cy="26" r="25"/>
+                <path class="pvo-tick-check" d="M14 27 l8 8 l16-16"/>
+            </svg>`;
+        label.textContent = 'Payment Verified! ✅';
+        sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
+
+        setTimeout(() => {
+            document.getElementById('payVerifyOverlay').classList.remove('active');
+            if(onDone) onDone();
+        }, 1400);
+    }
+
+    function hidePayVerify() {
+        document.getElementById('payVerifyOverlay').classList.remove('active');
+    }
+
     const themeBtn = document.getElementById('themeToggle');
     themeBtn.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); themeBtn.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; });
 
@@ -1396,6 +1547,75 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    // ── Handle Google Redirect Result (on page load after redirect) ──
+    getRedirectResult(auth).then(async (cred) => {
+        if (!cred) return;
+        const user = cred.user;
+        const profileSnap = await get(ref(db, `users/${user.uid}/profile`));
+        if (!profileSnap.exists()) {
+            await set(ref(db, `users/${user.uid}/profile`), {
+                name: user.displayName || 'User',
+                email: user.email,
+                createdAt: new Date().toISOString(),
+                referredBy: referralSource || null,
+                walletBalance: 0,
+                totalSpent: 0
+            });
+        }
+        showToast('✅ Logged in with Google!');
+    }).catch((e) => {
+        if (e.code && e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+            showToast('Google Sign In failed. Try again.');
+        }
+    });
+
+    document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('googleSignInBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+        showLoader();
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const _resetBtn = () => {
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg> Continue with Google';
+            hideLoader();
+        };
+        try {
+            // Popup first (desktop + standard mobile)
+            const cred = await signInWithPopup(auth, provider);
+            const user = cred.user;
+            const profileSnap = await get(ref(db, `users/${user.uid}/profile`));
+            if (!profileSnap.exists()) {
+                await set(ref(db, `users/${user.uid}/profile`), {
+                    name: user.displayName || 'User',
+                    email: user.email,
+                    createdAt: new Date().toISOString(),
+                    referredBy: referralSource || null,
+                    walletBalance: 0,
+                    totalSpent: 0
+                });
+            }
+            showToast('✅ Logged in with Google!');
+            _resetBtn();
+        } catch(e) {
+            // Popup blocked (in-app browsers, some Android) → redirect fallback
+            if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+                showToast('Redirecting to Google...');
+                try {
+                    await signInWithRedirect(auth, provider);
+                    // Page will redirect — code below won't run
+                } catch(redirectErr) {
+                    _resetBtn();
+                    showToast('Google Sign In failed. Try again.');
+                }
+            } else {
+                _resetBtn();
+                showToast('Google Sign In failed. Try again.');
+            }
+        }
+    });
 
     onAuthStateChanged(auth, user => { 
         currentUser = user;
@@ -1681,29 +1901,36 @@
         const utr = wfOrderId;
         if(!utr) return showToast('⚠️ Invalid Order ID');
         
-        showLoader();
+        showPayVerify();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
-            const [utrSnapshot, verifyResult] = await Promise.all([
+            const [utrSnapshot, _wfVerifyResult0] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
+            let verifyResult = _wfVerifyResult0;
 
-            if(utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID has already been used!'); }
-            if(!verifyResult) { hideLoader(); return showToast("❌ Network Error. Check internet."); }
+            if(utrSnapshot.exists()) { hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
+            if(!verifyResult) { 
+                showToast('⚠️ Network slow, retrying...');
+                await new Promise(r => setTimeout(r, 2500));
+                const retryResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
+                if(!retryResult) { hidePayVerify(); return showToast("❌ Network Error. Check internet and try again."); }
+                verifyResult = retryResult;
+            }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                hideLoader(); 
+                hidePayVerify(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Try again in a few seconds.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < wfAmount) { hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
+            if(paidVal < wfAmount) { hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
 
             // ── Step 3: Wallet Addition Logic ──
             const newBal = walletBalance + paidVal;
@@ -1711,11 +1938,19 @@
             await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up', utrId: utr, createdAt: new Date().toISOString() });
             await push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
 
-            hideLoader(); 
-            closeWalletFund(); 
-            notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`);
+            playOrderSuccessSound();
+            // Show wallet-specific success message
+            const _pvoLabel = document.getElementById('pvoLabel');
+            const _pvoSub   = document.getElementById('pvoSublabel');
+            showPayVerifySuccess(() => {
+                closeWalletFund();
+                notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`);
+                switchTab('walletTab');
+            });
+            if(_pvoLabel) _pvoLabel.textContent = 'Wallet Credited! ✅';
+            if(_pvoSub)   _pvoSub.innerHTML = `₹${paidVal.toFixed(2)} added successfully.<br>Redirecting to wallet...`;
         } catch(e) { 
-            hideLoader(); 
+            hidePayVerify(); 
             showToast('❌ Error: ' + e.message); 
         }
     };
@@ -1754,7 +1989,8 @@
         onValue(ref(db, 'meta/offers'), s => { if(s.exists()){ const d = s.val(); const banner = document.getElementById('offerBanner'); if(d.name && d.imageUrl) { banner.style.display = 'flex'; banner.style.backgroundImage = `url('${d.imageUrl}')`; document.getElementById('offerTitle').textContent = d.name; document.getElementById('offerDesc').textContent = d.description || ''; document.getElementById('offerPrice').textContent = `₹${d.newRate || 0}`; document.getElementById('offerOldPrice').textContent = `₹${d.oldRate || 0}`; document.getElementById('contactLink').href = d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'; document.getElementById('updatesLink').href = d.channelLink || '#'; } else { banner.style.display = 'none'; } } });
         onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
         onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
-        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
+        let _firstProductLoad = true;
+        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } if(_firstProductLoad) { _firstProductLoad = false; openCategory('Instagram'); } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
 
@@ -2080,7 +2316,7 @@
         const targetLink4 = document.getElementById('chkLinkInput4').value.trim();
         const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
         
-        showLoader();
+        showPayVerify();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924"; 
@@ -2093,12 +2329,12 @@
             ]);
 
             if (utrSnapshot.exists()) { 
-                _unlockOrder(); _resetBtn(); hideLoader(); 
+                _unlockOrder(); _resetBtn(); hidePayVerify(); 
                 return showToast('❌ This Order ID has already been used!'); 
             }
 
             if (!verifyResult) { 
-                _unlockOrder(); _resetBtn(); hideLoader(); 
+                _unlockOrder(); _resetBtn(); hidePayVerify(); 
                 return showToast("❌ Network Error. Check your internet connection."); 
             }
 
@@ -2106,14 +2342,14 @@
             
             // ── Step 3: Validate Payment Status ──
             if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
-                _unlockOrder(); _resetBtn(); hideLoader();
+                _unlockOrder(); _resetBtn(); hidePayVerify();
                 return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Please wait 10 secs and retry."));
             }
 
             // ── Step 4: Validate Paid Amount ──
             const paidVal = parseFloat(result.TXNAMOUNT);
             if (paidVal < checkoutFinalAmt) { 
-                _unlockOrder(); _resetBtn(); hideLoader();
+                _unlockOrder(); _resetBtn(); hidePayVerify();
                 return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`);
             }
 
@@ -2154,10 +2390,11 @@
             _unlockOrder();
             _resetBtn();
             closeCheckout(); 
-            notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
             playOrderSuccessSound();
-            switchTab('ordersTab');
-            hideLoader();
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
+                switchTab('ordersTab');
+            });
 
             // Update user totalSpent and process referral reward
             get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
@@ -2214,7 +2451,7 @@
         } catch(e) { 
             _unlockOrder();
             _resetBtn();
-            hideLoader();
+            hidePayVerify();
             showToast('❌ System Error: ' + e.message); 
         } 
     };
@@ -2284,11 +2521,20 @@
             ]);
 
             _unlockOrder();
-            closeCheckout(); 
-            notifyLive('✅ Wallet Payment Successful! Order Placed.'); 
+            closeCheckout();
             playOrderSuccessSound();
-            switchTab('ordersTab');
             hideLoader();
+            const _pvoLabelW = document.getElementById('pvoLabel');
+            const _pvoSubW   = document.getElementById('pvoSublabel');
+            showPayVerify();
+            setTimeout(() => {
+                showPayVerifySuccess(() => {
+                    notifyLive('✅ Wallet Payment Successful! Order Placed.');
+                    switchTab('ordersTab');
+                });
+                if(_pvoLabelW) _pvoLabelW.textContent = 'Order Placed! ✅';
+                if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+            }, 100);
 
             // Spend tracking & Referral
             get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
@@ -2342,7 +2588,7 @@
 
         } catch (e) {
             _unlockOrder();
-            hideLoader();
+            hidePayVerify();
             showToast('❌ System Error: ' + e.message);
         }
     };
@@ -2512,7 +2758,7 @@
         if (_guardOrder()) return;
         const utr = cartOrderId;
         if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
-        showLoader();
+        showPayVerify();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924";
@@ -2524,17 +2770,17 @@
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
-            if(utrSnapshot.exists()) { _unlockOrder(); hideLoader(); return showToast('❌ This Order ID already used!'); }
-            if(!verifyResult) { _unlockOrder(); hideLoader(); return showToast("❌ Network Error."); }
+            if(utrSnapshot.exists()) { _unlockOrder(); hidePayVerify(); return showToast('❌ This Order ID already used!'); }
+            if(!verifyResult) { _unlockOrder(); hidePayVerify(); return showToast("❌ Network Error."); }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                _unlockOrder(); hideLoader(); 
+                _unlockOrder(); hidePayVerify(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < cartFinalAmt) { _unlockOrder(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
+            if(paidVal < cartFinalAmt) { _unlockOrder(); hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
 
             // Save one order per cart item and call external API if needed
             const promises = cart.map(async item => {
@@ -2606,9 +2852,17 @@
 
             cart = []; updateCartBadge();
             _unlockOrder();
-            closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
-            hideLoader();
-        } catch(e) { _unlockOrder(); hideLoader(); showToast('❌ Error: ' + e.message); }
+            closeCart();
+            playOrderSuccessSound();
+            const _pvoLabelC = document.getElementById('pvoLabel');
+            const _pvoSubC   = document.getElementById('pvoSublabel');
+            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
+            if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Payment Verified! All orders placed successfully!');
+                switchTab('ordersTab');
+            });
+        } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
 
     window.confirmCartWalletPurchase = async () => {
@@ -2625,7 +2879,7 @@
             _unlockOrder(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
         }
 
-        showLoader();
+        showPayVerify();
         try {
             const utr = 'WALLET_' + generateUTR(8);
 
@@ -2706,11 +2960,19 @@
 
             cart = []; updateCartBadge();
             _unlockOrder();
-            closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
-            hideLoader();
+            closeCart();
+            playOrderSuccessSound();
+            const _pvoLabelCW = document.getElementById('pvoLabel');
+            const _pvoSubCW   = document.getElementById('pvoSublabel');
+            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
+            if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Wallet Payment Successful! Orders placed!');
+                switchTab('ordersTab');
+            });
         } catch(e) { 
             _unlockOrder();
-            hideLoader(); showToast('❌ Error: ' + e.message); 
+            hidePayVerify(); showToast('❌ Error: ' + e.message); 
         }
     };
 
