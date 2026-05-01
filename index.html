@@ -1264,9 +1264,10 @@
     const notifyLive = (msg) => {
         showToast(msg);
         if ("Notification" in window) {
-            const logo = document.getElementById('brandLogo').src || '';
-            if (Notification.permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); }
-            else if (Notification.permission !== "denied") { Notification.requestPermission().then(permission => { if (permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); } }); }
+            const logoEl = document.getElementById('brandLogo');
+            const logo = (logoEl && logoEl.style.display !== 'none' && logoEl.src) ? logoEl.src : '';
+            if (Notification.permission === "granted") { new Notification("Store Update", { body: msg, icon: logo || undefined }); }
+            else if (Notification.permission !== "denied") { Notification.requestPermission().then(permission => { if (permission === "granted") { new Notification("Store Update", { body: msg, icon: logo || undefined }); } }); }
         }
     };
 
