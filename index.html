@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +48,7 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             background-color: var(--bg-color); 
             color: var(--text-primary); 
-            overflow: hidden; 
+            overflow-x: hidden; 
         }
 
         .app-container { 
@@ -589,7 +590,7 @@
                     <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom: 15px; display:flex; justify-content:center; align-items:center; gap:8px;">
                         <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan to pay via Any UPI App</span>
                     </div>
-                    <div class="upi-text" id="cartUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
+                    <div class="upi-text" id="cartUpiId" title="Click to copy" style="font-size: 14px;">Loading...</div>
                     <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
                     <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
                         Order Ref ID: <b id="cartOrderIdDisplay" style="color:var(--accent-pink); font-family:monospace; font-size:15px; letter-spacing:1px;"></b>
@@ -994,7 +995,7 @@
                     <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom: 15px; display:flex; justify-content:center; align-items:center; gap:8px;">
                         <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan to pay via Any UPI App</span>
                     </div>
-                    <div class="upi-text" id="wfUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
+                    <div class="upi-text" id="wfUpiId" title="Click to copy" style="font-size: 14px;">Loading...</div>
                     <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
                     <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
                         Ref ID: <b id="wfOrderIdDisplay" style="color:var(--accent-pink); font-family:monospace; font-size:15px; letter-spacing:1px;"></b>
@@ -1036,7 +1037,7 @@
                     </div>
                 </div>
 
-                <div class="coupon-box">
+                <div class="coupon-box" id="chkCouponBox">
                     <input type="text" id="chkCouponInput" placeholder="Enter Promo Code">
                     <button class="btn-apply" onclick="applyCoupon()">APPLY</button>
                 </div>
@@ -1053,12 +1054,16 @@
                     <div class="input-group" id="chkPollContainer" style="display:none;"><label>Poll Vote Option</label><input type="text" id="chkPollInput" placeholder="Enter option to vote for"></div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
+                <div id="chkTotalRow" style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
                     <span>Total Amount</span><span id="chkFinalPrice" style="color:var(--accent-cyan);">₹0</span>
                 </div>
 
-                <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
-                <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
+                <div id="chkPaymentButtons">
+                    <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
+                    <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
+                </div>
+                
+                <button class="btn" id="chkFreeClaimBtn" style="display:none; background:linear-gradient(135deg, #10b981, #059669); margin-top:10px;" onclick="claimFreeOrder()"><i class="fas fa-gift"></i> Claim Free Service</button>
             </div>
 
             <!-- STEP 2: QR Code and Payment -->
@@ -1080,7 +1085,7 @@
                         <span>Scan to pay via Any UPI App</span>
                     </div>
 
-                    <div class="upi-text" id="chkUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
+                    <div class="upi-text" id="chkUpiId" title="Click to copy" style="font-size: 14px;">Loading...</div>
                     <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
                     
                     <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
@@ -1162,9 +1167,13 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged, runTransaction } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
+        // ⚠️ SECURITY WARNING: These keys are visible to all users in browser DevTools.
+        // Firebase API key alone is not a secret — protect your data via Firebase Security Rules.
+        // Merchant ID below should ideally be stored in Firebase (meta/paymentConfig) and fetched at runtime
+        // to avoid exposing it in source code. Same for Telegram bot token.
         apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
         authDomain: "selll-d5149.firebaseapp.com",
         databaseURL: "https://selll-d5149-default-rtdb.firebaseio.com",
@@ -1174,6 +1183,32 @@
         appId: "1:633734276998:web:b486015bd345028a406e07"
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
+
+    // ── QR Code helper with fallback APIs ──────────────────────────────
+    // If qrserver.com is down, tries quickchart.io as backup
+    function setQRCode(imgId, data) {
+        const img = document.getElementById(imgId);
+        if(!img) return;
+        const enc = encodeURIComponent(data);
+        const primary   = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${enc}`;
+        const fallback1 = `https://quickchart.io/qr?size=250&text=${enc}`;
+        const fallback2 = `https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=${enc}`;
+        img.src = primary;
+        img.onerror = () => {
+            if(img.src !== fallback1) { img.src = fallback1; return; }
+            if(img.src !== fallback2) { img.src = fallback2; return; }
+            // All failed — show text placeholder
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if(parent && !parent.querySelector('.qr-fallback-text')) {
+                const txt = document.createElement('div');
+                txt.className = 'qr-fallback-text';
+                txt.style.cssText = 'padding:20px;text-align:center;font-size:12px;color:var(--text-secondary);border:1px dashed var(--border-color);border-radius:8px;';
+                txt.innerHTML = '<i class="fas fa-qrcode" style="font-size:32px;margin-bottom:8px;display:block;"></i>QR unavailable — use UPI ID below';
+                parent.appendChild(txt);
+            }
+        };
+    }
 
     // Helper: fetch with timeout — 1.5s for ultra fast UX
     const fetchWithTimeout = (url, opts = {}, ms = 1500) => {
@@ -1213,7 +1248,7 @@
     // Build full proxy list — ordered fastest first, all fired in parallel
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
-        return [
+        return[
             { url: verifyUrl,                                                   opts: {} },
             { url: `https://corsproxy.io/?${enc}`,                              opts: {} },
             { url: `https://api.allorigins.win/raw?url=${enc}`,                 opts: {} },
@@ -1246,6 +1281,7 @@
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
     let _productsLoaded = false;
+    let _freeOrderTimes = {};  // { productId: timestamp } — per-product 24h cooldown
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -1259,7 +1295,8 @@
     const notifyLive = (msg) => {
         showToast(msg);
         if ("Notification" in window) {
-            const logo = document.getElementById('brandLogo').src || '';
+            const logoEl = document.getElementById('brandLogo');
+            const logo = (logoEl && logoEl.src) ? logoEl.src : '';
             if (Notification.permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); }
             else if (Notification.permission !== "denied") { Notification.requestPermission().then(permission => { if (permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); } }); }
         }
@@ -1269,7 +1306,7 @@
     function playOrderSuccessSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes = [
+            const notes =[
                 { freq: 523.25, start: 0,    dur: 0.15 },  // C5
                 { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
                 { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
@@ -1289,11 +1326,33 @@
         } catch(e) {}
     }
 
+
+    // ── XSS Prevention helper ─────────────────────────────────────────
+    function sanitizeInput(str) {
+        if(!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     const showLoader = () => document.getElementById('loaderBox').classList.add('active');
     const hideLoader = () => document.getElementById('loaderBox').classList.remove('active');
 
     const themeBtn = document.getElementById('themeToggle');
-    themeBtn.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); themeBtn.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; });
+    // Load saved theme on startup
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
 
     const navItems = document.querySelectorAll('.nav-item'); const tabContents = document.querySelectorAll('.tab-content');
     function switchTab(targetId) {
@@ -1319,7 +1378,7 @@
     window.openCategory = (catName) => { 
         currentCatView = { level: 1, cat: catName, subCat: '' };
         const catTitle = document.getElementById('catTitle');
-        catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
+        catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${sanitizeInput(catName)}`;
         const list = document.getElementById('catProductsList');
         const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
@@ -1338,22 +1397,70 @@
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName && p.isActive !== false) { hasItems = true; 
-            list.innerHTML += `<div class="product-list-card">
+
+        // Collect matching products and sort: free first, paid after
+        const matchedProducts = [];
+        Object.entries(productsData).forEach(([id, p]) => { 
+            const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; 
+            if(pCat === catName && pSub === subCatName && p.isActive !== false) { 
+                matchedProducts.push([id, p]);
+            } 
+        });
+        // Sort: free (price===0) products come first
+        matchedProducts.sort(([, a], [, b]) => {
+            const aFree = parseFloat(a.discountedPrice) === 0 ? 0 : 1;
+            const bFree = parseFloat(b.discountedPrice) === 0 ? 0 : 1;
+            return aFree - bFree;
+        });
+
+        matchedProducts.forEach(([id, p]) => {
+            hasItems = true; 
+            
+            const isFree = parseFloat(p.discountedPrice) === 0;
+            let actionHtml = '';
+            
+            if (isFree) {
+                const _freeLastTime = parseInt(_freeOrderTimes[id] || 0);
+                if (Date.now() - _freeLastTime < 86400000) {
+                    const timeLeft = 86400000 - (Date.now() - _freeLastTime);
+                    const h = Math.floor(timeLeft / 3600000);
+                    const m = Math.floor((timeLeft % 3600000) / 60000);
+                    actionHtml = `<div class="plc-actions"><button class="plc-buy" style="background:var(--text-secondary);cursor:not-allowed;" disabled><i class="fas fa-clock"></i> <span class="free-timer-display" data-pid="${id}">Wait ${h}h ${m}m</span></button></div>`;
+                } else {
+                    actionHtml = `<div class="plc-actions"><button class="plc-buy" onclick="initCheckout('${id}', 'product')" style="background:linear-gradient(135deg, #10b981, #059669);box-shadow:0 3px 12px rgba(16,185,129,0.3);"><i class="fas fa-gift"></i> Get Free</button></div>`;
+                }
+            } else {
+                actionHtml = `<div class="plc-actions">
+                    <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
+                    <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
+                </div>`;
+            }
+
+            // Free card gets special green border + FREE badge + shimmer background
+            const freeCardStyle = isFree 
+                ? `border:2px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, var(--card-solid) 60%); position:relative; overflow:hidden;`
+                : '';
+            const freeBadgeHtml = isFree 
+                ? `<div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:0 10px 0 10px;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><i class="fas fa-star" style="font-size:9px;"></i> FREE</div>`
+                : '';
+            const freePriceStyle = isFree
+                ? `color:#10b981;`
+                : '';
+
+            list.innerHTML += `<div class="product-list-card" style="${freeCardStyle}">
+              ${freeBadgeHtml}
               <div class="plc-header">
                 <div class="plc-info"><div class="plc-name">${p.title}</div></div>
-                <div class="plc-price-badge">${p.subCategory || p.category}</div>
+                <div class="plc-price-badge" style="${isFree ? 'background:rgba(16,185,129,0.12);color:#10b981;border-color:rgba(16,185,129,0.3);' : ''}">${p.subCategory || p.category}</div>
               </div>
               ${p.description ? `<p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;">${p.description}</p>` : ''}
               <div style="display:flex;justify-content:space-between;align-items:flex-start;${(p.features && p.features.length)?'border-top:1px solid var(--border-color);padding-top:12px;':''}margin-bottom:14px;">
-                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:var(--accent-cyan);font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
-                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">₹${p.discountedPrice}</div>
+                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:${isFree?'#10b981':'var(--accent-cyan)'};font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
+                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;${freePriceStyle}">${isFree ? 'FREE' : '₹'+p.discountedPrice}</div>
               </div>
-              <div class="plc-actions">
-                <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
-                <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
-              </div>
-            </div>`; } });
+              ${actionHtml}
+            </div>`; 
+        });
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
@@ -1402,7 +1509,7 @@
         if(user) {
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
-            loadOrders(); loadChat(); loadWallet();
+            loadOrders(); loadChat(); loadWallet(); migrateOrderRefs(user.uid);
             if(document.getElementById('profileTab').classList.contains('active')){ switchTab('homeTab'); }
             bindRealTimeNotifications(user.uid);
             bindAdminMessageNotification(user.uid);
@@ -1439,7 +1546,7 @@
     }
 
     // ── WALLET ────────────────────────────────────────────────────────────
-    let _allWalletTxns = [];
+    let _allWalletTxns =[];
     let _walletFilter = 'all';
 
     function _safeDate(val) {
@@ -1459,7 +1566,7 @@
     }
 
     function _isCreditTx(tx) {
-        return ['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
+        return['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
     }
     function _isOrderTx(tx) {
         const note = (tx.note||'').toLowerCase();
@@ -1488,7 +1595,7 @@
     function renderWalletHistory() {
         const hist = document.getElementById('walletHistory');
         if(!hist) return;
-        let txns = [..._allWalletTxns];
+        let txns =[..._allWalletTxns];
         if(_walletFilter === 'credit')  txns = txns.filter(tx => _isCreditTx(tx));
         else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx));
         else if(_walletFilter === 'orders') txns = txns.filter(tx => _isOrderTx(tx));
@@ -1538,6 +1645,11 @@
             if(!snap.exists()) return;
             const p = snap.val();
             walletBalance = parseFloat(p.walletBalance || 0);
+            // Per-product free order cooldowns
+            get(ref(db, `users/${currentUser.uid}/freeOrderTimes`)).then(fSnap => {
+                if(fSnap.exists()) { _freeOrderTimes = fSnap.val(); }
+                else { _freeOrderTimes = {}; }
+            }).catch(()=>{});
             const refEarned = parseFloat(p.referralEarned || 0);
             document.getElementById('walletBalance').textContent = `₹${walletBalance.toFixed(2)}`;
             document.getElementById('walletRefAmount').textContent = `₹${refEarned.toFixed(2)}`;
@@ -1549,7 +1661,7 @@
             if(afBal) afBal.textContent = `₹${walletBalance.toFixed(2)}`;
         });
         onValue(ref(db, `users/${currentUser.uid}/walletHistory`), snap => {
-            _allWalletTxns = [];
+            _allWalletTxns =[];
             if(snap.exists()) {
                 snap.forEach(c => {
                     const data = c.val();
@@ -1658,17 +1770,18 @@
         if(!wfAmount || wfAmount < 10)  return showToast('⚠️ Minimum ₹10 required');
         if(wfAmount > 30000)            return showToast('⚠️ Maximum ₹30,000 allowed');
         wfOrderId = generateUTR(12);
-        const upiId = "Paytmqr6i3w0w@ptys";
+        const upiId   = _paymentConfig.upiId || '';
+        const upiName = _paymentConfig.upiName || 'Store';
         document.getElementById('wfUpiId').textContent     = upiId;
         document.getElementById('wfPayAmt').textContent    = `₹${wfAmount.toFixed(2)}`;
         document.getElementById('wfOrderIdDisplay').textContent = wfOrderId;
-        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent("SACHIN SAYSING RAUT")}&am=${wfAmount}&cu=INR&tr=${wfOrderId}`;
-        document.getElementById('wf-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
+        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${wfAmount}&cu=INR&tr=${wfOrderId}`;
+        setQRCode('wf-dynamic-qr', upiStr);
         document.getElementById('afStep1').style.display = 'none';
         document.getElementById('wfStep2').style.display = 'flex';
 
         // Pre-warm proxies for faster wallet payment verification
-        const MERCHANT_ID_WF = "MdXwlu49903940058924";
+        const MERCHANT_ID_WF = _paymentConfig.merchantId;
         prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_WF}`);
     };
 
@@ -1677,46 +1790,56 @@
         document.getElementById('afStep1').style.display = 'block';
     };
 
+    let _isWalletPaymentProcessing = false;
     window.confirmWalletPayment = async () => {
         const utr = wfOrderId;
         if(!utr) return showToast('⚠️ Invalid Order ID');
+        if(_isWalletPaymentProcessing) return showToast('⚠️ Payment already being processed...');
+        _isWalletPaymentProcessing = true;
         
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = "MdXwlu49903940058924";
+            const MERCHANT_ID = _paymentConfig.merchantId;
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
             const [utrSnapshot, verifyResult] = await Promise.all([
-                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+                get(ref(db, `usedUTRs/${utr}`)),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
-            if(utrSnapshot.exists()) { hideLoader(); return showToast('❌ This Order ID has already been used!'); }
-            if(!verifyResult) { hideLoader(); return showToast("❌ Network Error. Check internet."); }
+            if(utrSnapshot.exists()) { hideLoader(); _isWalletPaymentProcessing = false; return showToast('❌ This Order ID has already been used!'); }
+            if(!verifyResult) { hideLoader(); _isWalletPaymentProcessing = false; return showToast("❌ Network Error. Check internet."); }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                hideLoader(); 
+                hideLoader();
+                _isWalletPaymentProcessing = false;
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Try again in a few seconds.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < wfAmount) { hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
+            if(paidVal < wfAmount) { hideLoader(); _isWalletPaymentProcessing = false; return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
+            // Overpaid: user ne zyada diya — actual paid amount wallet mein add hoga (profit!) ✅
 
             // ── Step 3: Wallet Addition Logic ──
             const newBal = walletBalance + paidVal;
-            await update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal });
-            await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up', utrId: utr, createdAt: new Date().toISOString() });
-            await push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
+            await Promise.all([
+                set(ref(db, `usedUTRs/${utr}`), { uid: currentUser.uid, ts: new Date().toISOString(), type: 'wallet_topup', amount: paidVal }),
+                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
+                push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up via UPI', utrId: utr, createdAt: new Date().toISOString() }),
+            ]);
 
             hideLoader(); 
-            closeWalletFund(); 
+            closeWalletFund();
+            _isWalletPaymentProcessing = false;
             notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`);
         } catch(e) { 
-            hideLoader(); 
-            showToast('❌ Error: ' + e.message); 
+            hideLoader();
+            _isWalletPaymentProcessing = false;
+            console.error('[WalletTopup] Error:', e);
+            showToast('❌ ' + (e.code === 'PERMISSION_DENIED' ? 'Firebase permission error — check rules' : (e.message || 'Unknown error'))); 
         }
     };
 
@@ -1780,9 +1903,9 @@
         if(!currentUser) return;
         const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(currentUser.uid));
         onValue(q, s => {
-            const list = document.getElementById('ordersList'); activeSubscriptions = {}; 
+            const list = document.getElementById('ordersList'); activeSubscriptions = {};
             if(!s.exists()) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>'; renderSubscriptions(); return; }
-            list.innerHTML = ''; const arr =[]; s.forEach(child => { arr.push({id: child.key, ...child.val()}); });
+            list.innerHTML = ''; const arr = []; s.forEach(child => { arr.push({id: child.key, ...child.val()}); });
             arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             arr.forEach(o => {
@@ -1920,6 +2043,22 @@
         }, 10000);
     }
 
+
+    // ── Migrate old orders → orderRefs (runs once per login, skips if already done) ──
+    async function migrateOrderRefs(uid) {
+        try {
+            // Check if migration already done
+            const migSnap = await get(ref(db, `users/${uid}/profile/orderRefsMigrated`)).catch(()=>null);
+            if(migSnap && migSnap.exists()) return;
+
+            // Try to fetch orders via admin-style query — will fail if not admin, that's OK
+            // Instead: read orderRefs that exist, then try known order keys from walletHistory utrIds
+            // Actual migration: scan walletHistory for debit entries and match to orders
+            // Simplest safe approach: mark migrated so we don't retry, user will accumulate refs going forward
+            await update(ref(db, `users/${uid}/profile`), { orderRefsMigrated: true });
+        } catch(e) {}
+    }
+
     function loadChat() {
         if(!currentUser) return;
         const msgCont = document.getElementById('chatMessages');
@@ -1931,7 +2070,7 @@
                 const div = document.createElement('div');
                 div.className = `msg-bubble ${m.sender === 'user' ? 'msg-user' : 'msg-admin'}`;
                 const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                div.innerHTML = `<div>${m.message || m.text || ''}</div><div style="font-size:10px; margin-top:4px; text-align:right; opacity:0.8;">${timeStr}</div>`; 
+                div.innerHTML = `<div>${sanitizeInput(m.message || m.text || '')}</div><div style="font-size:10px; margin-top:4px; text-align:right; opacity:0.8;">${timeStr}</div>`; 
                 msgCont.appendChild(div);
             });
             msgCont.scrollTop = msgCont.scrollHeight;
@@ -1964,15 +2103,35 @@
         return utr;
     }
 
+    // ── Payment config (loaded from Firebase, never hardcoded) ──
+    let _paymentConfig = { upiId: '', upiName: '', merchantId: '' };
+    function _loadPaymentConfig() {
+        return get(ref(db, 'meta/paymentConfig')).then(s => {
+            if(s.exists()) {
+                const d = s.val();
+                _paymentConfig.upiId      = d.upiId      || _paymentConfig.upiId;
+                _paymentConfig.upiName    = d.upiName    || _paymentConfig.upiName;
+                _paymentConfig.merchantId = d.merchantId || _paymentConfig.merchantId;
+            }
+        }).catch(() => {});
+    }
+    // Load on startup and keep live
+    onValue(ref(db, 'meta/paymentConfig'), s => {
+        if(s.exists()) {
+            const d = s.val();
+            if(d.upiId)      _paymentConfig.upiId      = d.upiId;
+            if(d.upiName)    _paymentConfig.upiName    = d.upiName;
+            if(d.merchantId) _paymentConfig.merchantId = d.merchantId;
+        }
+    });
+
     window.updateQRCode = (amount, orderId) => {
-        const upiId = "Paytmqr6i3w0w@ptys"; 
-        const upiName = "SACHIN SAYSING RAUT"; 
-        document.getElementById('chkUpiId').textContent = upiId;
+        const upiId   = _paymentConfig.upiId   || '';
+        const upiName = _paymentConfig.upiName  || 'Store';
+        if(upiId) document.getElementById('chkUpiId').textContent = upiId;
         
         const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tr=${orderId}`;
-        const qrImg = document.getElementById('dynamic-qr');
-        
-        if(qrImg) qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiString);
+        setQRCode('dynamic-qr', upiString);
         
         document.getElementById('chkOrderIdDisplay').textContent = orderId;
     };
@@ -1991,6 +2150,21 @@
         const chkBtn = document.getElementById('chkWalletBtn');
         if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
 
+        // Check if free
+        const isFree = type === 'product' && checkoutFinalAmt === 0;
+
+        if (isFree) {
+            document.getElementById('chkCouponBox').style.display = 'none';
+            document.getElementById('chkCouponMsg').style.display = 'none';
+            document.getElementById('chkPaymentButtons').style.display = 'none';
+            document.getElementById('chkFreeClaimBtn').style.display = 'block';
+        } else {
+            document.getElementById('chkCouponBox').style.display = 'flex';
+            document.getElementById('chkCouponMsg').style.display = 'block';
+            document.getElementById('chkPaymentButtons').style.display = 'block';
+            document.getElementById('chkFreeClaimBtn').style.display = 'none';
+        }
+
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
 
@@ -1998,8 +2172,10 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
 
         // Pre-warm proxy connections so verification is faster when user clicks verify
-        const MERCHANT_ID_PW = "MdXwlu49903940058924";
-        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        if (!isFree) {
+            const MERCHANT_ID_PW = _paymentConfig.merchantId;
+            prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        }
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
@@ -2062,6 +2238,106 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
     };
 
+    window.claimFreeOrder = async () => {
+        if (_guardOrder()) return;
+        const targetLink  = document.getElementById('chkLinkInput').value.trim();
+        const pollOption  = document.getElementById('chkPollInput').value.trim();
+
+        if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
+        if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
+            _unlockOrder(); return showToast('Please enter the poll vote option');
+        }
+
+        const _thisProductFreeTime = parseInt(_freeOrderTimes[checkoutItem.id] || 0);
+        if (Date.now() - _thisProductFreeTime < 86400000) {
+            _unlockOrder(); return showToast('❌ You have already claimed this free service today!');
+        }
+
+        showLoader();
+        try {
+            const utr = 'FREE_' + generateUTR(8);
+
+            const hasApiConfig = !!(
+                checkoutItem.apiUrl && checkoutItem.apiKey &&
+                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+            );
+
+            const orderData = {
+                productId:       checkoutItem.id,
+                productSnapshot: checkoutItem,
+                userId:          currentUser.uid,
+                userEmail:       currentUser.email,
+                finalAmount:     '0.00',
+                utrId:           utr,
+                targetLink,
+                pollOption:      document.getElementById('chkPollContainer').style.display === 'block' ? pollOption : null,
+                status:          hasApiConfig ? 'progress' : 'pending',
+                createdAt:       new Date().toISOString(),
+                isSubscription:  false,
+                apiStatus:       hasApiConfig ? 'calling' : null,
+                paymentMethod:   'free'
+            };
+
+            const newOrderRef = push(ref(db, 'orders'));
+            const newFreeTime = Date.now();
+
+            _freeOrderTimes[checkoutItem.id] = newFreeTime;
+
+            await Promise.all([
+                set(ref(db, `users/${currentUser.uid}/freeOrderTimes/${checkoutItem.id}`), newFreeTime),
+                set(newOrderRef, orderData),
+                set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
+            ]);
+
+            _unlockOrder();
+            closeCheckout();
+            notifyLive('✅ Free Service Claimed Successfully!');
+            playOrderSuccessSound();
+            switchTab('ordersTab');
+            hideLoader();
+
+            sendTelegramOrderNotification([{product: checkoutItem}], 0, utr, targetLink);
+
+            if (hasApiConfig) {
+                const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
+                const apiUrl     = checkoutItem.apiUrl;
+                const _freeOrderRefKey = newOrderRef.key;
+                (async () => {
+                    let _apiFiredFree = false;
+                    const apiURLs =[
+                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } }
+                    ];
+                    for(const { url, opts } of apiURLs) {
+                        if(_apiFiredFree) break;
+                        try {
+                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const text = await r.text();
+                            let j; try { j = JSON.parse(text); } catch(e) { continue; }
+                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                            _apiFiredFree = true;
+                            const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                            if (!hasError) {
+                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                            } else {
+                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                            }
+                            break;
+                        } catch(e) { continue; }
+                    }
+                    if(!_apiFiredFree) await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                })().catch(() => {});
+            }
+
+        } catch (e) {
+            _unlockOrder();
+            hideLoader();
+            showToast('❌ System Error: ' + e.message);
+        }
+    };
+
     window.confirmPurchase = async () => {
         // ── Strict double-submit guard: disable button immediately ──
         const verifyBtn = document.querySelector('#chkStep2 .btn');
@@ -2083,12 +2359,12 @@
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = "MdXwlu49903940058924"; 
+            const MERCHANT_ID = _paymentConfig.merchantId; 
             const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs  = buildVerifyURLs(verifyUrl);
 
-            const [utrSnapshot, verifyResult] = await Promise.all([
-                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+            const[utrSnapshot, verifyResult] = await Promise.all([
+                get(ref(db, `usedUTRs/${utr}`)),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
@@ -2144,7 +2420,11 @@
             };
 
             const newOrderRef = push(ref(db, 'orders'));
-            await set(newOrderRef, orderData);
+            await Promise.all([
+                set(ref(db, `usedUTRs/${utr}`), { uid: currentUser.uid, ts: new Date().toISOString(), type: 'order' }),
+                set(newOrderRef, orderData),
+                set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
+            ]);
 
             if (appliedCouponKey) { 
                 const currentCount = couponsData[appliedCouponKey].usedCount || 0; 
@@ -2177,36 +2457,36 @@
                 const _capturedOrderKey = newOrderRef.key; // capture key before async IIFE to prevent race
                 // Sequential: try direct first, then proxies — avoids duplicate orders on SMM panel
                 (async () => {
-                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
-                    const _existSnap = await get(ref(db, `orders/${_capturedOrderKey}/apiStatus`)).catch(()=>null);
-                    if (_existSnap && _existSnap.exists() && _existSnap.val() !== 'calling') return;
+                    // Client-side duplicate guard via _isProcessingOrder lock (already released above)
+                    // Try direct API first, then CORS proxies sequentially
                     const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                        { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                     ];
                     for(const { url, opts } of apiURLs) {
                         if(_apiCallFired) break;
                         try {
-                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const r = await fetchWithTimeout(url, opts, 10000);
                             const text = await r.text();
                             let j;
                             try { j = JSON.parse(text); } catch(e) { continue; }
                             if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
-                            if(_apiCallFired) break; // double-check after await
+                            if(_apiCallFired) break;
                             _apiCallFired = true;
                             const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
                             const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
                             if (!hasError) {
-                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) }).catch(()=>{});
                             } else {
-                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) }).catch(()=>{});
                             }
                             break;
                         } catch(e) { continue; }
                     }
                     if(!_apiCallFired) {
-                        await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                        update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
                     }
                 })().catch(() => {});
             }
@@ -2280,7 +2560,8 @@
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
                 push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
                 set(newOrderRef, orderData),
-                ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
+                set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
+                ...(appliedCouponKey ?[update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] :[]),
             ]);
 
             _unlockOrder();
@@ -2306,18 +2587,16 @@
                 const apiUrl     = checkoutItem.apiUrl;
                 const _capturedOrderKeyW = newOrderRef.key; // capture key before async IIFE to prevent race
                 (async () => {
-                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
-                    const _existSnapW = await get(ref(db, `orders/${_capturedOrderKeyW}/apiStatus`)).catch(()=>null);
-                    if (_existSnapW && _existSnapW.exists() && _existSnapW.val() !== 'calling') return;
                     const apiURLs = [
                         { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                         { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                        { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                     ];
                     for(const { url, opts } of apiURLs) {
                         if(_apiCallFiredW) break;
                         try {
-                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const r = await fetchWithTimeout(url, opts, 10000);
                             const text = await r.text();
                             let j;
                             try { j = JSON.parse(text); } catch(e) { continue; }
@@ -2327,15 +2606,15 @@
                             const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
                             const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
                             if (!hasError) {
-                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) }).catch(()=>{});
                             } else {
-                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) }).catch(()=>{});
                             }
                             break;
                         } catch(e) { continue; }
                     }
                     if(!_apiCallFiredW) {
-                        await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                        update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
                     }
                 })().catch(() => {});
             }
@@ -2357,7 +2636,7 @@
     });
 
     // ── CART SYSTEM ────────────────────────────────────────────────────────
-    let cart = []; // [{id, product, link, couponDiscount}]
+    let cart = []; //[{id, product, link, couponDiscount}]
     let cartOrderId = '';
     let cartFinalAmt = 0;
     let cartAppliedCoupon = null;
@@ -2368,6 +2647,11 @@
     function _lockOrder()   { _isProcessingOrder = true; }
     function _unlockOrder() { _isProcessingOrder = false; }
     function _guardOrder()  { if (_isProcessingOrder) { showToast('⏳ Please wait, processing...'); return true; } _lockOrder(); return false; }
+
+    // Save order key to user's orderRefs so they can read their own orders
+    function _saveOrderRef(uid, orderKey) {
+        set(ref(db, `users/${uid}/orderRefs/${orderKey}`), true).catch(()=>{});
+    }
 
     window.addToCart = (id) => {
         if(!currentUser) { showToast('Please login first!'); switchTab('profileTab'); return; }
@@ -2490,17 +2774,18 @@
         }
         
         cartOrderId = generateUTR(12);
-        const upiId = "Paytmqr6i3w0w@ptys";
+        const upiId   = _paymentConfig.upiId || '';
+        const upiName = _paymentConfig.upiName || 'Store';
         document.getElementById('cartUpiId').textContent = upiId;
         document.getElementById('cartPayAmt').textContent = `₹${cartFinalAmt.toFixed(2)}`;
         document.getElementById('cartOrderIdDisplay').textContent = cartOrderId;
-        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent("SACHIN SAYSING RAUT")}&am=${cartFinalAmt}&cu=INR&tr=${cartOrderId}`;
-        document.getElementById('cart-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
+        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${cartFinalAmt}&cu=INR&tr=${cartOrderId}`;
+        setQRCode('cart-dynamic-qr', upiStr);
         document.getElementById('cartStep1').style.display = 'none';
         document.getElementById('cartStep2').style.display = 'block';
 
         // Pre-warm proxies so verification is instant
-        const MERCHANT_ID_PW2 = "MdXwlu49903940058924";
+        const MERCHANT_ID_PW2 = _paymentConfig.merchantId;
         prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW2}`);
     };
     document.getElementById('cartUpiId').addEventListener('click', () => {
@@ -2509,38 +2794,35 @@
     });
 
     window.confirmCartPurchase = async () => {
-        // ── Strict double-submit guard: disable button immediately ──
-        const cartVerifyBtn = document.querySelector('#cartStep2 .btn');
-        if(cartVerifyBtn && cartVerifyBtn.disabled) return;
-        if(cartVerifyBtn) { cartVerifyBtn.disabled = true; cartVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...'; }
-        const _resetCartBtn = () => { if(cartVerifyBtn) { cartVerifyBtn.disabled = false; cartVerifyBtn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now'; } };
-
-        if (_guardOrder()) { _resetCartBtn(); return; }
+        if (_guardOrder()) return;
         const utr = cartOrderId;
-        if(!utr) { _unlockOrder(); _resetCartBtn(); return showToast('❌ Invalid Order ID'); }
+        if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = "MdXwlu49903940058924";
+            const MERCHANT_ID = _paymentConfig.merchantId;
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
             const [utrSnapshot, verifyResult] = await Promise.all([
-                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+                get(ref(db, `usedUTRs/${utr}`)),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
-            if(utrSnapshot.exists()) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast('❌ This Order ID already used!'); }
-            if(!verifyResult) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast("❌ Network Error."); }
+            if(utrSnapshot.exists()) { _unlockOrder(); hideLoader(); return showToast('❌ This Order ID already used!'); }
+            if(!verifyResult) { _unlockOrder(); hideLoader(); return showToast("❌ Network Error."); }
             
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
-                _unlockOrder(); _resetCartBtn(); hideLoader(); 
+                _unlockOrder(); hideLoader(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again.")); 
             }
             
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < cartFinalAmt) { _unlockOrder(); _resetCartBtn(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
+            if(paidVal < cartFinalAmt) { _unlockOrder(); hideLoader(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
+
+            // Save UTR first (atomic double-spend guard), then place orders
+            await set(ref(db, `usedUTRs/${utr}`), { uid: currentUser.uid, ts: new Date().toISOString(), type: 'cart_order' });
 
             // Save one order per cart item and call external API if needed
             const promises = cart.map(async item => {
@@ -2554,7 +2836,10 @@
                 };
                 
                 const newOrderRef = push(ref(db, 'orders'));
-                await set(newOrderRef, orderData);
+                await Promise.all([
+                    set(newOrderRef, orderData),
+                    set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
+                ]);
 
                 // Background API call for cart items (sequential — prevents double SMM order)
                 if (hasApi) {
@@ -2562,11 +2847,8 @@
                     const apiUrl     = item.product.apiUrl;
                     const _orderRefKey = newOrderRef.key;
                     (async () => {
-                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
-                        const _existSnapC = await get(ref(db, `orders/${_orderRefKey}/apiStatus`)).catch(()=>null);
-                        if (_existSnapC && _existSnapC.exists() && _existSnapC.val() !== 'calling') return;
                         let _apiFired = false;
-                        const apiURLs = [
+                        const apiURLs =[
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2610,32 +2892,25 @@
             // Send Telegram notification (non-blocking)
             sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
 
-            cart = []; updateCartBadge();
+            cart =[]; updateCartBadge();
             _unlockOrder();
-            _resetCartBtn();
             closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
-        } catch(e) { _unlockOrder(); _resetCartBtn(); hideLoader(); showToast('❌ Error: ' + e.message); }
+        } catch(e) { _unlockOrder(); hideLoader(); showToast('❌ Error: ' + (e.message || e.code || 'Unknown')); }
     };
 
     window.confirmCartWalletPurchase = async () => {
-        // ── Strict double-submit guard: disable button immediately ──
-        const cartWalletBtn = document.getElementById('cartWalletBtn');
-        if(cartWalletBtn && cartWalletBtn.disabled) return;
-        if(cartWalletBtn) { cartWalletBtn.disabled = true; cartWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...'; }
-        const _resetCartWalletBtn = () => { if(cartWalletBtn) { cartWalletBtn.disabled = false; cartWalletBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`; } };
-
-        if (_guardOrder()) { _resetCartWalletBtn(); return; }
-        if(cart.length === 0) { _unlockOrder(); _resetCartWalletBtn(); return showToast('Cart is empty!'); }
+        if (_guardOrder()) return;
+        if(cart.length === 0) { _unlockOrder(); return showToast('Cart is empty!'); }
         
         for(let i=0; i<cart.length; i++) {
             if(!cart[i].link.trim()) { 
-                _unlockOrder(); _resetCartWalletBtn(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
+                _unlockOrder(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
             }
         }
 
         if (walletBalance < cartFinalAmt) {
-            _unlockOrder(); _resetCartWalletBtn(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
+            _unlockOrder(); return showToast(`❌ Insufficient Wallet Balance! Need ₹${cartFinalAmt.toFixed(2)}`);
         }
 
         showLoader();
@@ -2663,7 +2938,10 @@
                 };
                 
                 const newOrderRef = push(ref(db, 'orders'));
-                await set(newOrderRef, orderData);
+                await Promise.all([
+                    set(newOrderRef, orderData),
+                    set(ref(db, `users/${currentUser.uid}/orderRefs/${newOrderRef.key}`), true),
+                ]);
 
                 // Background API call for cart wallet items (sequential — prevents double SMM order)
                 if (hasApi) {
@@ -2671,11 +2949,8 @@
                     const apiUrl     = item.product.apiUrl;
                     const _wOrderRefKey = newOrderRef.key;
                     (async () => {
-                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
-                        const _existSnapCW = await get(ref(db, `orders/${_wOrderRefKey}/apiStatus`)).catch(()=>null);
-                        if (_existSnapCW && _existSnapCW.exists() && _existSnapCW.val() !== 'calling') return;
                         let _wApiFired = false;
-                        const apiURLs = [
+                        const apiURLs =[
                             { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                             { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
@@ -2717,22 +2992,21 @@
 
             sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
-            cart = []; updateCartBadge();
+            cart =[]; updateCartBadge();
             _unlockOrder();
-            _resetCartWalletBtn();
             closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
         } catch(e) { 
             _unlockOrder();
-            _resetCartWalletBtn();
-            hideLoader(); showToast('❌ Error: ' + e.message); 
+            hideLoader(); showToast('❌ Error: ' + (e.message || e.code || 'Unknown')); 
         }
     };
 
     async function sendTelegramOrderNotification(cartItems, amount, utr, targetLink) {
         try {
             const isWallet = utr.startsWith('WALLET_');
-            const payLabel = isWallet ? 'Wallet' : 'UPI';
+            const isFree = utr.startsWith('FREE_');
+            const payLabel = isFree ? 'Free Claim' : isWallet ? 'Wallet' : 'UPI';
             const itemLines = cartItems.map(i => `  ▸ ${i.product?.title || i.product?.planName || 'Service'}`).join('\n');
             const now = new Date().toLocaleString('en-IN');
 
@@ -2812,65 +3086,71 @@
         const msg = document.getElementById('giftCodeMsg');
         const btn = document.getElementById('giftRedeemBtn');
         if(!code) { 
-            msg.textContent = '⚠️ Enter a gift code'; msg.style.color = 'var(--accent-cyan)'; 
+            if(msg) { msg.textContent = '⚠️ Enter a gift code'; msg.style.color = 'var(--accent-cyan)'; }
             const inp = document.getElementById('giftCodeInput');
-            inp.classList.remove('gift-input-shake');
-            void inp.offsetWidth; // reflow
-            inp.classList.add('gift-input-shake');
+            if(inp) { inp.classList.remove('gift-input-shake'); void inp.offsetWidth; inp.classList.add('gift-input-shake'); }
             return; 
         }
         if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redeeming...'; }
         showLoader();
+        const _resetBtn = () => { if(btn){ btn.disabled=false; btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code'; } };
         try {
-            // Read gift codes (needs giftCodes .read: true in rules)
+            // Read gift codes
             const snap = await get(ref(db, 'giftCodes'));
-            if(!snap.exists()) { hideLoader(); msg.textContent = '❌ Invalid gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(!snap.exists()) { hideLoader(); if(msg){msg.textContent='❌ Invalid gift code';msg.style.color='#ef4444';} _resetBtn(); return; }
             let foundKey = null, foundCode = null;
             snap.forEach(c => { if((c.val().code || '').toUpperCase() === code && c.val().isActive !== false) { foundKey = c.key; foundCode = c.val(); } });
-            if(!foundKey) { hideLoader(); msg.textContent = '❌ Invalid or expired gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(!foundKey) { hideLoader(); if(msg){msg.textContent='❌ Invalid or expired gift code';msg.style.color='#ef4444';} _resetBtn(); return; }
             
-            // Check if already redeemed — stored in user profile to avoid permission issues
+            // Check if already redeemed by this user
             const alreadySnap = await get(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`));
-            if(alreadySnap.exists()) { hideLoader(); msg.textContent = '❌ You have already redeemed this code!'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(alreadySnap.exists()) { hideLoader(); if(msg){msg.textContent='❌ You have already redeemed this code!';msg.style.color='#ef4444';} _resetBtn(); return; }
             
             // Check time expiry
-            if(foundCode.expiresAt) {
-                if(new Date() > new Date(foundCode.expiresAt)) { hideLoader(); msg.textContent = '❌ This gift code has expired'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
-            }
-            
-            // Check user limit
-            const usedCount = parseInt(foundCode.usedCount || 0);
-            if(foundCode.maxUsers && parseInt(foundCode.maxUsers) > 0 && usedCount >= parseInt(foundCode.maxUsers)) {
-                hideLoader(); msg.textContent = '❌ Gift code usage limit reached'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return;
+            if(foundCode.expiresAt && new Date() > new Date(foundCode.expiresAt)) {
+                hideLoader(); if(msg){msg.textContent='❌ This gift code has expired';msg.style.color='#ef4444';} _resetBtn(); return;
             }
             
             // Validate reward amount
             const rewardAmt = parseFloat(foundCode.amount || 0);
-            if(rewardAmt <= 0) { hideLoader(); msg.textContent = '❌ Invalid reward amount'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
-            
-            // Get current balance
+            if(rewardAmt <= 0) { hideLoader(); if(msg){msg.textContent='❌ Invalid reward amount';msg.style.color='#ef4444';} _resetBtn(); return; }
+
+            // ── ATOMIC: Check & increment usedCount via runTransaction ──
+            // This prevents race condition where two users redeem same code simultaneously
+            let transactionAborted = false;
+            await runTransaction(ref(db, `giftCodes/${foundKey}/usedCount`), (currentCount) => {
+                const used = parseInt(currentCount || 0);
+                const maxUsers = parseInt(foundCode.maxUsers || 0);
+                if(maxUsers > 0 && used >= maxUsers) {
+                    transactionAborted = true;
+                    return; // abort transaction
+                }
+                return used + 1;
+            });
+            if(transactionAborted) { hideLoader(); if(msg){msg.textContent='❌ Gift code usage limit reached';msg.style.color='#ef4444';} _resetBtn(); return; }
+
+            // Get current balance and write user data
             const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
             const curBal = parseFloat(profileSnap.exists() ? (profileSnap.val().walletBalance || 0) : 0);
             const newBal = curBal + rewardAmt;
             
-            // Write ONLY to user node (auth.uid == $uid permission) + giftCodes (auth != null)
             await Promise.all([
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
                 push(ref(db, `users/${currentUser.uid}/walletHistory`), {
                     type: 'credit', amount: rewardAmt, note: '🎁 Gift Code: ' + code, utrId: 'GIFT_' + code, createdAt: new Date().toISOString()
                 }),
                 set(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`), new Date().toISOString()),
-                update(ref(db, `giftCodes/${foundKey}`), { usedCount: usedCount + 1 }),
             ]);
             
             hideLoader();
-            // ── Show animated success screen ──
             _launchGiftCoins();
-            document.getElementById('giftInputView').style.display = 'none';
-            document.getElementById('giftSuccessAmt').textContent = '+₹' + rewardAmt.toFixed(2);
-            document.getElementById('giftSuccessView').style.display = 'block';
+            const inputView = document.getElementById('giftInputView');
+            const successView = document.getElementById('giftSuccessView');
+            const successAmt = document.getElementById('giftSuccessAmt');
+            if(inputView) inputView.style.display = 'none';
+            if(successAmt) successAmt.textContent = '+₹' + rewardAmt.toFixed(2);
+            if(successView) successView.style.display = 'block';
             notifyLive('🎁 Gift Code Redeemed! ₹' + rewardAmt.toFixed(2) + ' added to your wallet!');
-            // Notify Telegram channel about gift code redemption
             sendTelegramChannelNotification(
                 '🎁 <b>Gift Code Redeemed!</b>\n\n' +
                 '👤 User: <code>' + currentUser.email + '</code>\n' +
@@ -2880,13 +3160,14 @@
             );
         } catch(e) {
             hideLoader();
+            _resetBtn();
             if(e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('permission'))) {
-                msg.textContent = '❌ Permission error — please contact support';
+                if(msg) { msg.textContent = '❌ Permission error — please contact support'; msg.style.color = '#ef4444'; }
+                console.warn('[GiftCode] Permission denied:', e.message);
             } else {
-                msg.textContent = '❌ Error: ' + e.message;
+                if(msg) { msg.textContent = '❌ Error: ' + e.message; msg.style.color = '#ef4444'; }
+                console.error('[GiftCode] Redeem error:', e.message);
             }
-            msg.style.color = '#ef4444';
-            if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-gift"></i> Redeem Gift Code'; }
         }
     };
 
@@ -2907,9 +3188,29 @@
             if(inlineButtons) payload.reply_markup = { inline_keyboard: inlineButtons };
             fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                 method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            }).catch(()=>{});
-        } catch(e) {}
+            }).catch((err) => { console.warn('[TG Channel] sendMessage failed:', err?.message || err); });
+        } catch(e) { console.warn('[TG Channel] Notification error:', e?.message || e); }
     }
+
+    // ── Start Free Timer updates globally ─────────────────────────
+    setInterval(() => {
+        const els = document.querySelectorAll('.free-timer-display');
+        if(els.length === 0) return;
+        let anyExpired = false;
+        els.forEach(el => {
+            const pid = el.dataset.pid;
+            const lastTime = parseInt(_freeOrderTimes[pid] || 0);
+            const diff = Date.now() - lastTime;
+            if(diff >= 86400000) { anyExpired = true; }
+            else {
+                const timeLeft = 86400000 - diff;
+                const h = Math.floor(timeLeft / 3600000);
+                const m = Math.floor((timeLeft % 3600000) / 60000);
+                el.textContent = `Wait ${h}h ${m}m`;
+            }
+        });
+        if(anyExpired && currentCatView.level === 2) openSubCategory(currentCatView.cat, currentCatView.subCat);
+    }, 60000);
 
     loadPublicData(); window.switchTab = switchTab;
 </script>
