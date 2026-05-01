@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -339,6 +340,7 @@
         .empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); width: 100%; }
         .empty-state i { font-size: 48px; color: var(--border-color); margin-bottom: 16px; }
         .empty-state p { font-size: 14px; font-weight: 500; }
+        @keyframes skeletonPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         .progress-circle { position: relative; display: inline-block; }
         .progress-circle svg { transform: rotate(-90deg); }
@@ -385,6 +387,9 @@
         }
         .wf-tab:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
         .wf-tab-active { background: var(--accent-cyan) !important; color: #fff !important; border-color: var(--accent-cyan) !important; }
+        
+        #giftCodeModal { position: fixed !important; }
+
         @keyframes bannerSlideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -471,7 +476,10 @@
                 <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Available Balance</div>
                 <div id="walletBalance" style="font-size:42px; font-weight:800; color:var(--accent-cyan); letter-spacing:-1px;">₹0.00</div>
                 <div id="walletRefEarned" style="font-size:12px; color:var(--text-secondary); margin-top:6px;">Referral Earned: <b id="walletRefAmount" style="color:var(--accent-cyan);">₹0.00</b></div>
-                <button class="btn" style="margin-top:20px; max-width:240px; margin-left:auto; margin-right:auto;" onclick="openWalletAddFund()"><i class="fas fa-plus"></i> Add Fund</button>
+                <div style="display:flex; gap:8px; margin-top:20px; max-width:300px; margin-left:auto; margin-right:auto;">
+                    <button class="btn" style="flex:1;" onclick="openWalletAddFund()"><i class="fas fa-plus"></i> Add Fund</button>
+                    <button class="btn" style="flex:1; background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 2px 8px rgba(245,158,11,0.3);" onclick="openGiftCodeModal()"><i class="fas fa-gift"></i> Gift Code</button>
+                </div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <h2 class="section-title" style="margin:0;"><i class="fas fa-history" style="color:var(--accent-cyan);"></i> Payment History</h2>
@@ -631,7 +639,7 @@
     align-items: center;
     gap: 10px;
     padding: 14px 16px 12px;
-    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
     overflow: hidden;
     flex-shrink: 0;
 }
@@ -704,9 +712,9 @@
     -webkit-tap-highlight-color: transparent;
 }
 .af-method-card.selected {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99,102,241,0.18);
-    background: rgba(99,102,241,0.04);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+    background: rgba(37,99,235,0.04);
 }
 .af-method-icon {
     width: 38px; height: 38px;
@@ -726,7 +734,7 @@
     position: absolute;
     top: 7px; right: 9px;
     width: 7px; height: 7px;
-    background: #6366f1;
+    background: var(--accent-cyan);
     border-radius: 50%;
     display: none;
 }
@@ -772,11 +780,11 @@
 
 /* UPI section */
 .af-info-bar {
-    background: rgba(99,102,241,0.07);
-    border: 1px solid rgba(99,102,241,0.18);
+    background: rgba(37,99,235,0.07);
+    border: 1px solid rgba(37,99,235,0.18);
     border-radius: 10px; padding: 8px 12px;
     font-size: 11px; font-weight: 600;
-    color: #6366f1; margin-bottom: 12px;
+    color: var(--accent-cyan); margin-bottom: 12px;
     display: flex; align-items: center; gap: 6px;
 }
 
@@ -798,7 +806,7 @@
     color: var(--text-primary);
 }
 .af-deposit-row.total .af-total-val {
-    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text; font-size: 16px;
 }
@@ -819,9 +827,9 @@
 }
 .af-chip:active { transform: scale(0.95); }
 .af-chip.active {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.1);
-    color: #6366f1;
+    border-color: var(--accent-cyan);
+    background: rgba(37,99,235,0.1);
+    color: var(--accent-cyan);
 }
 
 /* Custom amount input */
@@ -845,20 +853,20 @@
     -webkit-appearance: none;
 }
 .af-custom-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 .af-custom-input::placeholder { color: var(--text-secondary); font-weight: 500; font-size: 13px; }
 
 /* Pay button */
 .af-pay-btn {
     width: 100%; padding: 14px;
-    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
     border: none; border-radius: 12px;
     color: #fff; font-size: 15px; font-weight: 700;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 3px 16px rgba(99,102,241,0.35);
+    box-shadow: 0 3px 16px rgba(37,99,235,0.35);
     -webkit-tap-highlight-color: transparent;
     margin-bottom: 0;
 }
@@ -892,8 +900,8 @@
             <div class="af-methods">
                 <div class="af-method-card selected" id="afMethodUPI" onclick="afSelectMethod('upi')">
                     <div class="af-selected-dot"></div>
-                    <div class="af-method-icon" style="background:rgba(99,102,241,0.1);">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="af-method-icon" style="background:rgba(37,99,235,0.1);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/>
                         </svg>
                     </div>
@@ -977,7 +985,7 @@
                 <div class="payment-box">
                     <div class="secure-badge"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
                     <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom: 4px;">
-                        Pay exactly <span id="wfPayAmt" style="background:linear-gradient(135deg,#6366f1,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;font-weight:800;"></span>
+                        Pay exactly <span id="wfPayAmt" style="color:var(--accent-cyan);font-size:20px;font-weight:800;"></span>
                     </div>
                     <div class="qr-wrapper">
                         <div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div>
@@ -1029,7 +1037,7 @@
                     </div>
                 </div>
 
-                <div class="coupon-box">
+                <div class="coupon-box" id="chkCouponBox">
                     <input type="text" id="chkCouponInput" placeholder="Enter Promo Code">
                     <button class="btn-apply" onclick="applyCoupon()">APPLY</button>
                 </div>
@@ -1046,12 +1054,16 @@
                     <div class="input-group" id="chkPollContainer" style="display:none;"><label>Poll Vote Option</label><input type="text" id="chkPollInput" placeholder="Enter option to vote for"></div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
+                <div id="chkTotalRow" style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
                     <span>Total Amount</span><span id="chkFinalPrice" style="color:var(--accent-cyan);">₹0</span>
                 </div>
 
-                <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
-                <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
+                <div id="chkPaymentButtons">
+                    <button class="btn" onclick="goToStep2()">Proceed to Payment <i class="fas fa-arrow-right"></i></button>
+                    <button class="btn" id="chkWalletBtn" style="background:var(--accent-purple); margin-top:10px;" onclick="confirmWalletPurchase()"><i class="fas fa-wallet"></i> Pay via Wallet</button>
+                </div>
+                
+                <button class="btn" id="chkFreeClaimBtn" style="display:none; background:linear-gradient(135deg, #10b981, #059669); margin-top:10px;" onclick="claimFreeOrder()"><i class="fas fa-gift"></i> Claim Free Service</button>
             </div>
 
             <!-- STEP 2: QR Code and Payment -->
@@ -1089,6 +1101,64 @@
         </div>
     </div>
 
+</div>
+
+<!-- GIFT CODE MODAL -->
+<style>
+@keyframes giftBounce { 0%,100%{transform:scale(1) rotate(0deg);} 30%{transform:scale(1.15) rotate(-8deg);} 60%{transform:scale(1.1) rotate(6deg);} }
+@keyframes giftShake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-4px);} 40%{transform:translateX(4px);} 60%{transform:translateX(-3px);} 80%{transform:translateX(3px);} }
+@keyframes giftSuccessScale { 0%{transform:scale(0);opacity:0;} 60%{transform:scale(1.2);opacity:1;} 100%{transform:scale(1);opacity:1;} }
+@keyframes giftCoins { 0%{transform:translateY(0) rotate(0deg);opacity:1;} 100%{transform:translateY(-80px) rotate(360deg);opacity:0;} }
+@keyframes giftModalIn { from{transform:scale(0.85) translateY(20px);opacity:0;} to{transform:scale(1) translateY(0);opacity:1;} }
+.gift-modal-inner { animation: giftModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.gift-emoji-bounce { display:inline-block; animation: giftBounce 1.5s ease-in-out infinite; }
+.gift-input-shake { animation: giftShake 0.4s ease; }
+.gift-success-icon { animation: giftSuccessScale 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.gift-coin { position:absolute; font-size:20px; pointer-events:none; animation: giftCoins 1s ease-out forwards; }
+#giftRedeemBtn:disabled { opacity:0.7; cursor:not-allowed; }
+</style>
+<div id="giftCodeModal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
+    <div class="gift-modal-inner" style="background:var(--card-solid,#fff);border-radius:22px;overflow:hidden;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">
+        <!-- Coin burst container -->
+        <div id="giftCoinBurst" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;"></div>
+
+        <div id="giftInputView">
+            <div style="background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));padding:20px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+                <button onclick="closeGiftCodeModal()" style="position:absolute;top:10px;right:12px;width:28px;height:28px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:1;">×</button>
+                <div style="width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">
+                    <span class="gift-emoji-bounce">🎁</span>
+                </div>
+                <div style="z-index:1;">
+                    <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Gift Code</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.85);margin-top:2px;">Redeem your code for instant wallet credit</div>
+                </div>
+            </div>
+            <div style="padding:20px;background:var(--card-solid,#fff);">
+                <div class="input-group">
+                    <label style="display:flex;align-items:center;gap:6px;"><i class="fas fa-ticket-alt" style="color:var(--accent-cyan);font-size:12px;"></i> Enter Gift Code</label>
+                    <input type="text" id="giftCodeInput" placeholder="e.g. GIFT2024" style="text-transform:uppercase;letter-spacing:3px;font-weight:700;text-align:center;font-size:20px;">
+                </div>
+                <div id="giftCodeMsg" style="font-size:13px;margin-bottom:16px;font-weight:500;text-align:center;min-height:18px;transition:all 0.3s;"></div>
+                <button id="giftRedeemBtn" class="btn" style="background:var(--accent-cyan);box-shadow:0 3px 12px rgba(37,99,235,0.3);" onclick="redeemGiftCode()">
+                    <i class="fas fa-gift"></i> Redeem Gift Code
+                </button>
+            </div>
+        </div>
+
+        <!-- SUCCESS VIEW (hidden initially) -->
+        <div id="giftSuccessView" style="display:none;padding:36px 24px;text-align:center;background:var(--card-solid,#fff);">
+            <div class="gift-success-icon" style="width:80px;height:80px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-check" style="color:#fff;font-size:36px;"></i>
+            </div>
+            <div style="font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">🎉 Code Redeemed!</div>
+            <div id="giftSuccessAmt" style="font-size:38px;font-weight:900;color:var(--accent-cyan);margin-bottom:8px;letter-spacing:-1px;">+₹0.00</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:28px;line-height:1.5;">has been added to your wallet instantly!</div>
+            <button class="btn" style="background:var(--accent-cyan);box-shadow:0 3px 12px rgba(37,99,235,0.25);width:auto;padding:12px 32px;display:inline-block;" onclick="closeGiftCodeModal()">
+                <i class="fas fa-wallet"></i> View Wallet
+            </button>
+        </div>
+    </div>
 </div>
 
 <div class="toast" id="toastBox"><i class="fas fa-info-circle"></i> <span>Message</span></div>
@@ -1148,7 +1218,7 @@
     // Build full proxy list — ordered fastest first, all fired in parallel
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
-        return [
+        return[
             { url: verifyUrl,                                                   opts: {} },
             { url: `https://corsproxy.io/?${enc}`,                              opts: {} },
             { url: `https://api.allorigins.win/raw?url=${enc}`,                 opts: {} },
@@ -1162,8 +1232,7 @@
 
     // Pre-warm proxies the moment checkout modal opens — cuts ~300ms off verification
     function prewarmProxies(verifyUrl) {
-        const enc = encodeURIComponent(verifyUrl);
-        [
+        const enc = encodeURIComponent(verifyUrl);[
             'https://corsproxy.io/?',
             'https://api.allorigins.win/raw?url=',
             'https://corsproxy.org/?',
@@ -1180,6 +1249,8 @@
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
+    let _productsLoaded = false;
+    let lastFreeOrderTime = 0;
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -1203,7 +1274,7 @@
     function playOrderSuccessSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes = [
+            const notes =[
                 { freq: 523.25, start: 0,    dur: 0.15 },  // C5
                 { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
                 { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
@@ -1254,34 +1325,87 @@
         currentCatView = { level: 1, cat: catName, subCat: '' };
         const catTitle = document.getElementById('catTitle');
         catTitle.innerHTML = `<i class="fas fa-layer-group" style="color:var(--accent-cyan);"></i> ${catName}`;
-        const list = document.getElementById('catProductsList'); list.innerHTML = ''; let subCatsMap = {};
+        const list = document.getElementById('catProductsList');
+        const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
+        setTimeout(() => { const contentArea = document.querySelector('.content-area'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
+        // Show skeleton while data loads on slow network
+        if (!_productsLoaded) {
+            list.innerHTML = `<div style="padding:8px 0;">${[1,2,3].map(()=>`<div style="background:var(--card-solid);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;"><div style="background:var(--border-color);border-radius:6px;height:14px;width:55%;animation:skeletonPulse 1.2s ease-in-out infinite;"></div><div style="background:var(--border-color);border-radius:6px;height:26px;width:80px;animation:skeletonPulse 1.2s ease-in-out infinite;"></div></div>`).join('')}</div>`;
+            return;
+        }
+        list.innerHTML = ''; let subCatsMap = {};
         Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; if(pCat === catName && p.isActive !== false) { const sub = p.subCategory || 'General'; if(!subCatsMap[sub]) subCatsMap[sub] = 0; subCatsMap[sub]++; } });
         if(Object.keys(subCatsMap).length === 0) { list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No services currently available here.</p></div>'; }
         else { Object.keys(subCatsMap).forEach(sub => { list.innerHTML += `<div class="subcategory-card" onclick="openSubCategory('${catName}', '${sub}')"><div class="subcategory-name">${sub}</div><div class="subcategory-count">${subCatsMap[sub]} <span style="font-weight:400;">Services</span> <i class="fas fa-chevron-right" style="font-size:10px;"></i></div></div>`; }); }
-        const pane = document.getElementById('categoryPane'); pane.style.display = 'block';
-        setTimeout(() => { const contentArea = document.querySelector('.content-area'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
 
     window.openSubCategory = (catName, subCatName) => { 
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName && p.isActive !== false) { hasItems = true; 
-            list.innerHTML += `<div class="product-list-card">
+
+        // Collect matching products and sort: free first, paid after
+        const matchedProducts = [];
+        Object.entries(productsData).forEach(([id, p]) => { 
+            const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; 
+            if(pCat === catName && pSub === subCatName && p.isActive !== false) { 
+                matchedProducts.push([id, p]);
+            } 
+        });
+        // Sort: free (price===0) products come first
+        matchedProducts.sort(([, a], [, b]) => {
+            const aFree = parseFloat(a.discountedPrice) === 0 ? 0 : 1;
+            const bFree = parseFloat(b.discountedPrice) === 0 ? 0 : 1;
+            return aFree - bFree;
+        });
+
+        matchedProducts.forEach(([id, p]) => {
+            hasItems = true; 
+            
+            const isFree = parseFloat(p.discountedPrice) === 0;
+            let actionHtml = '';
+            
+            if (isFree) {
+                if (Date.now() - lastFreeOrderTime < 86400000) {
+                    const timeLeft = 86400000 - (Date.now() - lastFreeOrderTime);
+                    const h = Math.floor(timeLeft / 3600000);
+                    const m = Math.floor((timeLeft % 3600000) / 60000);
+                    actionHtml = `<div class="plc-actions"><button class="plc-buy" style="background:var(--text-secondary);cursor:not-allowed;" disabled><i class="fas fa-clock"></i> <span class="free-timer-display">Wait ${h}h ${m}m</span></button></div>`;
+                } else {
+                    actionHtml = `<div class="plc-actions"><button class="plc-buy" onclick="initCheckout('${id}', 'product')" style="background:linear-gradient(135deg, #10b981, #059669);box-shadow:0 3px 12px rgba(16,185,129,0.3);"><i class="fas fa-gift"></i> Get Free</button></div>`;
+                }
+            } else {
+                actionHtml = `<div class="plc-actions">
+                    <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
+                    <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
+                </div>`;
+            }
+
+            // Free card gets special green border + FREE badge + shimmer background
+            const freeCardStyle = isFree 
+                ? `border:2px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, var(--card-solid) 60%); position:relative; overflow:hidden;`
+                : '';
+            const freeBadgeHtml = isFree 
+                ? `<div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:0 10px 0 10px;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><i class="fas fa-star" style="font-size:9px;"></i> FREE</div>`
+                : '';
+            const freePriceStyle = isFree
+                ? `color:#10b981;`
+                : '';
+
+            list.innerHTML += `<div class="product-list-card" style="${freeCardStyle}">
+              ${freeBadgeHtml}
               <div class="plc-header">
                 <div class="plc-info"><div class="plc-name">${p.title}</div></div>
-                <div class="plc-price-badge">${p.subCategory || p.category}</div>
+                <div class="plc-price-badge" style="${isFree ? 'background:rgba(16,185,129,0.12);color:#10b981;border-color:rgba(16,185,129,0.3);' : ''}">${p.subCategory || p.category}</div>
               </div>
               ${p.description ? `<p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;">${p.description}</p>` : ''}
               <div style="display:flex;justify-content:space-between;align-items:flex-start;${(p.features && p.features.length)?'border-top:1px solid var(--border-color);padding-top:12px;':''}margin-bottom:14px;">
-                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:var(--accent-cyan);font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
-                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">₹${p.discountedPrice}</div>
+                ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:${isFree?'#10b981':'var(--accent-cyan)'};font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
+                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;${freePriceStyle}">${isFree ? 'FREE' : '₹'+p.discountedPrice}</div>
               </div>
-              <div class="plc-actions">
-                <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
-                <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
-              </div>
-            </div>`; } });
+              ${actionHtml}
+            </div>`; 
+        });
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
@@ -1301,7 +1425,7 @@
             if(isSignupMode) { 
                 const cred = await createUserWithEmailAndPassword(auth, email, pass); 
                 await updateProfile(cred.user, { displayName: name }); 
-                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
+                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0, lastFreeOrderTime: 0 }); 
                 showToast('Account Created!'); 
             } else { 
                 await signInWithEmailAndPassword(auth, email, pass); 
@@ -1367,7 +1491,7 @@
     }
 
     // ── WALLET ────────────────────────────────────────────────────────────
-    let _allWalletTxns = [];
+    let _allWalletTxns =[];
     let _walletFilter = 'all';
 
     function _safeDate(val) {
@@ -1387,7 +1511,7 @@
     }
 
     function _isCreditTx(tx) {
-        return ['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
+        return['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
     }
     function _isOrderTx(tx) {
         const note = (tx.note||'').toLowerCase();
@@ -1416,7 +1540,7 @@
     function renderWalletHistory() {
         const hist = document.getElementById('walletHistory');
         if(!hist) return;
-        let txns = [..._allWalletTxns];
+        let txns =[..._allWalletTxns];
         if(_walletFilter === 'credit')  txns = txns.filter(tx => _isCreditTx(tx));
         else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx));
         else if(_walletFilter === 'orders') txns = txns.filter(tx => _isOrderTx(tx));
@@ -1466,6 +1590,7 @@
             if(!snap.exists()) return;
             const p = snap.val();
             walletBalance = parseFloat(p.walletBalance || 0);
+            lastFreeOrderTime = parseInt(p.lastFreeOrderTime || 0);
             const refEarned = parseFloat(p.referralEarned || 0);
             document.getElementById('walletBalance').textContent = `₹${walletBalance.toFixed(2)}`;
             document.getElementById('walletRefAmount').textContent = `₹${refEarned.toFixed(2)}`;
@@ -1477,7 +1602,7 @@
             if(afBal) afBal.textContent = `₹${walletBalance.toFixed(2)}`;
         });
         onValue(ref(db, `users/${currentUser.uid}/walletHistory`), snap => {
-            _allWalletTxns = [];
+            _allWalletTxns =[];
             if(snap.exists()) {
                 snap.forEach(c => {
                     const data = c.val();
@@ -1682,7 +1807,7 @@
         onValue(ref(db, 'meta/offers'), s => { if(s.exists()){ const d = s.val(); const banner = document.getElementById('offerBanner'); if(d.name && d.imageUrl) { banner.style.display = 'flex'; banner.style.backgroundImage = `url('${d.imageUrl}')`; document.getElementById('offerTitle').textContent = d.name; document.getElementById('offerDesc').textContent = d.description || ''; document.getElementById('offerPrice').textContent = `₹${d.newRate || 0}`; document.getElementById('offerOldPrice').textContent = `₹${d.oldRate || 0}`; document.getElementById('contactLink').href = d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'; document.getElementById('updatesLink').href = d.channelLink || '#'; } else { banner.style.display = 'none'; } } });
         onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
         onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
-        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
+        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
 
@@ -1919,6 +2044,21 @@
         const chkBtn = document.getElementById('chkWalletBtn');
         if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
 
+        // Check if free
+        const isFree = type === 'product' && checkoutFinalAmt === 0;
+
+        if (isFree) {
+            document.getElementById('chkCouponBox').style.display = 'none';
+            document.getElementById('chkCouponMsg').style.display = 'none';
+            document.getElementById('chkPaymentButtons').style.display = 'none';
+            document.getElementById('chkFreeClaimBtn').style.display = 'block';
+        } else {
+            document.getElementById('chkCouponBox').style.display = 'flex';
+            document.getElementById('chkCouponMsg').style.display = 'block';
+            document.getElementById('chkPaymentButtons').style.display = 'block';
+            document.getElementById('chkFreeClaimBtn').style.display = 'none';
+        }
+
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
 
@@ -1926,8 +2066,10 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
 
         // Pre-warm proxy connections so verification is faster when user clicks verify
-        const MERCHANT_ID_PW = "MdXwlu49903940058924";
-        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        if (!isFree) {
+            const MERCHANT_ID_PW = "MdXwlu49903940058924";
+            prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        }
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
@@ -1977,6 +2119,8 @@
         if(!validCoupon) { msg.textContent = 'Invalid or expired coupon!'; msg.style.color = 'var(--accent-pink)'; return; }
         if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { msg.textContent = 'Coupon limit reached!'; msg.style.color = 'var(--accent-pink)'; return; }
         let basePrice = checkoutItem.purchaseType === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price); let discount = 0;
+        // ── Minimum order check (fixes admin-set minOrder not being enforced) ──
+        if(validCoupon.minOrder && parseFloat(validCoupon.minOrder) > 0 && basePrice < parseFloat(validCoupon.minOrder)) { msg.textContent = `Minimum order ₹${validCoupon.minOrder} required for this coupon!`; msg.style.color = 'var(--accent-pink)'; return; }
         if(validCoupon.discountType === 'percentage') { discount = basePrice * (parseFloat(validCoupon.discountValue) / 100); } else { discount = parseFloat(validCoupon.discountValue); }
         checkoutFinalAmt = Math.max(0, basePrice - discount); appliedCouponKey = cKey; msg.textContent = `Coupon applied! You saved ₹${discount.toFixed(2)}`; msg.style.color = '#10b981';
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt.toFixed(2)}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
@@ -1988,10 +2132,114 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
     };
 
-    window.confirmPurchase = async () => { 
+    window.claimFreeOrder = async () => {
         if (_guardOrder()) return;
+        const targetLink  = document.getElementById('chkLinkInput').value.trim();
+        const pollOption  = document.getElementById('chkPollInput').value.trim();
+
+        if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
+        if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
+            _unlockOrder(); return showToast('Please enter the poll vote option');
+        }
+
+        if (Date.now() - lastFreeOrderTime < 86400000) {
+            _unlockOrder(); return showToast('❌ You have already claimed a free service today!');
+        }
+
+        showLoader();
+        try {
+            const utr = 'FREE_' + generateUTR(8);
+
+            const hasApiConfig = !!(
+                checkoutItem.apiUrl && checkoutItem.apiKey &&
+                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+            );
+
+            const orderData = {
+                productId:       checkoutItem.id,
+                productSnapshot: checkoutItem,
+                userId:          currentUser.uid,
+                userEmail:       currentUser.email,
+                finalAmount:     '0.00',
+                utrId:           utr,
+                targetLink,
+                pollOption:      document.getElementById('chkPollContainer').style.display === 'block' ? pollOption : null,
+                status:          hasApiConfig ? 'progress' : 'pending',
+                createdAt:       new Date().toISOString(),
+                isSubscription:  false,
+                apiStatus:       hasApiConfig ? 'calling' : null,
+                paymentMethod:   'free'
+            };
+
+            const newOrderRef = push(ref(db, 'orders'));
+            const newFreeTime = Date.now();
+
+            lastFreeOrderTime = newFreeTime;
+
+            await Promise.all([
+                update(ref(db, `users/${currentUser.uid}/profile`), { lastFreeOrderTime: newFreeTime }),
+                set(newOrderRef, orderData)
+            ]);
+
+            _unlockOrder();
+            closeCheckout();
+            notifyLive('✅ Free Service Claimed Successfully!');
+            playOrderSuccessSound();
+            switchTab('ordersTab');
+            hideLoader();
+
+            sendTelegramOrderNotification([{product: checkoutItem}], 0, utr, targetLink);
+
+            if (hasApiConfig) {
+                const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
+                const apiUrl     = checkoutItem.apiUrl;
+                const _freeOrderRefKey = newOrderRef.key;
+                (async () => {
+                    let _apiFiredFree = false;
+                    const apiURLs =[
+                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } }
+                    ];
+                    for(const { url, opts } of apiURLs) {
+                        if(_apiFiredFree) break;
+                        try {
+                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const text = await r.text();
+                            let j; try { j = JSON.parse(text); } catch(e) { continue; }
+                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                            _apiFiredFree = true;
+                            const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                            if (!hasError) {
+                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                            } else {
+                                await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                            }
+                            break;
+                        } catch(e) { continue; }
+                    }
+                    if(!_apiFiredFree) await update(ref(db, `orders/${_freeOrderRefKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                })().catch(() => {});
+            }
+
+        } catch (e) {
+            _unlockOrder();
+            hideLoader();
+            showToast('❌ System Error: ' + e.message);
+        }
+    };
+
+    window.confirmPurchase = async () => {
+        // ── Strict double-submit guard: disable button immediately ──
+        const verifyBtn = document.querySelector('#chkStep2 .btn');
+        if(verifyBtn && verifyBtn.disabled) return;
+        if(verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...'; }
+        const _resetBtn = () => { if(verifyBtn) { verifyBtn.disabled = false; verifyBtn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now'; } };
+
+        if (_guardOrder()) { _resetBtn(); return; }
         const utr = currentOrderId; 
-        if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
+        if(!utr) { _unlockOrder(); _resetBtn(); return showToast('❌ Invalid Order ID'); }
         
         const targetLink  = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption  = document.getElementById('chkPollInput').value.trim(); 
@@ -2007,18 +2255,18 @@
             const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs  = buildVerifyURLs(verifyUrl);
 
-            const [utrSnapshot, verifyResult] = await Promise.all([
+            const[utrSnapshot, verifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if (utrSnapshot.exists()) { 
-                _unlockOrder(); hideLoader(); 
+                _unlockOrder(); _resetBtn(); hideLoader(); 
                 return showToast('❌ This Order ID has already been used!'); 
             }
 
             if (!verifyResult) { 
-                _unlockOrder(); hideLoader(); 
+                _unlockOrder(); _resetBtn(); hideLoader(); 
                 return showToast("❌ Network Error. Check your internet connection."); 
             }
 
@@ -2026,14 +2274,14 @@
             
             // ── Step 3: Validate Payment Status ──
             if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
-                _unlockOrder(); hideLoader();
+                _unlockOrder(); _resetBtn(); hideLoader();
                 return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Please wait 10 secs and retry."));
             }
 
             // ── Step 4: Validate Paid Amount ──
             const paidVal = parseFloat(result.TXNAMOUNT);
             if (paidVal < checkoutFinalAmt) { 
-                _unlockOrder(); hideLoader();
+                _unlockOrder(); _resetBtn(); hideLoader();
                 return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`);
             }
 
@@ -2072,6 +2320,7 @@
             }
 
             _unlockOrder();
+            _resetBtn();
             closeCheckout(); 
             notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
             playOrderSuccessSound();
@@ -2086,38 +2335,53 @@
             }).catch(()=>{});
 
             // Send Telegram notification (non-blocking)
-            sendTelegramOrderNotification([{product: checkoutItem}], paidVal, utr);
+            sendTelegramOrderNotification([{product: checkoutItem}], paidVal, utr, targetLink);
 
-            // ── Step 6: Call external API in BACKGROUND (non-blocking) ──
+            // ── Step 6: Call external API in BACKGROUND (non-blocking, single-fire guard) ──
             if (hasApiConfig) {
+                let _apiCallFired = false; // prevent double API call from parallel proxies
                 const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
                 const apiUrl     = checkoutItem.apiUrl;
-                const apiURLs    = [
-                    { url: apiUrl,                                                                              opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                    { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,                               opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                    { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
-                ];
-
-                raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
-                    .then(async apiResult => {
-                        if (!apiResult) {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
-                            return;
-                        }
-                        const j = apiResult.json;
-                        const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
-                        const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
-                        if (!hasError) {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: apiResult.text.substring(0,500) });
-                        } else {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: apiResult.text.substring(0,500) });
-                        }
-                    })
-                    .catch(() => {});
+                const _capturedOrderKey = newOrderRef.key; // capture key before async IIFE to prevent race
+                // Sequential: try direct first, then proxies — avoids duplicate orders on SMM panel
+                (async () => {
+                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                    const _existSnap = await get(ref(db, `orders/${_capturedOrderKey}/apiStatus`)).catch(()=>null);
+                    if (_existSnap && _existSnap.exists() && _existSnap.val() !== 'calling') return;
+                    const apiURLs =[
+                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                    ];
+                    for(const { url, opts } of apiURLs) {
+                        if(_apiCallFired) break;
+                        try {
+                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const text = await r.text();
+                            let j;
+                            try { j = JSON.parse(text); } catch(e) { continue; }
+                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                            if(_apiCallFired) break; // double-check after await
+                            _apiCallFired = true;
+                            const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                            if (!hasError) {
+                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                            } else {
+                                await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                            }
+                            break;
+                        } catch(e) { continue; }
+                    }
+                    if(!_apiCallFired) {
+                        await update(ref(db, `orders/${_capturedOrderKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                    }
+                })().catch(() => {});
             }
 
         } catch(e) { 
             _unlockOrder();
+            _resetBtn();
             hideLoader();
             showToast('❌ System Error: ' + e.message); 
         } 
@@ -2184,7 +2448,7 @@
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
                 push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'debit', amount: checkoutFinalAmt, note: 'Purchased: ' + (checkoutItem.title || checkoutItem.planName), utrId: utr, createdAt: new Date().toISOString() }),
                 set(newOrderRef, orderData),
-                ...(appliedCouponKey ? [update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] : []),
+                ...(appliedCouponKey ?[update(ref(db, `coupons/${appliedCouponKey}`), { usedCount: (couponsData[appliedCouponKey].usedCount || 0) + 1 })] :[]),
             ]);
 
             _unlockOrder();
@@ -2201,34 +2465,47 @@
                 processReferralReward(currentUser.uid, checkoutFinalAmt);
             }).catch(()=>{});
 
-            sendTelegramOrderNotification([{product: checkoutItem}], checkoutFinalAmt, utr);
+            sendTelegramOrderNotification([{product: checkoutItem}], checkoutFinalAmt, utr, targetLink);
 
-            // API logic
+            // API logic (sequential — prevents double order on SMM panel)
             if (hasApiConfig) {
+                let _apiCallFiredW = false;
                 const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
                 const apiUrl     = checkoutItem.apiUrl;
-                const apiURLs    = [
-                    { url: apiUrl,                                                                              opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                    { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,                               opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                    { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
-                ];
-
-                raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
-                    .then(async apiResult => {
-                        if (!apiResult) {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
-                            return;
-                        }
-                        const j = apiResult.json;
-                        const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
-                        const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
-                        if (!hasError) {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: apiResult.text.substring(0,500) });
-                        } else {
-                            await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: apiResult.text.substring(0,500) });
-                        }
-                    })
-                    .catch(() => {});
+                const _capturedOrderKeyW = newOrderRef.key; // capture key before async IIFE to prevent race
+                (async () => {
+                    // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                    const _existSnapW = await get(ref(db, `orders/${_capturedOrderKeyW}/apiStatus`)).catch(()=>null);
+                    if (_existSnapW && _existSnapW.exists() && _existSnapW.val() !== 'calling') return;
+                    const apiURLs =[
+                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                    ];
+                    for(const { url, opts } of apiURLs) {
+                        if(_apiCallFiredW) break;
+                        try {
+                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const text = await r.text();
+                            let j;
+                            try { j = JSON.parse(text); } catch(e) { continue; }
+                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                            if(_apiCallFiredW) break;
+                            _apiCallFiredW = true;
+                            const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                            if (!hasError) {
+                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                            } else {
+                                await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                            }
+                            break;
+                        } catch(e) { continue; }
+                    }
+                    if(!_apiCallFiredW) {
+                        await update(ref(db, `orders/${_capturedOrderKeyW}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                    }
+                })().catch(() => {});
             }
 
         } catch (e) {
@@ -2248,7 +2525,7 @@
     });
 
     // ── CART SYSTEM ────────────────────────────────────────────────────────
-    let cart = []; // [{id, product, link, couponDiscount}]
+    let cart = []; //[{id, product, link, couponDiscount}]
     let cartOrderId = '';
     let cartFinalAmt = 0;
     let cartAppliedCoupon = null;
@@ -2441,32 +2718,42 @@
                 const newOrderRef = push(ref(db, 'orders'));
                 await set(newOrderRef, orderData);
 
-                // Background API call for cart items
+                // Background API call for cart items (sequential — prevents double SMM order)
                 if (hasApi) {
                     const apiPayload = `key=${encodeURIComponent(item.product.apiKey)}&action=add&service=${encodeURIComponent(item.product.serviceId)}&link=${encodeURIComponent(item.link)}&quantity=${encodeURIComponent(item.product.quantity)}`;
                     const apiUrl     = item.product.apiUrl;
-                    const apiURLs    = [
-                        { url: apiUrl,                                                                              opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,                               opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
-                    ];
-
-                    raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
-                        .then(async apiResult => {
-                            if (!apiResult) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
-                                return;
-                            }
-                            const j = apiResult.json;
-                            const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
-                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
-                            if (!hasError) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: apiResult.text.substring(0,500) });
-                            } else {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: apiResult.text.substring(0,500) });
-                            }
-                        })
-                        .catch(() => {});
+                    const _orderRefKey = newOrderRef.key;
+                    (async () => {
+                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                        const _existSnapC = await get(ref(db, `orders/${_orderRefKey}/apiStatus`)).catch(()=>null);
+                        if (_existSnapC && _existSnapC.exists() && _existSnapC.val() !== 'calling') return;
+                        let _apiFired = false;
+                        const apiURLs =[
+                            { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                            { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                        ];
+                        for(const { url, opts } of apiURLs) {
+                            if(_apiFired) break;
+                            try {
+                                const r = await fetchWithTimeout(url, opts, 8000);
+                                const text = await r.text();
+                                let j; try { j = JSON.parse(text); } catch(e) { continue; }
+                                if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                                if(_apiFired) break;
+                                _apiFired = true;
+                                const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                                const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                                if (!hasError) {
+                                    await update(ref(db, `orders/${_orderRefKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                } else {
+                                    await update(ref(db, `orders/${_orderRefKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                }
+                                break;
+                            } catch(e) { continue; }
+                        }
+                        if(!_apiFired) await update(ref(db, `orders/${_orderRefKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                    })().catch(() => {});
                 }
                 return newOrderRef;
             });
@@ -2483,9 +2770,9 @@
             processReferralReward(currentUser.uid, paidVal);
 
             // Send Telegram notification (non-blocking)
-            sendTelegramOrderNotification(cart, paidVal, utr);
+            sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
 
-            cart = []; updateCartBadge();
+            cart =[]; updateCartBadge();
             _unlockOrder();
             closeCart(); notifyLive('✅ Payment Verified! All orders placed successfully!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
@@ -2533,32 +2820,42 @@
                 const newOrderRef = push(ref(db, 'orders'));
                 await set(newOrderRef, orderData);
 
-                // Background API call for cart items
+                // Background API call for cart wallet items (sequential — prevents double SMM order)
                 if (hasApi) {
                     const apiPayload = `key=${encodeURIComponent(item.product.apiKey)}&action=add&service=${encodeURIComponent(item.product.serviceId)}&link=${encodeURIComponent(item.link)}&quantity=${encodeURIComponent(item.product.quantity)}`;
                     const apiUrl     = item.product.apiUrl;
-                    const apiURLs    = [
-                        { url: apiUrl,                                                                              opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,                               opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`,   opts: { method:'GET' } },
-                    ];
-
-                    raceFetch(apiURLs, j => j && typeof j === 'object' && !Array.isArray(j))
-                        .then(async apiResult => {
-                            if (!apiResult) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' });
-                                return;
-                            }
-                            const j = apiResult.json;
-                            const orderId  = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
-                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
-                            if (!hasError) {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: apiResult.text.substring(0,500) });
-                            } else {
-                                await update(ref(db, `orders/${newOrderRef.key}`), { apiStatus: 'error', apiRawResponse: apiResult.text.substring(0,500) });
-                            }
-                        })
-                        .catch(() => {});
+                    const _wOrderRefKey = newOrderRef.key;
+                    (async () => {
+                        // Server-side guard: abort if order already processed (e.g. duplicate trigger)
+                        const _existSnapCW = await get(ref(db, `orders/${_wOrderRefKey}/apiStatus`)).catch(()=>null);
+                        if (_existSnapCW && _existSnapCW.exists() && _existSnapCW.val() !== 'calling') return;
+                        let _wApiFired = false;
+                        const apiURLs =[
+                            { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                            { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                        ];
+                        for(const { url, opts } of apiURLs) {
+                            if(_wApiFired) break;
+                            try {
+                                const r = await fetchWithTimeout(url, opts, 8000);
+                                const text = await r.text();
+                                let j; try { j = JSON.parse(text); } catch(e) { continue; }
+                                if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                                if(_wApiFired) break;
+                                _wApiFired = true;
+                                const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                                const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                                if (!hasError) {
+                                    await update(ref(db, `orders/${_wOrderRefKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) });
+                                } else {
+                                    await update(ref(db, `orders/${_wOrderRefKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) });
+                                }
+                                break;
+                            } catch(e) { continue; }
+                        }
+                        if(!_wApiFired) await update(ref(db, `orders/${_wOrderRefKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed / timeout' }).catch(()=>{});
+                    })().catch(() => {});
                 }
                 return newOrderRef;
             });
@@ -2573,9 +2870,9 @@
             await update(ref(db, `users/${currentUser.uid}/profile`), { totalSpent: prevSpent + cartFinalAmt });
             processReferralReward(currentUser.uid, cartFinalAmt);
 
-            sendTelegramOrderNotification(cart, cartFinalAmt, utr);
+            sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
-            cart = []; updateCartBadge();
+            cart =[]; updateCartBadge();
             _unlockOrder();
             closeCart(); notifyLive('✅ Wallet Payment Successful! Orders placed!'); playOrderSuccessSound(); switchTab('ordersTab');
             hideLoader();
@@ -2585,24 +2882,203 @@
         }
     };
 
-    async function sendTelegramOrderNotification(cartItems, amount, utr) {
+    async function sendTelegramOrderNotification(cartItems, amount, utr, targetLink) {
         try {
-            const metaSnap = await get(ref(db, 'meta/contact'));
-            if(!metaSnap.exists()) return;
-            const tg = metaSnap.val().socialTelegram || '';
-            // Extract username from telegram link
-            const match = tg.match(/t\.me\/([^\/\?]+)/);
-            if(!match) return;
-            const tgMsg = `🛒 New Order!\n\nUser: ${currentUser.email}\nAmount: ₹${amount}\nUTR: ${utr}\nItems: ${cartItems.map(i => i.product.title).join(', ')}\nTime: ${new Date().toLocaleString()}`;
-            // Note: Real Telegram sending requires a bot token stored in Firebase meta
+            const isWallet = utr.startsWith('WALLET_');
+            const isFree = utr.startsWith('FREE_');
+            const payLabel = isFree ? 'Free Claim' : isWallet ? 'Wallet' : 'UPI';
+            const itemLines = cartItems.map(i => `  ▸ ${i.product?.title || i.product?.planName || 'Service'}`).join('\n');
+            const now = new Date().toLocaleString('en-IN');
+
+            const tgMsg =
+`📥 <b>New Order Received!</b>
+
+➞ <b>User:</b> ${currentUser.email}
+🛒 <b>Items:</b> ${cartItems.map(i => i.product?.title || i.product?.planName || 'Service').join(', ')}
+💳 <b>Method:</b> ${payLabel}
+
+💵 <b>Amount:</b> ₹${parseFloat(amount).toFixed(2)}
+📝 <b>UTR:</b> ${utr}
+⏰ <b>Time:</b> ${now}`;
+
+            const sendMsg = (token, chatId) => {
+                const payload = {
+                    chat_id: chatId,
+                    text: tgMsg,
+                    parse_mode: 'HTML'
+                };
+                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+                }).catch(()=>{});
+            };
+
             get(ref(db, 'meta/telegramBot')).then(botSnap => {
-                if(!botSnap.exists()) return;
-                const { token, chatId } = botSnap.val();
-                if(!token || !chatId) return;
-                fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: chatId, text: tgMsg }) }).catch(()=>{});
+                if(botSnap.exists()) {
+                    const { token, chatId } = botSnap.val();
+                    if(token && chatId) sendMsg(token, chatId);
+                }
             }).catch(()=>{});
         } catch(e) {}
     }
+
+    // ── GIFT CODE SYSTEM ──────────────────────────────────────────────
+    window.openGiftCodeModal = () => {
+        if(!currentUser) return showToast('Please login first');
+        document.getElementById('giftCodeInput').value = '';
+        document.getElementById('giftCodeMsg').textContent = '';
+        // Reset views
+        document.getElementById('giftInputView').style.display = 'block';
+        document.getElementById('giftSuccessView').style.display = 'none';
+        const btn = document.getElementById('giftRedeemBtn');
+        if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-gift"></i> Redeem Gift Code'; }
+        const m = document.getElementById('giftCodeModal');
+        m.style.display = 'flex';
+    };
+    window.closeGiftCodeModal = () => { 
+        document.getElementById('giftCodeModal').style.display = 'none';
+        // If success view was shown, go to wallet tab
+        if(document.getElementById('giftSuccessView').style.display !== 'none') {
+            switchTab('walletTab');
+        }
+    };
+    
+    // Gift coin burst animation helper
+    function _launchGiftCoins() {
+        const burst = document.getElementById('giftCoinBurst');
+        if(!burst) return;
+        burst.innerHTML = '';
+        const emojis = ['💰','🪙','✨','💎','⭐'];
+        for(let i=0;i<10;i++) {
+            const coin = document.createElement('span');
+            coin.className = 'gift-coin';
+            coin.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+            coin.style.left = (Math.random()*120 - 60) + 'px';
+            coin.style.animationDelay = (Math.random()*0.5) + 's';
+            coin.style.animationDuration = (0.7 + Math.random()*0.5) + 's';
+            burst.appendChild(coin);
+        }
+        setTimeout(() => { if(burst) burst.innerHTML = ''; }, 1500);
+    }
+
+    window.redeemGiftCode = async () => {
+        if(!currentUser) return showToast('Please login first');
+        const code = document.getElementById('giftCodeInput').value.trim().toUpperCase();
+        const msg = document.getElementById('giftCodeMsg');
+        const btn = document.getElementById('giftRedeemBtn');
+        if(!code) { 
+            msg.textContent = '⚠️ Enter a gift code'; msg.style.color = 'var(--accent-cyan)'; 
+            const inp = document.getElementById('giftCodeInput');
+            inp.classList.remove('gift-input-shake');
+            void inp.offsetWidth; // reflow
+            inp.classList.add('gift-input-shake');
+            return; 
+        }
+        if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redeeming...'; }
+        showLoader();
+        try {
+            // Read gift codes (needs giftCodes .read: true in rules)
+            const snap = await get(ref(db, 'giftCodes'));
+            if(!snap.exists()) { hideLoader(); msg.textContent = '❌ Invalid gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            let foundKey = null, foundCode = null;
+            snap.forEach(c => { if((c.val().code || '').toUpperCase() === code && c.val().isActive !== false) { foundKey = c.key; foundCode = c.val(); } });
+            if(!foundKey) { hideLoader(); msg.textContent = '❌ Invalid or expired gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            
+            // Check if already redeemed — stored in user profile to avoid permission issues
+            const alreadySnap = await get(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`));
+            if(alreadySnap.exists()) { hideLoader(); msg.textContent = '❌ You have already redeemed this code!'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            
+            // Check time expiry
+            if(foundCode.expiresAt) {
+                if(new Date() > new Date(foundCode.expiresAt)) { hideLoader(); msg.textContent = '❌ This gift code has expired'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            }
+            
+            // Check user limit
+            const usedCount = parseInt(foundCode.usedCount || 0);
+            if(foundCode.maxUsers && parseInt(foundCode.maxUsers) > 0 && usedCount >= parseInt(foundCode.maxUsers)) {
+                hideLoader(); msg.textContent = '❌ Gift code usage limit reached'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return;
+            }
+            
+            // Validate reward amount
+            const rewardAmt = parseFloat(foundCode.amount || 0);
+            if(rewardAmt <= 0) { hideLoader(); msg.textContent = '❌ Invalid reward amount'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            
+            // Get current balance
+            const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
+            const curBal = parseFloat(profileSnap.exists() ? (profileSnap.val().walletBalance || 0) : 0);
+            const newBal = curBal + rewardAmt;
+            
+            // Write ONLY to user node (auth.uid == $uid permission) + giftCodes (auth != null)
+            await Promise.all([
+                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
+                push(ref(db, `users/${currentUser.uid}/walletHistory`), {
+                    type: 'credit', amount: rewardAmt, note: '🎁 Gift Code: ' + code, utrId: 'GIFT_' + code, createdAt: new Date().toISOString()
+                }),
+                set(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`), new Date().toISOString()),
+                update(ref(db, `giftCodes/${foundKey}`), { usedCount: usedCount + 1 }),
+            ]);
+            
+            hideLoader();
+            // ── Show animated success screen ──
+            _launchGiftCoins();
+            document.getElementById('giftInputView').style.display = 'none';
+            document.getElementById('giftSuccessAmt').textContent = '+₹' + rewardAmt.toFixed(2);
+            document.getElementById('giftSuccessView').style.display = 'block';
+            notifyLive('🎁 Gift Code Redeemed! ₹' + rewardAmt.toFixed(2) + ' added to your wallet!');
+            // Notify Telegram channel about gift code redemption
+            sendTelegramChannelNotification(
+                '🎁 <b>Gift Code Redeemed!</b>\n\n' +
+                '👤 User: <code>' + currentUser.email + '</code>\n' +
+                '🏷️ Code: <b>' + code + '</b>\n' +
+                '💰 Amount: <b>₹' + rewardAmt.toFixed(2) + '</b>\n' +
+                '⏰ Time: ' + new Date().toLocaleString('en-IN')
+            );
+        } catch(e) {
+            hideLoader();
+            if(e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('permission'))) {
+                msg.textContent = '❌ Permission error — please contact support';
+            } else {
+                msg.textContent = '❌ Error: ' + e.message;
+            }
+            msg.style.color = '#ef4444';
+            if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-gift"></i> Redeem Gift Code'; }
+        }
+    };
+
+    // ── TELEGRAM CHANNEL NOTIFICATIONS ───────────────────────────────
+    const TG_CHANNEL_ID = '-1003975947215';
+    
+    async function sendTelegramChannelNotification(messageText, inlineButtons = null) {
+        try {
+            const botSnap = await get(ref(db, 'meta/telegramBot'));
+            if(!botSnap.exists()) return;
+            const { token } = botSnap.val();
+            if(!token) return;
+            const payload = {
+                chat_id: TG_CHANNEL_ID,
+                text: messageText,
+                parse_mode: 'HTML'
+            };
+            if(inlineButtons) payload.reply_markup = { inline_keyboard: inlineButtons };
+            fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            }).catch(()=>{});
+        } catch(e) {}
+    }
+
+    // ── Start Free Timer updates globally ─────────────────────────
+    setInterval(() => {
+        const els = document.querySelectorAll('.free-timer-display');
+        if(els.length === 0) return;
+        const diff = Date.now() - lastFreeOrderTime;
+        if(diff >= 86400000) {
+            if(currentCatView.level === 2) openSubCategory(currentCatView.cat, currentCatView.subCat);
+        } else {
+            const timeLeft = 86400000 - diff;
+            const h = Math.floor(timeLeft / 3600000);
+            const m = Math.floor((timeLeft % 3600000) / 60000);
+            els.forEach(el => el.textContent = `Wait ${h}h ${m}m`);
+        }
+    }, 60000);
 
     loadPublicData(); window.switchTab = switchTab;
 </script>
