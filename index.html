@@ -1180,17 +1180,6 @@
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
-
-    // ── Payment config — Firebase se load hoti hai, kabhi hardcode mat karo ──
-    let _paymentConfig = { upiId: '', upiName: '', merchantId: '' };
-    onValue(ref(db, 'meta/paymentConfig'), s => {
-        if(s.exists()) {
-            const d = s.val();
-            if(d.upiId)      _paymentConfig.upiId      = d.upiId;
-            if(d.upiName)    _paymentConfig.upiName    = d.upiName;
-            if(d.merchantId) _paymentConfig.merchantId = d.merchantId;
-        }
-    });
     
     // To store Auto-generated ID
     let currentOrderId = "";
@@ -1597,18 +1586,18 @@
         if(!wfAmount || wfAmount < 10)  return showToast('⚠️ Minimum ₹10 required');
         if(wfAmount > 30000)            return showToast('⚠️ Maximum ₹30,000 allowed');
         wfOrderId = generateUTR(12);
-        const upiId   = _paymentConfig.upiId   || '';
-        const upiName = _paymentConfig.upiName  || 'Store';
-        if(upiId) document.getElementById('wfUpiId').textContent = upiId;
+        const upiId = "Paytmqr6i3w0w@ptys";
+        document.getElementById('wfUpiId').textContent     = upiId;
         document.getElementById('wfPayAmt').textContent    = `₹${wfAmount.toFixed(2)}`;
         document.getElementById('wfOrderIdDisplay').textContent = wfOrderId;
-        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${wfAmount}&cu=INR&tr=${wfOrderId}`;
+        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent("SACHIN SAYSING RAUT")}&am=${wfAmount}&cu=INR&tr=${wfOrderId}`;
         document.getElementById('wf-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
         document.getElementById('afStep1').style.display = 'none';
         document.getElementById('wfStep2').style.display = 'flex';
 
         // Pre-warm proxies for faster wallet payment verification
-        if(_paymentConfig.merchantId) prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${_paymentConfig.merchantId}`);
+        const MERCHANT_ID_WF = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_WF}`);
     };
 
     window.goBackWfStep1 = () => {
@@ -1623,8 +1612,7 @@
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = _paymentConfig.merchantId;
-            if(!MERCHANT_ID) { hideLoader(); return showToast('⚠️ Payment config not loaded. Try again.'); }
+            const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
@@ -1905,12 +1893,15 @@
     }
 
     window.updateQRCode = (amount, orderId) => {
-        const upiId   = _paymentConfig.upiId   || '';
-        const upiName = _paymentConfig.upiName  || 'Store';
-        if(upiId) document.getElementById('chkUpiId').textContent = upiId;
+        const upiId = "Paytmqr6i3w0w@ptys"; 
+        const upiName = "SACHIN SAYSING RAUT"; 
+        document.getElementById('chkUpiId').textContent = upiId;
+        
         const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tr=${orderId}`;
         const qrImg = document.getElementById('dynamic-qr');
+        
         if(qrImg) qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiString);
+        
         document.getElementById('chkOrderIdDisplay').textContent = orderId;
     };
 
@@ -1935,7 +1926,8 @@
         updateQRCode(checkoutFinalAmt, currentOrderId);
 
         // Pre-warm proxy connections so verification is faster when user clicks verify
-        if(_paymentConfig.merchantId) prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${_paymentConfig.merchantId}`);
+        const MERCHANT_ID_PW = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
@@ -2011,8 +2003,7 @@
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = _paymentConfig.merchantId;
-            if(!MERCHANT_ID) { _unlockOrder(); hideLoader(); return showToast('⚠️ Payment config not loaded. Try again.'); }
+            const MERCHANT_ID = "MdXwlu49903940058924"; 
             const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs  = buildVerifyURLs(verifyUrl);
 
@@ -2390,17 +2381,18 @@
         }
         
         cartOrderId = generateUTR(12);
-        const upiId = _paymentConfig.upiId || ''; const upiName = _paymentConfig.upiName || 'Store';
-        if(upiId) document.getElementById('cartUpiId').textContent = upiId;
+        const upiId = "Paytmqr6i3w0w@ptys";
+        document.getElementById('cartUpiId').textContent = upiId;
         document.getElementById('cartPayAmt').textContent = `₹${cartFinalAmt.toFixed(2)}`;
         document.getElementById('cartOrderIdDisplay').textContent = cartOrderId;
-        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${cartFinalAmt}&cu=INR&tr=${cartOrderId}`;
+        const upiStr = `upi://pay?pa=${upiId}&pn=${encodeURIComponent("SACHIN SAYSING RAUT")}&am=${cartFinalAmt}&cu=INR&tr=${cartOrderId}`;
         document.getElementById('cart-dynamic-qr').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiStr);
         document.getElementById('cartStep1').style.display = 'none';
         document.getElementById('cartStep2').style.display = 'block';
 
         // Pre-warm proxies so verification is instant
-        if(_paymentConfig.merchantId) prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${_paymentConfig.merchantId}`);
+        const MERCHANT_ID_PW2 = "MdXwlu49903940058924";
+        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW2}`);
     };
     document.getElementById('cartUpiId').addEventListener('click', () => {
         const t = document.getElementById('cartUpiId').textContent;
@@ -2414,8 +2406,7 @@
         showLoader();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
-            const MERCHANT_ID = _paymentConfig.merchantId;
-            if(!MERCHANT_ID) { _unlockOrder(); hideLoader(); return showToast('⚠️ Payment config not loaded. Try again.'); }
+            const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
