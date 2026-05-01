@@ -1961,18 +1961,19 @@
         
         showPayVerify();
         try {
-            // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
+            // ── Steps 1+2: Duplicate check (user's own topup node) AND payment verify IN PARALLEL ──
+            // Use users/$uid/topupIds/$utr (tiny node) instead of scanning all orders — much faster
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
 
-            const [utrSnapshot, _wfVerifyResult0] = await Promise.all([
-                get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
+            const [dupSnap, _wfVerifyResult0] = await Promise.all([
+                get(ref(db, `users/${currentUser.uid}/topupIds/${utr}`)),
                 raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
             let verifyResult = _wfVerifyResult0;
 
-            if(utrSnapshot.exists()) { hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
+            if(dupSnap.exists()) { hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
             if(!verifyResult) { 
                 showToast('⚠️ Network slow, retrying...');
                 await new Promise(r => setTimeout(r, 2500));
@@ -1990,11 +1991,14 @@
             const paidVal = parseFloat(result.TXNAMOUNT);
             if(paidVal < wfAmount) { hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
 
-            // ── Step 3: Wallet Addition Logic ──
+            // ── Step 3: Wallet Addition Logic — parallel writes for speed ──
             const newBal = walletBalance + paidVal;
-            await update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal });
-            await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up', utrId: utr, createdAt: new Date().toISOString() });
-            await push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
+            await Promise.all([
+                update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
+                push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up', utrId: utr, createdAt: new Date().toISOString() }),
+                push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() }),
+                set(ref(db, `users/${currentUser.uid}/topupIds/${utr}`), new Date().toISOString()),
+            ]);
 
             playOrderSuccessSound();
             // Show wallet-specific success message
@@ -2901,11 +2905,12 @@
                 await update(ref(db, `coupons/${cartAppliedCoupon}`), { usedCount: (couponsData[cartAppliedCoupon].usedCount || 0) + 1 });
             }
 
-            // Update user totalSpent and process referral reward
-            const spentSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
-            const prevSpent = parseFloat(spentSnap.val()?.totalSpent || 0);
-            await update(ref(db, `users/${currentUser.uid}/profile`), { totalSpent: prevSpent + paidVal });
-            processReferralReward(currentUser.uid, paidVal);
+            // Update totalSpent + referral (non-blocking, fire-and-forget)
+            get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
+                const prevSpent = parseFloat(spentSnap.val()?.totalSpent || 0);
+                update(ref(db, `users/${currentUser.uid}/profile`), { totalSpent: prevSpent + paidVal });
+                processReferralReward(currentUser.uid, paidVal);
+            }).catch(()=>{});
 
             // Send Telegram notification (non-blocking)
             sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
@@ -3011,10 +3016,12 @@
                 await update(ref(db, `coupons/${cartAppliedCoupon}`), { usedCount: (couponsData[cartAppliedCoupon].usedCount || 0) + 1 });
             }
 
-            const spentSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
-            const prevSpent = parseFloat(spentSnap.val()?.totalSpent || 0);
-            await update(ref(db, `users/${currentUser.uid}/profile`), { totalSpent: prevSpent + cartFinalAmt });
-            processReferralReward(currentUser.uid, cartFinalAmt);
+            // Update totalSpent + referral (non-blocking)
+            get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
+                const prevSpent = parseFloat(spentSnap.val()?.totalSpent || 0);
+                update(ref(db, `users/${currentUser.uid}/profile`), { totalSpent: prevSpent + cartFinalAmt });
+                processReferralReward(currentUser.uid, cartFinalAmt);
+            }).catch(()=>{});
 
             sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
@@ -3068,7 +3075,7 @@
             get(ref(db, 'meta/telegramBot')).then(botSnap => {
                 if(botSnap.exists()) {
                     const { token, chatId } = botSnap.val();
-                    if(token && chatId) sendMsg(token, chatId);
+                    if(token && chatId) { _cachedTgBot = botSnap.val(); sendMsg(token, chatId); }
                 }
             }).catch(()=>{});
         } catch(e) {}
@@ -3199,20 +3206,26 @@
 
     // ── TELEGRAM CHANNEL NOTIFICATIONS ───────────────────────────────
     const TG_CHANNEL_ID = '-1003975947215';
-    
+    let _cachedTgBot = null; // cache to avoid repeated Firebase reads
+
+    async function _getTgBot() {
+        if (_cachedTgBot) return _cachedTgBot;
+        const botSnap = await get(ref(db, 'meta/telegramBot'));
+        if (botSnap.exists()) { _cachedTgBot = botSnap.val(); }
+        return _cachedTgBot;
+    }
+
     async function sendTelegramChannelNotification(messageText, inlineButtons = null) {
         try {
-            const botSnap = await get(ref(db, 'meta/telegramBot'));
-            if(!botSnap.exists()) return;
-            const { token } = botSnap.val();
-            if(!token) return;
+            const bot = await _getTgBot();
+            if(!bot || !bot.token) return;
             const payload = {
                 chat_id: TG_CHANNEL_ID,
                 text: messageText,
                 parse_mode: 'HTML'
             };
             if(inlineButtons) payload.reply_markup = { inline_keyboard: inlineButtons };
-            fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
                 method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
             }).catch(()=>{});
         } catch(e) {}
