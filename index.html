@@ -151,6 +151,17 @@
         .plc-info { flex: 1; min-width: 0; }
         .plc-name { font-size: 14px; font-weight: 700; line-height: 1.4; color: var(--text-primary); white-space: normal; word-break: break-word; }
         .plc-price-badge { background: rgba(37,99,235,0.08); color: var(--accent-cyan); padding: 3px 10px; border: 1px solid rgba(37,99,235,0.2); border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.2px; }
+
+        /* ── FREE Service Styles ── */
+        .free-badge { background: #10b981; color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(16,185,129,0.35); }
+        .free-price { font-size: 26px; font-weight: 800; color: #10b981; margin-bottom: 14px; letter-spacing: -0.5px; margin-top: 4px; }
+        .product-list-card.free-service { border-color: rgba(16,185,129,0.3); background: var(--card-solid); }
+        .product-list-card.free-service:hover { border-color: #10b981; box-shadow: 0 6px 16px rgba(16,185,129,0.12); }
+        .plc-buy.free-btn { background: #10b981; box-shadow: 0 2px 4px rgba(16,185,129,0.3); }
+        .plc-buy.free-btn:hover { background: #059669; }
+        .free-daily-info { font-size: 11px; color: #10b981; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+        .free-used-info { font-size: 11px; color: #f59e0b; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+        .free-section-label { font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
         .plc-price { font-size: 26px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 14px; letter-spacing: -0.5px; margin-top: 4px; }
         .plc-actions { display: flex; gap: 8px; margin-top: auto; }
         .plc-buy { 
@@ -1489,23 +1500,78 @@
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
-        Object.entries(productsData).forEach(([id, p]) => { const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General'; if(pCat === catName && pSub === subCatName && p.isActive !== false) { hasItems = true; 
-            list.innerHTML += `<div class="product-list-card">
+
+        // Split free and paid services
+        let freeItems = [], paidItems = [];
+        Object.entries(productsData).forEach(([id, p]) => {
+            const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General';
+            if(pCat === catName && pSub === subCatName && p.isActive !== false) {
+                hasItems = true;
+                if(parseFloat(p.discountedPrice) === 0) freeItems.push([id, p]);
+                else paidItems.push([id, p]);
+            }
+        });
+
+        function _renderCard(id, p) {
+            const isFree = parseFloat(p.discountedPrice) === 0;
+            const cardClass = isFree ? 'product-list-card free-service' : 'product-list-card';
+            const badgeHtml = isFree 
+                ? `<span class="free-badge"><i class="fas fa-gift" style="font-size:9px;"></i> FREE</span>`
+                : `<div class="plc-price-badge">${p.subCategory || p.category}</div>`;
+            const priceHtml = isFree 
+                ? `<div class="free-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">FREE</div>`
+                : `<div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">₹${p.discountedPrice}</div>`;
+            const buyBtnClass = isFree ? 'plc-buy free-btn' : 'plc-buy';
+            const buyBtnTxt = isFree ? '<i class="fas fa-gift"></i> Claim Free' : 'Buy Now';
+            const freeInfoHtml = isFree ? `<div class="free-daily-info" id="freeInfo_${id}"><i class="fas fa-clock"></i> Once per day · Free</div>` : '';
+            return `<div class="${cardClass}" id="plc_${id}">
               <div class="plc-header">
                 <div class="plc-info"><div class="plc-name">${p.title}</div></div>
-                <div class="plc-price-badge">${p.subCategory || p.category}</div>
+                ${badgeHtml}
               </div>
               ${p.description ? `<p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;">${p.description}</p>` : ''}
               <div style="display:flex;justify-content:space-between;align-items:flex-start;${(p.features && p.features.length)?'border-top:1px solid var(--border-color);padding-top:12px;':''}margin-bottom:14px;">
                 ${(p.features && p.features.length) ? `<ul style="list-style:none;font-size:12px;margin:0;padding:0;flex:1;">${p.features.map(f=>`<li style="margin-bottom:6px;display:flex;align-items:center;gap:7px;color:var(--text-primary);"><i class="fas fa-check-circle" style="color:var(--accent-cyan);font-size:11px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul>` : '<div></div>'}
-                <div class="plc-price" style="margin-bottom:0;margin-left:12px;flex-shrink:0;">₹${p.discountedPrice}</div>
+                ${priceHtml}
               </div>
-              <div class="plc-actions">
-                <button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>
-                <button class="plc-buy" onclick="initCheckout('${id}', 'product')">Buy Now</button>
+              ${freeInfoHtml}
+              <div class="plc-actions" style="margin-top:10px;">
+                ${isFree ? '' : `<button class="plc-cart-btn" onclick="addToCart('${id}')" title="Add to Cart"><i class="fas fa-cart-plus"></i></button>`}
+                <button class="${buyBtnClass}" onclick="initCheckout('${id}', 'product')">${buyBtnTxt}</button>
               </div>
-            </div>`; } });
+            </div>`;
+        }
+
+        // Render free services first (with section label), then paid
+        if(freeItems.length > 0) {
+            list.innerHTML += `<div class="free-section-label"><i class="fas fa-star"></i> Free Services</div>`;
+            freeItems.forEach(([id,p]) => { list.innerHTML += _renderCard(id,p); });
+            if(paidItems.length > 0) {
+                list.innerHTML += `<div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px;display:flex;align-items:center;gap:6px;"><i class="fas fa-shopping-bag"></i> Paid Services</div>`;
+            }
+        }
+        paidItems.forEach(([id,p]) => { list.innerHTML += _renderCard(id,p); });
+
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
+
+        // Check daily usage for free services (Firebase date check)
+        if(freeItems.length > 0 && currentUser) {
+            const today = new Date().toISOString().slice(0,10);
+            freeItems.forEach(([id]) => {
+                get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)).then(snap => {
+                    const infoEl = document.getElementById(`freeInfo_${id}`);
+                    const cardEl = document.getElementById(`plc_${id}`);
+                    if(snap.exists()) {
+                        if(infoEl) { infoEl.className = 'free-used-info'; infoEl.innerHTML = '<i class="fas fa-check-circle"></i> Claimed today · Try again tomorrow'; }
+                        if(cardEl) {
+                            const btn = cardEl.querySelector('.free-btn');
+                            if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Already Claimed'; btn.style.opacity = '0.6'; btn.style.cursor = 'not-allowed'; }
+                        }
+                    }
+                }).catch(()=>{});
+            });
+        }
+
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
 
@@ -2214,29 +2280,83 @@
         if(type === 'product' && checkoutItem.isActive === false) return showToast('⚠️ This service is currently unavailable');
         checkoutItem.id = id; checkoutItem.purchaseType = type; checkoutFinalAmt = type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price); appliedCouponKey = null;
 
+        const isFreeService = (type === 'product' && checkoutFinalAmt === 0);
+
+        // Free service daily limit check — block if already claimed today
+        if(isFreeService) {
+            const today = new Date().toISOString().slice(0,10);
+            showLoader();
+            get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)).then(snap => {
+                hideLoader();
+                if(snap.exists()) {
+                    showToast('⏳ Already claimed today! Come back tomorrow.');
+                    return;
+                }
+                _openCheckoutModal(id, type, isFreeService);
+            }).catch(() => { hideLoader(); _openCheckoutModal(id, type, isFreeService); });
+            return;
+        }
+        _openCheckoutModal(id, type, isFreeService);
+    };
+
+    function _openCheckoutModal(id, type, isFreeService) {
         const imgEl = document.getElementById('chkImg'); if(checkoutItem.imageUrl) { imgEl.src = checkoutItem.imageUrl; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
-        document.getElementById('chkTitle').textContent = checkoutItem.title || checkoutItem.planName; document.getElementById('chkType').textContent = type === 'product' ? 'Digital Service' : `${checkoutItem.duration} Days Subscription`; document.getElementById('chkPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt}`;
+        document.getElementById('chkTitle').textContent = checkoutItem.title || checkoutItem.planName; 
+        document.getElementById('chkType').textContent = isFreeService ? '🎁 Free Service · Daily Claim' : (type === 'product' ? 'Digital Service' : `${checkoutItem.duration} Days Subscription`); 
+        document.getElementById('chkPrice').textContent = isFreeService ? 'FREE' : `₹${checkoutFinalAmt}`; 
+        document.getElementById('chkFinalPrice').textContent = isFreeService ? 'FREE' : `₹${checkoutFinalAmt}`; 
+        document.getElementById('chkPayAmt').textContent = isFreeService ? 'FREE' : `₹${checkoutFinalAmt}`;
         document.getElementById('chkCouponInput').value = ''; document.getElementById('chkCouponMsg').textContent = ''; document.getElementById('chkLinkInput').value = ''; document.getElementById('chkLinkInput2').value = ''; document.getElementById('chkLinkInput3').value = ''; document.getElementById('chkLinkInput4').value = ''; document.getElementById('chkLinkInput5').value = ''; document.getElementById('chkPollInput').value = '';
         
-        // Update Wallet Button Text
-        const chkBtn = document.getElementById('chkWalletBtn');
-        if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
+        // Free service — hide payment/coupon/wallet, change button
+        const paymentBox = document.querySelector('#chkStep2 .payment-box');
+        const couponSection = document.querySelector('.coupon-box')?.closest('.input-group') || document.querySelector('.coupon-box')?.parentElement;
+        const chkWalletBtn = document.getElementById('chkWalletBtn');
+        const step2Btns = document.querySelectorAll('#chkStep2 .btn');
+
+        if(isFreeService) {
+            if(paymentBox) paymentBox.style.display = 'none';
+            if(chkWalletBtn) chkWalletBtn.style.display = 'none';
+            // Change "I have Paid" btn to "Claim Free Service"
+            step2Btns.forEach(btn => {
+                if(btn.innerHTML.includes('Verify') || btn.innerHTML.includes('Paid')) {
+                    btn.innerHTML = '<i class="fas fa-gift"></i> Claim Free Service';
+                    btn.dataset.freeMode = '1';
+                }
+            });
+            // Hide coupon section for free services
+            const couponBox = document.querySelector('.coupon-box');
+            if(couponBox) couponBox.closest('div[style*="margin"]')?.style && (couponBox.parentElement.style.display = 'none');
+        } else {
+            if(paymentBox) paymentBox.style.display = '';
+            if(chkWalletBtn) { chkWalletBtn.style.display = ''; chkWalletBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`; }
+            step2Btns.forEach(btn => {
+                if(btn.dataset.freeMode === '1') {
+                    btn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now';
+                    btn.dataset.freeMode = '0';
+                }
+            });
+            const couponBox = document.querySelector('.coupon-box');
+            if(couponBox) couponBox.parentElement.style.display = '';
+            // Update Wallet Button Text
+            const chkBtn = document.getElementById('chkWalletBtn');
+            if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
+        }
 
         document.getElementById('chkStep1').style.display = 'block';
         document.getElementById('chkStep2').style.display = 'none';
 
         currentOrderId = generateUTR(12);
-        updateQRCode(checkoutFinalAmt, currentOrderId);
-
-        // Pre-warm proxy connections so verification is faster when user clicks verify
-        const MERCHANT_ID_PW = "MdXwlu49903940058924";
-        prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        if(!isFreeService) {
+            updateQRCode(checkoutFinalAmt, currentOrderId);
+            const MERCHANT_ID_PW = "MdXwlu49903940058924";
+            prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
+        }
         
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
             document.getElementById('chkExtraLinksContainer').style.display = 'none';
             let cat = checkoutItem.category || ''; let sub = checkoutItem.subCategory || ''; let label = 'Target Link'; let showPoll = false;
-            // Admin-defined rule takes priority
             const ruleKey = `${cat}|${sub}`;
             if (linkMgmtRules[ruleKey]) {
                 label = linkMgmtRules[ruleKey];
@@ -2250,7 +2370,7 @@
             document.getElementById('chkLinkLabel').textContent = 'Reels Link 1'; document.getElementById('chkLinkInput').placeholder = 'Enter Reels Link 1'; document.getElementById('chkPollContainer').style.display = 'none'; 
         }
         document.getElementById('checkoutModal').classList.add('active');
-    };
+    }
     
     window.goToStep2 = () => {
         const targetLink = document.getElementById('chkLinkInput').value.trim(); 
@@ -2294,6 +2414,12 @@
     };
 
     window.confirmPurchase = async () => {
+        // ── Free service — bypass payment, direct order ──
+        if(checkoutItem && checkoutItem.purchaseType === 'product' && parseFloat(checkoutFinalAmt) === 0) {
+            await _placeFreeOrder();
+            return;
+        }
+
         // ── Strict double-submit guard: disable button immediately ──
         const verifyBtn = document.querySelector('#chkStep2 .btn');
         if(verifyBtn && verifyBtn.disabled) return;
@@ -2587,6 +2713,119 @@
             showToast('❌ System Error: ' + e.message);
         }
     };
+
+    // ── FREE SERVICE ORDER HANDLER ─────────────────────────────────────────
+    async function _placeFreeOrder() {
+        if (!currentUser) return showToast('Please login first');
+        if (_guardOrder()) return;
+
+        const targetLink = document.getElementById('chkLinkInput').value.trim();
+        const pollOption = document.getElementById('chkPollInput').value.trim();
+        if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
+        if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
+            _unlockOrder(); return showToast('Please enter the poll vote option');
+        }
+
+        // Double-check daily limit in Firebase (prevent race from double-tap)
+        const today = new Date().toISOString().slice(0, 10);
+        const limitRef = ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${checkoutItem.id}`);
+        showLoader();
+        try {
+            const limitSnap = await get(limitRef);
+            if (limitSnap.exists()) {
+                _unlockOrder(); hideLoader();
+                return showToast('⏳ Already claimed today! Come back tomorrow.');
+            }
+
+            const utr = 'FREE_' + generateUTR(8);
+            const hasApiConfig = !!(
+                checkoutItem.apiUrl && checkoutItem.apiKey &&
+                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+            );
+
+            const orderData = {
+                productId:       checkoutItem.id,
+                productSnapshot: checkoutItem,
+                userId:          currentUser.uid,
+                userEmail:       currentUser.email,
+                finalAmount:     '0.00',
+                utrId:           utr,
+                targetLink,
+                targetLink2:     null, targetLink3: null, targetLink4: null, targetLink5: null,
+                pollOption:      (document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null,
+                status:          hasApiConfig ? 'progress' : 'pending',
+                createdAt:       new Date().toISOString(),
+                isSubscription:  false,
+                isFreeService:   true,
+                paymentMethod:   'free',
+                apiStatus:       hasApiConfig ? 'calling' : null,
+            };
+
+            const newOrderRef = push(ref(db, 'orders'));
+            // Save order + mark daily limit used — parallel writes
+            await Promise.all([
+                set(newOrderRef, orderData),
+                set(limitRef, new Date().toISOString()),
+            ]);
+
+            _unlockOrder();
+            closeCheckout();
+            playOrderSuccessSound();
+            hideLoader();
+            showPayVerify();
+            setTimeout(() => {
+                showPayVerifySuccess(() => {
+                    notifyLive('🎁 Free Service Claimed! Order Placed.');
+                    switchTab('ordersTab');
+                });
+                const _pvoLabel = document.getElementById('pvoLabel');
+                const _pvoSub   = document.getElementById('pvoSublabel');
+                if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
+                if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
+            }, 100);
+
+            sendTelegramOrderNotification([{product: checkoutItem}], 0, utr, targetLink);
+
+            // API call (background)
+            if (hasApiConfig) {
+                let _apiCallFiredF = false;
+                const apiPayload = `key=${encodeURIComponent(checkoutItem.apiKey)}&action=add&service=${encodeURIComponent(checkoutItem.serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(checkoutItem.quantity)}`;
+                const apiUrl     = checkoutItem.apiUrl;
+                const _capturedKey = newOrderRef.key;
+                (async () => {
+                    const _snap = await get(ref(db, `orders/${_capturedKey}/apiStatus`)).catch(()=>null);
+                    if (_snap && _snap.exists() && _snap.val() !== 'calling') return;
+                    const apiURLs = [
+                        { url: apiUrl, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl+'?'+apiPayload)}`, opts: { method:'GET' } },
+                    ];
+                    for(const { url, opts } of apiURLs) {
+                        if(_apiCallFiredF) break;
+                        try {
+                            const r = await fetchWithTimeout(url, opts, 8000);
+                            const text = await r.text();
+                            let j; try { j = JSON.parse(text); } catch(e) { continue; }
+                            if(!j || typeof j !== 'object' || Array.isArray(j)) continue;
+                            if(_apiCallFiredF) break;
+                            _apiCallFiredF = true;
+                            const orderId = j.order ?? j.order_id ?? j.id ?? j.orderId ?? null;
+                            const hasError = j.error || j.status === 'error' || j.message?.toLowerCase().includes('error');
+                            if (!hasError) { await update(ref(db, `orders/${_capturedKey}`), { apiStatus: 'placed', apiOrderId: orderId ? String(orderId) : 'placed', apiRawResponse: text.substring(0,500) }); }
+                            else { await update(ref(db, `orders/${_capturedKey}`), { apiStatus: 'error', apiRawResponse: text.substring(0,500) }); }
+                            break;
+                        } catch(e) { continue; }
+                    }
+                    if(!_apiCallFiredF) { await update(ref(db, `orders/${_capturedKey}`), { apiStatus: 'failed', apiRawResponse: 'All proxies failed' }).catch(()=>{}); }
+                })().catch(()=>{});
+            }
+
+        } catch(e) {
+            _unlockOrder();
+            hideLoader();
+            showToast('❌ Error: ' + e.message);
+        }
+    }
 
     function fallbackCopyText(text) { 
         const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-999999px"; textArea.style.top = "-999999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select();
