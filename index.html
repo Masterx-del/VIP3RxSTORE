@@ -1554,7 +1554,7 @@
 
         if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
 
-        // Check daily usage for free services (Firebase date check)
+        // Check daily usage for free services (Firebase date check) + start countdown
         if(freeItems.length > 0 && currentUser) {
             const today = new Date().toISOString().slice(0,10);
             freeItems.forEach(([id]) => {
@@ -1562,10 +1562,19 @@
                     const infoEl = document.getElementById(`freeInfo_${id}`);
                     const cardEl = document.getElementById(`plc_${id}`);
                     if(snap.exists()) {
-                        if(infoEl) { infoEl.className = 'free-used-info'; infoEl.innerHTML = '<i class="fas fa-check-circle"></i> Claimed today · Try again tomorrow'; }
+                        // Calculate midnight (next reset) countdown
+                        const claimedAt = new Date(snap.val());
+                        const nextReset = new Date(today);
+                        nextReset.setDate(nextReset.getDate() + 1); // tomorrow midnight
+
                         if(cardEl) {
                             const btn = cardEl.querySelector('.free-btn');
                             if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Already Claimed'; btn.style.opacity = '0.6'; btn.style.cursor = 'not-allowed'; }
+                        }
+                        if(infoEl) {
+                            infoEl.className = 'free-used-info';
+                            // Start live countdown
+                            _startFreeCountdown(infoEl, nextReset);
                         }
                     }
                 }).catch(()=>{});
@@ -1574,6 +1583,40 @@
 
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
     };
+
+    // ── Free Service Countdown ────────────────────────────────────────────
+    const _freeCountdownTimers = {};
+
+    function _startFreeCountdown(el, resetTime) {
+        const id = el.id;
+        // Clear any existing timer for this element
+        if(_freeCountdownTimers[id]) clearInterval(_freeCountdownTimers[id]);
+
+        function _tick() {
+            if(!document.getElementById(id)) {
+                // Element removed from DOM — clear timer
+                clearInterval(_freeCountdownTimers[id]);
+                delete _freeCountdownTimers[id];
+                return;
+            }
+            const now = Date.now();
+            const diff = resetTime.getTime() - now;
+            if(diff <= 0) {
+                el.className = 'free-daily-info';
+                el.innerHTML = '<i class="fas fa-gift"></i> Available now! Refresh to claim.';
+                clearInterval(_freeCountdownTimers[id]);
+                delete _freeCountdownTimers[id];
+                return;
+            }
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            const hStr = h > 0 ? `${h}h ` : '';
+            el.innerHTML = `<i class="fas fa-clock"></i> Next claim in <b style="color:#f59e0b;">${hStr}${m}m ${s}s</b>`;
+        }
+        _tick();
+        _freeCountdownTimers[id] = setInterval(_tick, 1000);
+    }
 
     let isSignupMode = false;
     document.getElementById('authToggleBtn').addEventListener('click', (e) => { 
@@ -2888,6 +2931,19 @@
                 if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
                 if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
             }, 100);
+
+            // Start countdown immediately on the card (if still visible)
+            const _infoEl = document.getElementById(`freeInfo_${checkoutItem.id}`);
+            const _cardEl = document.getElementById(`plc_${checkoutItem.id}`);
+            if(_cardEl) {
+                const _btn = _cardEl.querySelector('.free-btn');
+                if(_btn) { _btn.disabled = true; _btn.innerHTML = '<i class="fas fa-check"></i> Already Claimed'; _btn.style.opacity = '0.6'; _btn.style.cursor = 'not-allowed'; }
+            }
+            if(_infoEl) {
+                _infoEl.className = 'free-used-info';
+                const _nextReset = new Date(today); _nextReset.setDate(_nextReset.getDate() + 1);
+                _startFreeCountdown(_infoEl, _nextReset);
+            }
 
             sendTelegramOrderNotification([{product: checkoutItem}], 0, utr, targetLink);
 
