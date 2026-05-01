@@ -1292,37 +1292,67 @@
 
     const showToast = (msg) => { const t = document.getElementById('toastBox'); t.querySelector('span').textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
 
+    // ── Safe Notification helper (works on localhost + all deployed hosts) ──
+    function _safeNotify(msg) {
+        try {
+            if (!("Notification" in window)) return;
+            // Some browsers throw on Notification in non-secure ctx — guard it
+            const logoEl = document.getElementById('brandLogo');
+            const logo = (logoEl && logoEl.src && logoEl.src !== window.location.href) ? logoEl.src : '';
+            const _fire = () => {
+                try { new Notification("Store Update", { body: msg, icon: logo || undefined }); } catch(e) {}
+            };
+            if (Notification.permission === "granted") {
+                _fire();
+            } else if (Notification.permission === "default") {
+                // Only request if user gesture is not required (avoids DOMException on some hosts)
+                try {
+                    const prom = Notification.requestPermission();
+                    if (prom && typeof prom.then === 'function') {
+                        prom.then(p => { if (p === "granted") _fire(); }).catch(() => {});
+                    }
+                } catch(e) {}
+            }
+            // If "denied" — silently skip, toast already shown
+        } catch(e) {}
+    }
+
     const notifyLive = (msg) => {
         showToast(msg);
-        if ("Notification" in window) {
-            const logoEl = document.getElementById('brandLogo');
-            const logo = (logoEl && logoEl.src) ? logoEl.src : '';
-            if (Notification.permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); }
-            else if (Notification.permission !== "denied") { Notification.requestPermission().then(permission => { if (permission === "granted") { new Notification("Store Update", { body: msg, icon: logo }); } }); }
-        }
+        _safeNotify(msg);
     };
 
     // ── Order Success Sound ─────────────────────────────────────
     function playOrderSuccessSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes =[
-                { freq: 523.25, start: 0,    dur: 0.15 },  // C5
-                { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
-                { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
-                { freq: 1046.5, start: 0.45, dur: 0.30 },  // C6
-            ];
-            notes.forEach(({ freq, start, dur }) => {
-                const osc  = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-                gain.gain.setValueAtTime(0.35, ctx.currentTime + start);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-                osc.start(ctx.currentTime + start);
-                osc.stop(ctx.currentTime + start + dur + 0.05);
-            });
+            // Resume context in case browser suspended it (autoplay policy on deploy)
+            const _play = () => {
+                const notes =[
+                    { freq: 523.25, start: 0,    dur: 0.15 },
+                    { freq: 659.25, start: 0.15, dur: 0.15 },
+                    { freq: 783.99, start: 0.30, dur: 0.15 },
+                    { freq: 1046.5, start: 0.45, dur: 0.30 },
+                ];
+                notes.forEach(({ freq, start, dur }) => {
+                    try {
+                        const osc  = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                        gain.gain.setValueAtTime(0.35, ctx.currentTime + start);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+                        osc.start(ctx.currentTime + start);
+                        osc.stop(ctx.currentTime + start + dur + 0.05);
+                    } catch(e) {}
+                });
+            };
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(_play).catch(() => {});
+            } else {
+                _play();
+            }
         } catch(e) {}
     }
 
@@ -1508,7 +1538,7 @@
         currentUser = user;
         if(user) {
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
-            if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
+            try { if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission().catch(()=>{}); } } catch(e) {}
             loadOrders(); loadChat(); loadWallet(); migrateOrderRefs(user.uid);
             if(document.getElementById('profileTab').classList.contains('active')){ switchTab('homeTab'); }
             bindRealTimeNotifications(user.uid);
@@ -1523,26 +1553,37 @@
 
     function bindRealTimeNotifications(uid) { 
         if(notificationsBound) return; notificationsBound = true;
-        const userOrdersQuery = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
-        onChildChanged(userOrdersQuery, (snap) => { const o = snap.val(); if(o && o.status) { notifyLive(`🔔 Order #${snap.key.slice(-6).toUpperCase()} is now ${o.status.toUpperCase()}`); } });
+        try {
+            const userOrdersQuery = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
+            onChildChanged(userOrdersQuery, (snap) => { 
+                try {
+                    const o = snap.val(); 
+                    if(o && o.status) { notifyLive(`🔔 Order #${snap.key.slice(-6).toUpperCase()} is now ${o.status.toUpperCase()}`); }
+                } catch(e) {}
+            });
+        } catch(e) { console.warn('[Notifications] bindRealTimeNotifications error:', e?.message || e); }
     }
 
     function bindAdminMessageNotification(uid) {
-        onValue(ref(db, `chats/${uid}/info`), snap => {
-            if(!snap.exists()) return;
-            const info = snap.val();
-            const unread = info.userUnread || 0;
-            const badge = document.getElementById('chatUnreadBadge');
-            if(badge) {
-                if(unread > 0) { 
-                    badge.textContent = unread > 9 ? '9+' : unread; 
-                    badge.style.display = 'flex'; 
-                    badge.style.alignItems = 'center'; 
-                    badge.style.justifyContent = 'center'; 
-                }
-                else { badge.style.display = 'none'; }
-            }
-        });
+        try {
+            onValue(ref(db, `chats/${uid}/info`), snap => {
+                try {
+                    if(!snap.exists()) return;
+                    const info = snap.val();
+                    const unread = info.userUnread || 0;
+                    const badge = document.getElementById('chatUnreadBadge');
+                    if(badge) {
+                        if(unread > 0) { 
+                            badge.textContent = unread > 9 ? '9+' : unread; 
+                            badge.style.display = 'flex'; 
+                            badge.style.alignItems = 'center'; 
+                            badge.style.justifyContent = 'center'; 
+                        }
+                        else { badge.style.display = 'none'; }
+                    }
+                } catch(e) {}
+            });
+        } catch(e) { console.warn('[Chat] bindAdminMessageNotification error:', e?.message || e); }
     }
 
     // ── WALLET ────────────────────────────────────────────────────────────
@@ -1761,8 +1802,8 @@
     document.getElementById('wfUpiId').addEventListener('click', () => {
         const t = document.getElementById('wfUpiId').textContent;
         if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(t).then(() => showToast('UPI ID Copied!')).catch(() => showToast('Copied!'));
-        }
+            navigator.clipboard.writeText(t).then(() => showToast('UPI ID Copied!')).catch(() => fallbackCopyText(t));
+        } else { fallbackCopyText(t); }
     });
 
     window.goToWfStep2 = () => {
@@ -2790,7 +2831,7 @@
     };
     document.getElementById('cartUpiId').addEventListener('click', () => {
         const t = document.getElementById('cartUpiId').textContent;
-        if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(() => showToast('UPI ID Copied!'));
+        if(navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).then(() => showToast('UPI ID Copied!')).catch(() => fallbackCopyText(t)); } else { fallbackCopyText(t); }
     });
 
     window.confirmCartPurchase = async () => {
