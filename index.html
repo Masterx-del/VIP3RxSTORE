@@ -627,12 +627,135 @@
             </div>
 
             <div id="userProfileView" style="display:none;">
-                <div class="card" style="text-align:center; padding: 40px 20px;">
-                    <div id="profileAvatar" class="profile-avatar">U</div>
-                    <h2 id="profileName" style="font-size:22px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">User Name</h2>
-                    <p id="profileEmail" style="font-size:14px; color:var(--text-secondary); margin-bottom:32px;">user@example.com</p>
-                    <button id="logoutBtn" class="btn" style="background: var(--card-solid); color: var(--accent-pink); border: 1px solid var(--accent-pink); width:auto; padding:12px 32px; display:inline-block; box-shadow:none;"><i class="fas fa-sign-out-alt"></i> Secure Logout</button>
+
+                <!-- ── IDEA 1: Premium Profile Header Card ── -->
+                <div style="border-radius:var(--border-radius); overflow:hidden; margin-bottom:20px; box-shadow:var(--shadow); border:1px solid var(--border-color);">
+                    <!-- Gradient Header Strip -->
+                    <div style="background:linear-gradient(135deg,#2563eb 0%,#1e3a8a 100%); padding:28px 20px 20px; position:relative; overflow:hidden;">
+                        <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.07);border-radius:50%;"></div>
+                        <div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>
+                        <div style="display:flex;align-items:center;gap:16px;position:relative;z-index:1;">
+                            <div id="profileAvatar" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);border:3px solid rgba(255,255,255,0.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;flex-shrink:0;">U</div>
+                            <div style="flex:1;min-width:0;">
+                                <h2 id="profileName" style="font-size:20px;font-weight:800;color:#fff;margin-bottom:3px;letter-spacing:-0.4px;">User Name</h2>
+                                <p id="profileEmail" style="font-size:12px;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">user@example.com</p>
+                                <div style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 10px;">
+                                    <span style="width:7px;height:7px;background:#4ade80;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+                                    <span style="font-size:11px;color:#fff;font-weight:600;">Active Member</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3 Quick Stats -->
+                    <div style="background:var(--card-bg);display:grid;grid-template-columns:repeat(3,1fr);">
+                        <div style="text-align:center;padding:14px 8px;border-right:1px solid var(--border-color);">
+                            <div id="profileStatOrders" style="font-size:20px;font-weight:800;color:var(--accent-cyan);">0</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;">Orders</div>
+                        </div>
+                        <div style="text-align:center;padding:14px 8px;border-right:1px solid var(--border-color);">
+                            <div id="profileStatWallet" style="font-size:18px;font-weight:800;color:#10b981;">₹0</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;">Balance</div>
+                        </div>
+                        <div style="text-align:center;padding:14px 8px;">
+                            <div id="profileStatRef" style="font-size:20px;font-weight:800;color:#f59e0b;">₹0</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;">Referral</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- ── IDEA 2: Quick Actions Grid ── -->
+                <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:16px;margin-bottom:20px;box-shadow:var(--shadow);">
+                    <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Quick Actions</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                        <button onclick="switchTab('ordersTab')" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-box" style="font-size:20px;color:var(--accent-cyan);"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">My Orders</span>
+                        </button>
+                        <button onclick="switchTab('walletTab')" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-wallet" style="font-size:20px;color:#10b981;"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">Wallet</span>
+                        </button>
+                        <button onclick="openGiftCodeModal()" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-gift" style="font-size:20px;color:#f59e0b;"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">Gift Code</span>
+                        </button>
+                        <button onclick="switchTab('chatTab')" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-headset" style="font-size:20px;color:#8b5cf6;"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">Support</span>
+                        </button>
+                        <button onclick="switchTab('subsTab')" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-crown" style="font-size:20px;color:#f59e0b;"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">Premium</span>
+                        </button>
+                        <button onclick="switchTab('homeTab')" style="background:var(--input-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);" onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas fa-home" style="font-size:20px;color:var(--accent-cyan);"></i>
+                            <span style="font-size:11px;font-weight:600;color:var(--text-primary);">Home</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── IDEA 3: Refer & Earn Card ── -->
+                <div style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(217,119,6,0.04));border:1px solid rgba(245,158,11,0.3);border-radius:var(--border-radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow);">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                        <div style="width:40px;height:40px;background:rgba(245,158,11,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-users" style="color:#f59e0b;font-size:18px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:15px;font-weight:800;color:var(--text-primary);">Refer &amp; Earn</div>
+                            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;">Share your link and earn rewards</div>
+                        </div>
+                    </div>
+                    <!-- ── Referral Program Info (Admin se dynamic) ── -->
+                    <div id="refProgramInfoBox" style="display:none;background:var(--card-bg);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                            <div id="refInfoReward" style="display:none;flex:1;min-width:120px;background:rgba(245,158,11,0.08);border-radius:8px;padding:8px 10px;text-align:center;">
+                                <div style="font-size:18px;font-weight:800;color:#f59e0b;" id="refInfoRewardVal">&#x20B9;0</div>
+                                <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Per Referral</div>
+                            </div>
+                            <div id="refInfoMinOrder" style="display:none;flex:1;min-width:120px;background:rgba(37,99,235,0.06);border-radius:8px;padding:8px 10px;text-align:center;">
+                                <div style="font-size:18px;font-weight:800;color:var(--accent-cyan);" id="refInfoMinOrderVal">&#x20B9;0</div>
+                                <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Min. Order</div>
+                            </div>
+                            <div id="refInfoMaxCap" style="display:none;flex:1;min-width:120px;background:rgba(16,185,129,0.06);border-radius:8px;padding:8px 10px;text-align:center;">
+                                <div style="font-size:18px;font-weight:800;color:#10b981;" id="refInfoMaxCapVal">&#x20B9;0</div>
+                                <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Max Earnings</div>
+                            </div>
+                        </div>
+                        <div id="refInfoDesc" style="display:none;margin-top:10px;font-size:12px;color:var(--text-secondary);line-height:1.5;border-top:1px solid var(--border-color);padding-top:8px;"></div>
+                        <div id="refProgramInactive" style="display:none;margin-top:6px;font-size:12px;font-weight:600;color:#ef4444;text-align:center;">&#x26A0;&#xFE0F; Referral program abhi active nahi hai</div>
+                    </div>
+                    <!-- Stats Row -->
+                    <div style="display:flex;gap:10px;margin-bottom:14px;">
+                        <div style="flex:1;background:var(--card-bg);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border-color);">
+                            <div id="refTotalJoined" style="font-size:22px;font-weight:800;color:#f59e0b;">0</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;">Referrals</div>
+                        </div>
+                        <div style="flex:1;background:var(--card-bg);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border-color);">
+                            <div id="refTotalEarned" style="font-size:22px;font-weight:800;color:#10b981;">&#x20B9;0</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;">Earned</div>
+                        </div>
+                    </div>
+                    <!-- Referral Link -->
+                    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Your Referral Link</div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input id="referralLinkDisplay" readonly type="text" value="" placeholder="Login to get your link"
+                            style="flex:1;padding:10px 12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-secondary);font-size:11px;font-weight:500;outline:none;min-width:0;font-family:inherit;">
+                        <button onclick="copyReferralLink()" style="padding:10px 14px;background:var(--accent-cyan);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button onclick="shareReferralLink()" style="padding:10px 14px;background:rgba(37,99,235,0.1);border:1px solid var(--accent-cyan);border-radius:8px;color:var(--accent-cyan);font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <div style="text-align:center;padding-bottom:10px;">
+                    <button id="logoutBtn" class="btn" style="background:var(--card-solid);color:var(--accent-pink);border:1px solid var(--accent-pink);width:auto;padding:12px 36px;display:inline-block;box-shadow:none;font-size:14px;">
+                        <i class="fas fa-sign-out-alt"></i> Secure Logout
+                    </button>
+                </div>
+
             </div>
         </div>
 
@@ -661,7 +784,7 @@
                     <input type="text" id="cartCouponInput" placeholder="PROMO CODE">
                     <button onclick="applyCartCoupon()">APPLY</button>
                 </div>
-                <div id="cartCouponMsg" style="font-size:12px; margin-bottom:12px; font-weight:500;"></div>
+                <div id="cartCouponMsg" style="margin-bottom:10px;"></div>
 
                 <div style="border-top:1px solid var(--border-color); padding-top:14px; margin-bottom:16px;">
                     <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:6px;"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
@@ -1230,7 +1353,7 @@
                     <label style="display:flex;align-items:center;gap:6px;"><i class="fas fa-ticket-alt" style="color:var(--accent-cyan);font-size:12px;"></i> Enter Gift Code</label>
                     <input type="text" id="giftCodeInput" placeholder="e.g. GIFT2024" style="text-transform:uppercase;letter-spacing:3px;font-weight:700;text-align:center;font-size:20px;">
                 </div>
-                <div id="giftCodeMsg" style="font-size:13px;margin-bottom:16px;font-weight:500;text-align:center;min-height:18px;transition:all 0.3s;"></div>
+                <div id="giftCodeMsg" style="margin-bottom:12px;text-align:center;min-height:36px;transition:all 0.3s;"></div>
                 <button id="giftRedeemBtn" class="btn" style="background:var(--accent-cyan);box-shadow:0 3px 12px rgba(37,99,235,0.3);" onclick="redeemGiftCode()">
                     <i class="fas fa-gift"></i> Redeem Gift Code
                 </button>
@@ -1372,6 +1495,19 @@
     const referralSource = urlParams.get('ref') || '';
 
     const showToast = (msg) => { const t = document.getElementById('toastBox'); t.querySelector('span').textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
+
+    // ── Attractive inline message helper ──
+    const setMsg = (el, type, text) => {
+        if(!el) return;
+        const cfg = {
+            error:   { icon: 'fa-circle-xmark',   bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.25)',   color: '#ef4444' },
+            success: { icon: 'fa-circle-check',    bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.25)',  color: '#10b981' },
+            warn:    { icon: 'fa-triangle-exclamation', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b' },
+            info:    { icon: 'fa-circle-info',     bg: 'rgba(37,99,235,0.07)',   border: 'rgba(37,99,235,0.2)',    color: '#3b82f6' },
+        };
+        const c = cfg[type] || cfg.info;
+        el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:600;background:${c.bg};border:1px solid ${c.border};color:${c.color};"><i class='fas ${c.icon}' style='font-size:13px;'></i>${text}</span>`;
+    };
 
     const notifyLive = (msg) => {
         showToast(msg);
@@ -1863,6 +1999,29 @@
             // Add referral link to profile
             const refLink = `${window.location.origin}${window.location.pathname}?ref=${user.uid}`;
             if(document.getElementById('referralLinkDisplay')) document.getElementById('referralLinkDisplay').value = refLink;
+            // ── Update profile stats (orders count, wallet, referral earned) ──
+            get(ref(db, `users/${user.uid}/profile`)).then(snap => {
+                if(!snap.exists()) return;
+                const p = snap.val();
+                const walBal = parseFloat(p.walletBalance || 0);
+                const refEarned = parseFloat(p.referralEarned || 0);
+                if(document.getElementById('profileStatWallet')) document.getElementById('profileStatWallet').textContent = '₹' + walBal.toFixed(0);
+                if(document.getElementById('profileStatRef')) document.getElementById('profileStatRef').textContent = '₹' + refEarned.toFixed(0);
+                if(document.getElementById('refTotalEarned')) document.getElementById('refTotalEarned').textContent = '₹' + refEarned.toFixed(0);
+            }).catch(()=>{});
+            get(ref(db, 'orders')).then(snap => {
+                if(!snap.exists()) return;
+                let cnt = 0;
+                snap.forEach(s => { if(s.val().userId === user.uid) cnt++; });
+                if(document.getElementById('profileStatOrders')) document.getElementById('profileStatOrders').textContent = cnt;
+            }).catch(()=>{});
+            // Referral count
+            get(ref(db, 'users')).then(snap => {
+                if(!snap.exists()) return;
+                let cnt = 0;
+                snap.forEach(s => { if(s.val().profile?.referredBy === user.uid) cnt++; });
+                if(document.getElementById('refTotalJoined')) document.getElementById('refTotalJoined').textContent = cnt;
+            }).catch(()=>{});
         } else {
             document.getElementById('authView').style.display = 'block'; document.getElementById('userProfileView').style.display = 'none'; document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>'; document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>'; activeSubscriptions = {}; notificationsBound = false; renderSubscriptions();
         }
@@ -2189,20 +2348,62 @@
         }
     };
 
-    // Referral reward: credit % of spending to referrer
+    // Referral reward: dynamic settings se reward lo (meta/referralSettings)
     async function processReferralReward(userId, spentAmount) {
         try {
+            // ── Step 1: Referral settings Firebase se fetch karo ──
+            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
+            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
+
+            // Program active hai ya nahi check karo
+            if(refSettings.active === false) return;
+
+            // ── Step 2: User ka referrer nikalo ──
             const userSnap = await get(ref(db, `users/${userId}/profile`));
             if(!userSnap.exists()) return;
             const referredBy = userSnap.val().referredBy;
             if(!referredBy) return;
-            const reward = spentAmount * 0.05; // 5% referral reward
+
+            // ── Step 3: Minimum order check ──
+            const minOrder = parseFloat(refSettings.minOrder || 0);
+            if(minOrder > 0 && spentAmount < minOrder) return;
+
+            // ── Step 4: Reward calculate karo ──
+            // rewardAmount > 0 ho to flat amount, warna 0 (admin ne set kiya)
+            const rewardAmount = parseFloat(refSettings.rewardAmount || 0);
+            if(rewardAmount <= 0) return;
+            const reward = rewardAmount;
+
+            // ── Step 5: Referrer ki profile fetch karo ──
             const refSnap = await get(ref(db, `users/${referredBy}/profile`));
             if(!refSnap.exists()) return;
-            const refBal = parseFloat(refSnap.val().walletBalance || 0);
-            const refEarned = parseFloat(refSnap.val().referralEarned || 0);
-            await update(ref(db, `users/${referredBy}/profile`), { walletBalance: refBal + reward, referralEarned: refEarned + reward });
-            await push(ref(db, `users/${referredBy}/walletHistory`), { type: 'referral', amount: reward, note: 'Referral Reward (5% of referral spend)', createdAt: new Date().toISOString() });
+            const refProfile = refSnap.val();
+            const refBal = parseFloat(refProfile.walletBalance || 0);
+            const refEarned = parseFloat(refProfile.referralEarned || 0);
+
+            // ── Step 6: maxRewardPerUser check ──
+            const maxReward = parseFloat(refSettings.maxRewardPerUser || 0);
+            if(maxReward > 0 && refEarned >= maxReward) return;
+
+            // Agar max limit ke paas ho to partial reward do
+            const actualReward = (maxReward > 0) ? Math.min(reward, maxReward - refEarned) : reward;
+            if(actualReward <= 0) return;
+
+            // ── Step 7: Wallet update karo ──
+            const noteDesc = refSettings.description
+                ? `Referral Reward — ${refSettings.description}`
+                : `Referral Reward (₹${actualReward.toFixed(2)} per referral)`;
+
+            await update(ref(db, `users/${referredBy}/profile`), {
+                walletBalance: refBal + actualReward,
+                referralEarned: refEarned + actualReward
+            });
+            await push(ref(db, `users/${referredBy}/walletHistory`), {
+                type: 'referral',
+                amount: actualReward,
+                note: noteDesc,
+                createdAt: new Date().toISOString()
+            });
         } catch(e) {}
     }
 
@@ -2227,6 +2428,52 @@
         onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } if(_firstProductLoad) { _firstProductLoad = false; openCategory('Instagram'); } });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
+
+        // ── REFERRAL PROGRAM INFO (Admin se dynamic) ──
+        onValue(ref(db, 'meta/referralSettings'), s => {
+            const infoBox = document.getElementById('refProgramInfoBox');
+            if(!infoBox) return;
+            if(!s.exists()) return;
+            const rs = s.val();
+            infoBox.style.display = 'block';
+
+            // Reward amount
+            const rewardEl = document.getElementById('refInfoReward');
+            const rewardValEl = document.getElementById('refInfoRewardVal');
+            if(parseFloat(rs.rewardAmount || 0) > 0) {
+                rewardValEl.textContent = '₹' + parseFloat(rs.rewardAmount).toFixed(0);
+                rewardEl.style.display = 'block';
+            } else { rewardEl.style.display = 'none'; }
+
+            // Min order
+            const minEl = document.getElementById('refInfoMinOrder');
+            const minValEl = document.getElementById('refInfoMinOrderVal');
+            if(parseFloat(rs.minOrder || 0) > 0) {
+                minValEl.textContent = '₹' + parseFloat(rs.minOrder).toFixed(0);
+                minEl.style.display = 'block';
+            } else { minEl.style.display = 'none'; }
+
+            // Max reward cap
+            const capEl = document.getElementById('refInfoMaxCap');
+            const capValEl = document.getElementById('refInfoMaxCapVal');
+            if(parseFloat(rs.maxRewardPerUser || 0) > 0) {
+                capValEl.textContent = '₹' + parseFloat(rs.maxRewardPerUser).toFixed(0);
+                capEl.style.display = 'block';
+            } else { capEl.style.display = 'none'; }
+
+            // Description
+            const descEl = document.getElementById('refInfoDesc');
+            if(rs.description && rs.description.trim()) {
+                descEl.textContent = rs.description.trim();
+                descEl.style.display = 'block';
+            } else { descEl.style.display = 'none'; }
+
+            // Active status
+            const inactiveEl = document.getElementById('refProgramInactive');
+            if(rs.active === false) {
+                inactiveEl.style.display = 'block';
+            } else { inactiveEl.style.display = 'none'; }
+        });
 
         // ── ANNOUNCEMENT BANNER ──
         onValue(ref(db, 'meta/announcement'), s => {
@@ -2576,13 +2823,13 @@
     window.applyCoupon = () => { 
         const code = document.getElementById('chkCouponInput').value.trim().toUpperCase(); const msg = document.getElementById('chkCouponMsg'); if(!code) return;
         let validCoupon = null; let cKey = null; Object.entries(couponsData).forEach(([key, cp]) => { if(cp.code === code && cp.isActive !== false) { validCoupon = cp; cKey = key; } });
-        if(!validCoupon) { msg.textContent = 'Invalid or expired coupon!'; msg.style.color = 'var(--accent-pink)'; return; }
-        if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { msg.textContent = 'Coupon limit reached!'; msg.style.color = 'var(--accent-pink)'; return; }
+        if(!validCoupon) { setMsg(msg,'error','Invalid or expired coupon'); return; }
+        if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { setMsg(msg,'warn','Coupon usage limit reached'); return; }
         let basePrice = checkoutItem.purchaseType === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price); let discount = 0;
         // ── Minimum order check (fixes admin-set minOrder not being enforced) ──
-        if(validCoupon.minOrder && parseFloat(validCoupon.minOrder) > 0 && basePrice < parseFloat(validCoupon.minOrder)) { msg.textContent = `Minimum order ₹${validCoupon.minOrder} required for this coupon!`; msg.style.color = 'var(--accent-pink)'; return; }
+        if(validCoupon.minOrder && parseFloat(validCoupon.minOrder) > 0 && basePrice < parseFloat(validCoupon.minOrder)) { setMsg(msg,'warn',`Minimum order ₹${validCoupon.minOrder} required`); return; }
         if(validCoupon.discountType === 'percentage') { discount = basePrice * (parseFloat(validCoupon.discountValue) / 100); } else { discount = parseFloat(validCoupon.discountValue); }
-        checkoutFinalAmt = Math.max(0, basePrice - discount); appliedCouponKey = cKey; msg.textContent = `Coupon applied! You saved ₹${discount.toFixed(2)}`; msg.style.color = '#10b981';
+        checkoutFinalAmt = Math.max(0, basePrice - discount); appliedCouponKey = cKey; setMsg(msg,'success',`Coupon applied! You saved ₹${discount.toFixed(2)}`);
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt.toFixed(2)}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
         
         // Update Wallet Button Text dynamically after coupon
@@ -3152,13 +3399,13 @@
         if(!code) return;
         let validCoupon = null; let cKey = null;
         Object.entries(couponsData).forEach(([key, cp]) => { if(cp.code === code && cp.isActive !== false) { validCoupon = cp; cKey = key; } });
-        if(!validCoupon) { msg.textContent = 'Invalid or expired coupon!'; msg.style.color = '#ef4444'; return; }
-        if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { msg.textContent = 'Coupon limit reached!'; msg.style.color = '#ef4444'; return; }
+        if(!validCoupon) { setMsg(msg,'error','Invalid or expired coupon'); return; }
+        if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { setMsg(msg,'warn','Coupon usage limit reached'); return; }
         const sub = getCartSubtotal();
-        if(validCoupon.minOrder && sub < validCoupon.minOrder) { msg.textContent = `Minimum order ₹${validCoupon.minOrder} required!`; msg.style.color = '#ef4444'; return; }
+        if(validCoupon.minOrder && sub < validCoupon.minOrder) { setMsg(msg,'warn',`Minimum order ₹${validCoupon.minOrder} required`); return; }
         let discount = validCoupon.discountType === 'percentage' ? sub * (parseFloat(validCoupon.discountValue) / 100) : parseFloat(validCoupon.discountValue);
         cartCouponDiscount = discount; cartAppliedCoupon = cKey;
-        msg.textContent = `Coupon applied! You saved ₹${discount.toFixed(2)}`; msg.style.color = '#10b981';
+        setMsg(msg,'success',`Coupon applied! You saved ₹${discount.toFixed(2)}`);
         updateCartTotals();
     };
 
@@ -3496,7 +3743,7 @@
         const msg = document.getElementById('giftCodeMsg');
         const btn = document.getElementById('giftRedeemBtn');
         if(!code) { 
-            msg.textContent = '⚠️ Enter a gift code'; msg.style.color = 'var(--accent-cyan)'; 
+            setMsg(msg,'warn','Enter a gift code'); 
             const inp = document.getElementById('giftCodeInput');
             inp.classList.remove('gift-input-shake');
             void inp.offsetWidth; // reflow
@@ -3508,29 +3755,29 @@
         try {
             // Read gift codes (needs giftCodes .read: true in rules)
             const snap = await get(ref(db, 'giftCodes'));
-            if(!snap.exists()) { hideLoader(); msg.textContent = '❌ Invalid gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(!snap.exists()) { hideLoader(); setMsg(msg,'error','Invalid gift code'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             let foundKey = null, foundCode = null;
             snap.forEach(c => { if((c.val().code || '').toUpperCase() === code && c.val().isActive !== false) { foundKey = c.key; foundCode = c.val(); } });
-            if(!foundKey) { hideLoader(); msg.textContent = '❌ Invalid or expired gift code'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(!foundKey) { hideLoader(); setMsg(msg,'error','Invalid or expired gift code'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             
             // Check if already redeemed — stored in user profile to avoid permission issues
             const alreadySnap = await get(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`));
-            if(alreadySnap.exists()) { hideLoader(); msg.textContent = '❌ You have already redeemed this code!'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(alreadySnap.exists()) { hideLoader(); setMsg(msg,'warn','You have already redeemed this code!'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             
             // Check time expiry
             if(foundCode.expiresAt) {
-                if(new Date() > new Date(foundCode.expiresAt)) { hideLoader(); msg.textContent = '❌ This gift code has expired'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+                if(new Date() > new Date(foundCode.expiresAt)) { hideLoader(); setMsg(msg,'error','This gift code has expired'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             }
             
             // Check user limit
             const usedCount = parseInt(foundCode.usedCount || 0);
             if(foundCode.maxUsers && parseInt(foundCode.maxUsers) > 0 && usedCount >= parseInt(foundCode.maxUsers)) {
-                hideLoader(); msg.textContent = '❌ Gift code usage limit reached'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return;
+                hideLoader(); setMsg(msg,'error','Gift code usage limit reached'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return;
             }
             
             // Validate reward amount
             const rewardAmt = parseFloat(foundCode.amount || 0);
-            if(rewardAmt <= 0) { hideLoader(); msg.textContent = '❌ Invalid reward amount'; msg.style.color = '#ef4444'; if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
+            if(rewardAmt <= 0) { hideLoader(); setMsg(msg,'error','Invalid reward amount'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             
             // Get current balance
             const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
@@ -3565,11 +3812,10 @@
         } catch(e) {
             hideLoader();
             if(e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('permission'))) {
-                msg.textContent = '❌ Permission error — please contact support';
+                setMsg(msg,'error','Permission error — please contact support');
             } else {
-                msg.textContent = '❌ Error: ' + e.message;
+                setMsg(msg,'error','Error: ' + e.message);
             }
-            msg.style.color = '#ef4444';
             if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-gift"></i> Redeem Gift Code'; }
         }
     };
@@ -3594,6 +3840,25 @@
             }).catch(()=>{});
         } catch(e) {}
     }
+
+    window.copyReferralLink = () => {
+        const inp = document.getElementById('referralLinkDisplay');
+        if(!inp || !inp.value || !currentUser) return showToast('Please login first');
+        if(navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(inp.value).then(() => showToast('✅ Referral link copied!'));
+        } else {
+            inp.select(); document.execCommand('copy'); showToast('✅ Referral link copied!');
+        }
+    };
+    window.shareReferralLink = () => {
+        const inp = document.getElementById('referralLinkDisplay');
+        if(!inp || !inp.value || !currentUser) return showToast('Please login first');
+        if(navigator.share) {
+            navigator.share({ title: 'Join & Get Rewards!', text: 'Use my referral link to join:', url: inp.value }).catch(()=>{});
+        } else {
+            window.open('https://wa.me/?text=' + encodeURIComponent('Join using my link: ' + inp.value), '_blank');
+        }
+    };
 
     loadPublicData(); window.switchTab = switchTab;
 </script>
