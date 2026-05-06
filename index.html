@@ -409,10 +409,12 @@
             position: fixed; inset: 0; z-index: 3000;
             background: rgba(15,23,42,0.85);
             backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            display: none; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             flex-direction: column; gap: 0;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
         }
-        #payVerifyOverlay.active { display: flex; }
+        #payVerifyOverlay.active { opacity: 1; pointer-events: all; }
         .pvo-card {
             background: var(--card-solid, #fff);
             border-radius: 24px;
@@ -1578,16 +1580,20 @@
                 <circle class="pvo-tick-circle" cx="26" cy="26" r="25"/>
                 <path class="pvo-tick-check" d="M14 27 l8 8 l16-16"/>
             </svg>`;
-        label.textContent = 'Payment Verified! ✅';
-        sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
+        // Only set default text if caller hasn't already set custom labels
+        if(!label.dataset.customSet) {
+            label.textContent = 'Payment Verified! ✅';
+            sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
+        }
+        label.dataset.customSet = '';
 
         setTimeout(() => {
             const overlay = document.getElementById('payVerifyOverlay');
             overlay.classList.remove('active');
-            // Small delay after overlay hides so transition is clean before tab switch
+            // Switch tab after overlay CSS transition completes (transition: ~300ms)
             setTimeout(() => {
                 if(onDone) onDone();
-            }, 80);
+            }, 350);
         }, 1400);
     }
 
@@ -3081,7 +3087,7 @@
             showPayVerify();
             const _pvoLabelW = document.getElementById('pvoLabel');
             const _pvoSubW   = document.getElementById('pvoSublabel');
-            if(_pvoLabelW) _pvoLabelW.textContent = 'Order Placed! ✅';
+            if(_pvoLabelW) { _pvoLabelW.textContent = 'Order Placed! ✅'; _pvoLabelW.dataset.customSet = '1'; }
             if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Wallet Payment Successful! Order Placed.');
@@ -3217,7 +3223,7 @@
             showPayVerify();
             const _pvoLabel = document.getElementById('pvoLabel');
             const _pvoSub   = document.getElementById('pvoSublabel');
-            if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
+            if(_pvoLabel) { _pvoLabel.textContent = 'Order Placed! 🎁'; _pvoLabel.dataset.customSet = '1'; }
             if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('🎁 Free Service Claimed! Order Placed.');
@@ -3543,7 +3549,7 @@
             playOrderSuccessSound();
             const _pvoLabelC = document.getElementById('pvoLabel');
             const _pvoSubC   = document.getElementById('pvoSublabel');
-            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
+            if(_pvoLabelC) { _pvoLabelC.textContent = 'Payment Verified! ✅'; _pvoLabelC.dataset.customSet = '1'; }
             if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Payment Verified! All orders placed successfully!');
@@ -3651,7 +3657,7 @@
             playOrderSuccessSound();
             const _pvoLabelCW = document.getElementById('pvoLabel');
             const _pvoSubCW   = document.getElementById('pvoSublabel');
-            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
+            if(_pvoLabelCW) { _pvoLabelCW.textContent = 'Order Placed! ✅'; _pvoLabelCW.dataset.customSet = '1'; }
             if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Wallet Payment Successful! Orders placed!');
