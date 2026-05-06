@@ -477,6 +477,47 @@
 
         .pvo-label { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px; }
         .pvo-sublabel { font-size:12px; color:var(--text-secondary); font-weight:500; line-height:1.5; }
+        /* ── ORDER SUMMARY PAGE (inside payVerifyOverlay) ── */
+        #orderSummaryPage {
+            display: none;
+            position: absolute; inset: 0;
+            align-items: center; justify-content: center;
+            padding: 20px;
+            animation: pvoIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        #orderSummaryPage.visible { display: flex; }
+        .osm-card {
+            background: var(--card-solid, #fff);
+            border-radius: 24px;
+            padding: 28px 24px 24px;
+            width: 100%; max-width: 320px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+            text-align: center;
+        }
+        .osm-icon-wrap {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: rgba(16,185,129,0.12);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px;
+        }
+        .osm-icon-wrap svg { width: 36px; height: 36px; }
+        .osm-title { font-size: 17px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.4px; }
+        .osm-subtitle { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 18px; }
+        .osm-divider { height: 1px; background: var(--border-color, #e2e8f0); margin: 14px 0; }
+        .osm-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
+        .osm-row-label { color: var(--text-secondary); font-weight: 500; }
+        .osm-row-value { color: var(--text-primary); font-weight: 700; max-width: 170px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .osm-amount { font-size: 26px; font-weight: 800; color: var(--accent-cyan, #2563eb); letter-spacing: -0.5px; margin: 10px 0 4px; }
+        .osm-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 16px; }
+        .osm-status-pending { background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.25); }
+        .osm-status-progress { background: rgba(59,130,246,0.12); color: #2563eb; border: 1px solid rgba(59,130,246,0.25); }
+        .osm-status-free { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.25); }
+        .osm-btn-row { display: flex; gap: 10px; margin-top: 18px; }
+        .osm-btn { flex: 1; padding: 12px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; }
+        .osm-btn-home { background: var(--input-bg, #f8fafc); color: var(--text-primary); border: 1px solid var(--border-color, #e2e8f0); }
+        .osm-btn-home:hover { border-color: var(--accent-cyan, #2563eb); color: var(--accent-cyan, #2563eb); }
+        .osm-btn-orders { background: var(--accent-cyan, #2563eb); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+        .osm-btn-orders:hover { background: var(--accent-purple, #1e3a8a); }
     </style>
 </head>
 <body class="light-mode">
@@ -1378,7 +1419,7 @@
 
 <!-- PAYMENT VERIFICATION OVERLAY -->
 <div id="payVerifyOverlay">
-    <div class="pvo-card">
+    <div class="pvo-card" id="pvoCard">
         <div class="pvo-ring-wrap">
             <svg viewBox="0 0 72 72" width="72" height="72">
                 <circle class="pvo-ring-bg" cx="36" cy="36" r="29" stroke-width="5"/>
@@ -1394,6 +1435,33 @@
         </div>
         <div id="pvoLabel" class="pvo-label">Verifying Payment...</div>
         <div id="pvoSublabel" class="pvo-sublabel">Please wait while we<br>confirm your transaction</div>
+    </div>
+    <!-- ORDER SUMMARY PAGE -->
+    <div id="orderSummaryPage">
+        <div class="osm-card">
+            <div class="osm-icon-wrap">
+                <svg viewBox="0 0 52 52" fill="none">
+                    <circle cx="26" cy="26" r="25" stroke="#10b981" stroke-width="2" fill="rgba(16,185,129,0.08)"/>
+                    <path d="M14 27 l8 8 l16-16" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-dasharray="48" stroke-dashoffset="48"
+                        style="animation: pvoCStroke 0.4s ease 0.1s forwards;"/>
+                </svg>
+            </div>
+            <div class="osm-title" id="osmTitle">Order Placed!</div>
+            <div class="osm-subtitle" id="osmSubtitle">Payment verified successfully</div>
+            <div class="osm-amount" id="osmAmount">₹0.00</div>
+            <div id="osmStatusBadge"></div>
+            <div class="osm-divider"></div>
+            <div id="osmRows"></div>
+            <div class="osm-btn-row">
+                <button class="osm-btn osm-btn-home" onclick="closeOrderSummary('homeTab')">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="osm-btn osm-btn-orders" onclick="closeOrderSummary('ordersTab')">
+                    <i class="fas fa-receipt"></i> My Orders
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1567,35 +1635,84 @@
         overlay.classList.add('active');
     }
 
-    function showPayVerifySuccess(onDone) {
+    // Show tick animation then slide to order summary
+    function showPayVerifySuccess(summaryData) {
         const icon  = document.getElementById('pvoIconCenter');
         const label = document.getElementById('pvoLabel');
         const sub   = document.getElementById('pvoSublabel');
 
-        // Swap dots → animated tick
         icon.innerHTML = `
             <svg class="pvo-tick-svg" viewBox="0 0 52 52">
                 <circle class="pvo-tick-circle" cx="26" cy="26" r="25"/>
                 <path class="pvo-tick-check" d="M14 27 l8 8 l16-16"/>
             </svg>`;
         label.textContent = 'Payment Verified! ✅';
-        sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
+        sub.innerHTML     = summaryData.isFree
+            ? 'Free service claimed!<br>Your order has been placed.'
+            : summaryData.isWalletTopup
+                ? 'Wallet credited successfully!'
+                : 'Order placed successfully!';
 
+        // After tick animation completes, swap to summary page
         setTimeout(() => {
-            const ov = document.getElementById('payVerifyOverlay');
-            ov.classList.remove('active');
-            ov.style.display = 'none';
-            if(onDone) onDone();
-            // Restore display after so future payments work
-            setTimeout(() => { ov.style.display = ''; }, 200);
-        }, 1000);
+            document.getElementById('pvoCard').style.display = 'none';
+            _populateOrderSummary(summaryData);
+            document.getElementById('orderSummaryPage').classList.add('visible');
+            if(summaryData.notifyMsg) notifyLive(summaryData.notifyMsg);
+        }, 1200);
     }
 
-    function hidePayVerify() {
+    function _populateOrderSummary(d) {
+        // Amount
+        document.getElementById('osmAmount').textContent = d.isWalletTopup ? '+₹' + d.amount : '₹' + d.amount;
+
+        // Title & subtitle
+        document.getElementById('osmTitle').textContent = d.isWalletTopup ? 'Wallet Credited!' : d.isFree ? 'Free Order Placed!' : 'Order Placed!';
+        document.getElementById('osmSubtitle').textContent = d.isWalletTopup ? 'Balance added to your wallet' : d.isCart ? d.itemCount + ' item(s) ordered successfully' : 'Payment verified successfully';
+
+        // Status badge
+        const badgeEl = document.getElementById('osmStatusBadge');
+        if(d.isWalletTopup) {
+            badgeEl.innerHTML = '<span class="osm-status-badge osm-status-free"><i class="fas fa-check-circle"></i> Completed</span>';
+        } else if(d.isFree) {
+            badgeEl.innerHTML = '<span class="osm-status-badge osm-status-free"><i class="fas fa-gift"></i> Free Service</span>';
+        } else if(d.status === 'progress') {
+            badgeEl.innerHTML = '<span class="osm-status-badge osm-status-progress"><i class="fas fa-spinner fa-spin"></i> Processing</span>';
+        } else {
+            badgeEl.innerHTML = '<span class="osm-status-badge osm-status-pending"><i class="fas fa-clock"></i> Pending Validation</span>';
+        }
+
+        // Detail rows
+        const rows = [];
+        if(d.product) rows.push(['Service', d.product]);
+        if(d.utr)     rows.push(['Ref / UTR', d.utr]);
+        if(d.method)  rows.push(['Payment', d.method]);
+        const now = new Date();
+        rows.push(['Date', now.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})]);
+        rows.push(['Time', now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})]);
+
+        document.getElementById('osmRows').innerHTML = rows.map(([l,v]) =>
+            `<div class="osm-row"><span class="osm-row-label">${l}</span><span class="osm-row-value" title="${v}">${v}</span></div>`
+        ).join('');
+    }
+
+    window.closeOrderSummary = (tab) => {
         const ov = document.getElementById('payVerifyOverlay');
         ov.classList.remove('active');
-        ov.style.display = 'none';
-        setTimeout(() => { ov.style.display = ''; }, 200);
+        // Reset for next use
+        setTimeout(() => {
+            document.getElementById('pvoCard').style.display = '';
+            document.getElementById('orderSummaryPage').classList.remove('visible');
+        }, 300);
+        switchTab(tab);
+    };
+
+    function hidePayVerify() {
+        document.getElementById('payVerifyOverlay').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('pvoCard').style.display = '';
+            document.getElementById('orderSummaryPage').classList.remove('visible');
+        }, 300);
     }
 
     const themeBtn = document.getElementById('themeToggle');
@@ -2343,15 +2460,14 @@
 
             playOrderSuccessSound();
             // Show wallet-specific success message
-            const _pvoLabel = document.getElementById('pvoLabel');
-            const _pvoSub   = document.getElementById('pvoSublabel');
-            showPayVerifySuccess(() => {
-                closeWalletFund();
-                notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`);
-                switchTab('walletTab');
+            closeWalletFund();
+            showPayVerifySuccess({
+                amount: paidVal.toFixed(2),
+                isWalletTopup: true,
+                utr: utr,
+                method: 'UPI',
+                notifyMsg: '✅ ₹' + paidVal.toFixed(2) + ' added to your wallet!'
             });
-            if(_pvoLabel) _pvoLabel.textContent = 'Wallet Credited! ✅';
-            if(_pvoSub)   _pvoSub.innerHTML = `₹${paidVal.toFixed(2)} added successfully.<br>Redirecting to wallet...`;
         } catch(e) { 
             hidePayVerify(); 
             showToast('❌ Error: ' + e.message); 
@@ -2948,9 +3064,13 @@
             _resetBtn();
             closeCheckout(); 
             playOrderSuccessSound();
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
-                switchTab('ordersTab');
+            showPayVerifySuccess({
+                amount: checkoutFinalAmt.toFixed(2),
+                product: checkoutItem.title || checkoutItem.planName || 'Service',
+                utr: utr,
+                method: 'UPI',
+                status: orderData.status,
+                notifyMsg: '✅ Payment Verified & Order Placed Successfully!'
             });
 
             // Update user totalSpent and process referral reward
@@ -3085,12 +3205,14 @@
             const _pvoSubW   = document.getElementById('pvoSublabel');
             showPayVerify();
             setTimeout(() => {
-                showPayVerifySuccess(() => {
-                    notifyLive('✅ Wallet Payment Successful! Order Placed.');
-                    switchTab('ordersTab');
+                showPayVerifySuccess({
+                    amount: checkoutFinalAmt.toFixed(2),
+                    product: checkoutItem.title || checkoutItem.planName || 'Service',
+                    utr: utr,
+                    method: 'Wallet',
+                    status: orderData.status,
+                    notifyMsg: '✅ Wallet Payment Successful! Order Placed.'
                 });
-                if(_pvoLabelW) _pvoLabelW.textContent = 'Order Placed! ✅';
-                if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
             }, 100);
 
             // Spend tracking & Referral
@@ -3221,14 +3343,15 @@
             hideLoader();
             showPayVerify();
             setTimeout(() => {
-                showPayVerifySuccess(() => {
-                    notifyLive('🎁 Free Service Claimed! Order Placed.');
-                    switchTab('ordersTab');
+                showPayVerifySuccess({
+                    amount: '0.00',
+                    product: checkoutItem.title || checkoutItem.planName || 'Service',
+                    utr: null,
+                    method: 'Free',
+                    isFree: true,
+                    status: orderData.status,
+                    notifyMsg: '🎁 Free Service Claimed! Order Placed.'
                 });
-                const _pvoLabel = document.getElementById('pvoLabel');
-                const _pvoSub   = document.getElementById('pvoSublabel');
-                if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
-                if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
             }, 100);
 
             // Start countdown immediately on the card (if still visible)
@@ -3544,17 +3667,20 @@
             // Send Telegram notification (non-blocking)
             sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
 
+            const cartItemCount = cart.length;
             cart = []; updateCartBadge();
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            const _pvoLabelC = document.getElementById('pvoLabel');
-            const _pvoSubC   = document.getElementById('pvoSublabel');
-            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
-            if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Payment Verified! All orders placed successfully!');
-                switchTab('ordersTab');
+            showPayVerifySuccess({
+                amount: paidVal.toFixed(2),
+                product: cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service'),
+                utr: utr,
+                method: 'UPI',
+                isCart: true,
+                itemCount: cartItemCount,
+                status: 'pending',
+                notifyMsg: '✅ Payment Verified! All orders placed successfully!'
             });
         } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
@@ -3652,17 +3778,20 @@
 
             sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
+            const cartItemCount = cart.length;
             cart = []; updateCartBadge();
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            const _pvoLabelCW = document.getElementById('pvoLabel');
-            const _pvoSubCW   = document.getElementById('pvoSublabel');
-            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
-            if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Wallet Payment Successful! Orders placed!');
-                switchTab('ordersTab');
+            showPayVerifySuccess({
+                amount: cartFinalAmt.toFixed(2),
+                product: cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service'),
+                utr: utr,
+                method: 'Wallet',
+                isCart: true,
+                itemCount: cartItemCount,
+                status: 'pending',
+                notifyMsg: '✅ Wallet Payment Successful! Orders placed!'
             });
         } catch(e) { 
             _unlockOrder();
