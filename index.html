@@ -1904,7 +1904,9 @@
         e.preventDefault(); isSignupMode = !isSignupMode; document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back'; document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?'; document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up'; document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
     });
 
-    document.getElementById('authSubmitBtn').addEventListener('click', async () => { 
+    document.getElementById('authSubmitBtn').addEventListener('click', _origAdminHandler);
+
+    async function _origAdminHandler() { 
         const email = document.getElementById('authEmail').value; 
         const pass = document.getElementById('authPassword').value; 
         const name = document.getElementById('authName').value;
@@ -1914,7 +1916,9 @@
             if(isSignupMode) { 
                 const cred = await createUserWithEmailAndPassword(auth, email, pass); 
                 await updateProfile(cred.user, { displayName: name }); 
-                await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
+                try {
+                    await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 });
+                } catch(_dbErr) { /* Auth succeeded — profile write failed silently, onAuthStateChanged will handle login */ }
                 showToast('Account Created!'); 
             } else { 
                 await signInWithEmailAndPassword(auth, email, pass); 
@@ -1955,7 +1959,7 @@
             return;
         } 
         hideLoader();
-    });
+    }
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
@@ -2024,14 +2028,19 @@
                     showToast('Error: ' + err.message.replace('Firebase: ', ''));
                 }
             }
-            // Restore normal UI
+            // Restore normal UI and remove this one-time handler
+            document.getElementById('authSubmitBtn').removeEventListener('click', _linkHandler);
+            document.getElementById('authSubmitBtn').addEventListener('click', _origAdminHandler);
             if(authTitle) authTitle.textContent = 'Welcome Back';
             if(authToggleText) authToggleText.textContent = "Don't have an account?";
             if(authSubmitBtn) { authSubmitBtn.innerHTML = '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; authSubmitBtn.onclick = null; }
             if(emailInput) emailInput.readOnly = false;
             hideLoader();
         }
-        document.getElementById('authSubmitBtn').onclick = _linkHandler;
+        // Temporarily detach original handler to prevent double-fire
+        document.getElementById('authSubmitBtn').removeEventListener('click', _origAdminHandler);
+        document.getElementById('authSubmitBtn').addEventListener('click', _linkHandler);
+        document.getElementById('authSubmitBtn').onclick = null;
         showToast('Enter your password to link Google to your account');
     }
 
@@ -2117,6 +2126,7 @@
     onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
+            hideLoader();
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
@@ -2151,6 +2161,17 @@
             }).catch(()=>{});
         } else {
             document.getElementById('authView').style.display = 'block'; document.getElementById('userProfileView').style.display = 'none'; document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>'; document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>'; activeSubscriptions = {}; notificationsBound = false; renderSubscriptions();
+            // Reset all user-specific state on logout
+            walletBalance = 0; cart = []; updateCartBadge(); _allWalletTxns = []; renderWalletHistory();
+            document.getElementById('walletBalance').textContent = '₹0.00';
+            document.getElementById('walletRefAmount').textContent = '₹0.00';
+            document.getElementById('profileStatWallet').textContent = '₹0';
+            document.getElementById('profileStatRef').textContent = '₹0';
+            document.getElementById('profileStatOrders').textContent = '0';
+            document.getElementById('refTotalJoined').textContent = '0';
+            document.getElementById('refTotalEarned').textContent = '₹0';
+            if(document.getElementById('referralLinkDisplay')) document.getElementById('referralLinkDisplay').value = '';
+            hideLoader();
         }
     });
 
