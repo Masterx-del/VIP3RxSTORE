@@ -1581,17 +1581,21 @@
         label.textContent = 'Payment Verified! ✅';
         sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
 
-        // Immediately call onDone (tab switch happens right away)
-        if(onDone) onDone();
-
-        // Overlay closes after animation plays in background
         setTimeout(() => {
-            document.getElementById('payVerifyOverlay').classList.remove('active');
-        }, 1400);
+            const ov = document.getElementById('payVerifyOverlay');
+            ov.classList.remove('active');
+            ov.style.display = 'none';
+            if(onDone) onDone();
+            // Restore display after so future payments work
+            setTimeout(() => { ov.style.display = ''; }, 200);
+        }, 1000);
     }
 
     function hidePayVerify() {
-        document.getElementById('payVerifyOverlay').classList.remove('active');
+        const ov = document.getElementById('payVerifyOverlay');
+        ov.classList.remove('active');
+        ov.style.display = 'none';
+        setTimeout(() => { ov.style.display = ''; }, 200);
     }
 
     const themeBtn = document.getElementById('themeToggle');
