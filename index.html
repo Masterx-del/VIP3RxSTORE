@@ -1567,8 +1567,7 @@
         overlay.classList.add('active');
     }
 
-    function showPayVerifySuccess(onDone, labelText, subHtml) {
-        const overlay = document.getElementById('payVerifyOverlay');
+    function showPayVerifySuccess(onDone) {
         const icon  = document.getElementById('pvoIconCenter');
         const label = document.getElementById('pvoLabel');
         const sub   = document.getElementById('pvoSublabel');
@@ -1579,14 +1578,11 @@
                 <circle class="pvo-tick-circle" cx="26" cy="26" r="25"/>
                 <path class="pvo-tick-check" d="M14 27 l8 8 l16-16"/>
             </svg>`;
-        label.textContent = labelText || 'Payment Verified! ✅';
-        sub.innerHTML     = subHtml   || 'Order placed successfully.<br>Redirecting to orders...';
-
-        // Ensure overlay is visible (for wallet/free orders that skip showPayVerify)
-        overlay.classList.add('active');
+        label.textContent = 'Payment Verified! ✅';
+        sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
 
         setTimeout(() => {
-            overlay.classList.remove('active');
+            document.getElementById('payVerifyOverlay').classList.remove('active');
             if(onDone) onDone();
         }, 1400);
     }
@@ -2948,7 +2944,7 @@
             showPayVerifySuccess(() => {
                 notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
                 switchTab('ordersTab');
-            }, 'Payment Verified! ✅', 'Order placed successfully.<br>Redirecting to orders...');
+            });
 
             // Update user totalSpent and process referral reward
             get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
@@ -3078,10 +3074,17 @@
             closeCheckout();
             playOrderSuccessSound();
             hideLoader();
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Wallet Payment Successful! Order Placed.');
-                switchTab('ordersTab');
-            }, 'Order Placed! ✅', 'Wallet payment successful.<br>Redirecting to orders...');
+            const _pvoLabelW = document.getElementById('pvoLabel');
+            const _pvoSubW   = document.getElementById('pvoSublabel');
+            showPayVerify();
+            setTimeout(() => {
+                showPayVerifySuccess(() => {
+                    notifyLive('✅ Wallet Payment Successful! Order Placed.');
+                    switchTab('ordersTab');
+                });
+                if(_pvoLabelW) _pvoLabelW.textContent = 'Order Placed! ✅';
+                if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+            }, 100);
 
             // Spend tracking & Referral
             get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
@@ -3209,10 +3212,17 @@
             closeCheckout();
             playOrderSuccessSound();
             hideLoader();
-            showPayVerifySuccess(() => {
-                notifyLive('🎁 Free Service Claimed! Order Placed.');
-                switchTab('ordersTab');
-            }, 'Order Placed! 🎁', 'Free service claimed.<br>Redirecting to orders...');
+            showPayVerify();
+            setTimeout(() => {
+                showPayVerifySuccess(() => {
+                    notifyLive('🎁 Free Service Claimed! Order Placed.');
+                    switchTab('ordersTab');
+                });
+                const _pvoLabel = document.getElementById('pvoLabel');
+                const _pvoSub   = document.getElementById('pvoSublabel');
+                if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
+                if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
+            }, 100);
 
             // Start countdown immediately on the card (if still visible)
             const _infoEl = document.getElementById(`freeInfo_${checkoutItem.id}`);
@@ -3531,10 +3541,14 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
+            const _pvoLabelC = document.getElementById('pvoLabel');
+            const _pvoSubC   = document.getElementById('pvoSublabel');
+            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
+            if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Payment Verified! All orders placed successfully!');
                 switchTab('ordersTab');
-            }, 'Payment Verified! ✅', 'All orders placed successfully.<br>Redirecting to orders...');
+            });
         } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
 
@@ -3635,10 +3649,14 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
+            const _pvoLabelCW = document.getElementById('pvoLabel');
+            const _pvoSubCW   = document.getElementById('pvoSublabel');
+            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
+            if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Wallet Payment Successful! Orders placed!');
                 switchTab('ordersTab');
-            }, 'Order Placed! ✅', 'Wallet payment successful.<br>Redirecting to orders...');
+            });
         } catch(e) { 
             _unlockOrder();
             hidePayVerify(); showToast('❌ Error: ' + e.message); 
