@@ -1567,46 +1567,92 @@
         overlay.classList.add('active');
     }
 
-    // ── Visibility-aware redirect helper ─────────────────────────────────────
-    // Guarantees onDone() fires even if user was in UPI app / another tab.
-    // - If page is visible: normal 1400ms timer (smooth experience).
-    // - If page is hidden:  wait for it to become visible, then fire instantly.
-    // - Safety net: absolute 30s timeout so it never gets stuck forever.
-    let _pvoOnDoneRef = null; // holds pending callback across visibility changes
+    // ══════════════════════════════════════════════════════════════════════
+    // UNIVERSAL REDIRECT ENGINE — 5-layer bulletproof system
+    // Guarantees switchTab('ordersTab') fires in ALL conditions:
+    //   Layer 1 → Normal 1400ms timer (page visible, happy path)
+    //   Layer 2 → Page Visibility API (user returns from UPI app / another tab)
+    //   Layer 3 → focus event (some browsers fire focus but not visibilitychange)
+    //   Layer 4 → pageshow event (iOS Safari back/forward cache restore)
+    //   Layer 5 → Hard 45s absolute timeout (nuclear fallback, never gets stuck)
+    // Once fired, ALL layers are cancelled — executes exactly once.
+    // ══════════════════════════════════════════════════════════════════════
+    let _redirectPending = false;
+    let _redirectCallback = null;
+    let _redirectTimers = [];
+    let _redirectListeners = [];
+
+    function _cancelAllRedirectLayers() {
+        _redirectPending = false;
+        _redirectCallback = null;
+        _redirectTimers.forEach(t => clearTimeout(t));
+        _redirectTimers = [];
+        _redirectListeners.forEach(([evt, fn, target]) => (target || document).removeEventListener(evt, fn));
+        _redirectListeners = [];
+    }
+
+    function _execRedirect() {
+        if (!_redirectPending) return; // already fired — ignore duplicate triggers
+        const cb = _redirectCallback;
+        _cancelAllRedirectLayers();
+        try { document.getElementById('payVerifyOverlay').classList.remove('active'); } catch(e) {}
+        if (cb) cb();
+    }
+
+    function _addRedirectListener(evt, fn, target) {
+        const t = target || document;
+        t.addEventListener(evt, fn);
+        _redirectListeners.push([evt, fn, target]);
+    }
+
+    // Minimum delay after showPayVerifySuccess() before redirect fires.
+    // Ring animation = 3s, tick animation ≈ 1.2s → user needs to see the success
+    // screen for at least 2200ms AFTER the tick appears.
+    const _REDIRECT_MIN_DELAY = 2200;
+
     function _scheduleRedirect(onDone) {
-        // Clear any previous pending redirect
-        if(_pvoOnDoneRef) { _pvoOnDoneRef = null; }
+        // Cancel any previously pending redirect before setting up new one
+        _cancelAllRedirectLayers();
 
-        const _exec = () => {
-            _pvoOnDoneRef = null;
-            document.removeEventListener('visibilitychange', _visHandler);
-            document.getElementById('payVerifyOverlay').classList.remove('active');
-            if(onDone) onDone();
-        };
+        _redirectPending = true;
+        _redirectCallback = onDone;
 
-        let _timer = null;
-        let _safetyNet = null;
+        // Track when the success screen was shown so we can enforce minimum delay
+        const _successShownAt = Date.now();
 
-        const _visHandler = () => {
-            if(document.visibilityState === 'visible' && _pvoOnDoneRef) {
-                // Page just became visible — fire immediately
-                clearTimeout(_timer);
-                clearTimeout(_safetyNet);
-                _exec();
+        // Helper: fire redirect only after minimum animation delay has elapsed
+        function _execRedirectGuarded() {
+            const elapsed = Date.now() - _successShownAt;
+            const remaining = _REDIRECT_MIN_DELAY - elapsed;
+            if (remaining > 0) {
+                // Animation still playing — wait for the remaining time then fire
+                _redirectTimers.push(setTimeout(_execRedirect, remaining));
+            } else {
+                _execRedirect();
             }
-        };
-
-        _pvoOnDoneRef = onDone;
-        document.addEventListener('visibilitychange', _visHandler);
-
-        if(document.visibilityState === 'visible') {
-            // Page is currently visible — use normal 1400ms delay
-            _timer = setTimeout(_exec, 1400);
-        } else {
-            // Page is hidden (user in UPI app etc.) — fire the moment they return
-            // Also set a 30s safety net in case visibilitychange never fires
-            _safetyNet = setTimeout(_exec, 30000);
         }
+
+        // Layer 2: Page Visibility API — fires when user returns from UPI app
+        const _onVis = () => { if (document.visibilityState === 'visible') _execRedirectGuarded(); };
+        _addRedirectListener('visibilitychange', _onVis);
+
+        // Layer 3: window focus — catches browsers that skip visibilitychange
+        const _onFocus = () => _execRedirectGuarded();
+        _addRedirectListener('focus', _onFocus, window);
+
+        // Layer 4: pageshow — iOS Safari BFCache restore (back from UPI app)
+        const _onPageShow = (e) => { if (e.persisted || document.visibilityState === 'visible') _execRedirectGuarded(); };
+        _addRedirectListener('pageshow', _onPageShow, window);
+
+        if (document.visibilityState === 'visible') {
+            // Layer 1: page is visible right now — wait for minimum delay so
+            // the success animation (ring + tick) fully plays before redirecting
+            _redirectTimers.push(setTimeout(_execRedirect, _REDIRECT_MIN_DELAY));
+        }
+        // If page is hidden, layers 2/3/4 will catch the return and enforce delay.
+
+        // Layer 5: absolute nuclear timeout — fires no matter what after 45s
+        _redirectTimers.push(setTimeout(_execRedirect, 45000));
     }
 
     function showPayVerifySuccess(onDone) {
