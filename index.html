@@ -3541,14 +3541,17 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            const _pvoLabelC = document.getElementById('pvoLabel');
-            const _pvoSubC   = document.getElementById('pvoSublabel');
-            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
-            if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Payment Verified! All orders placed successfully!');
-                switchTab('ordersTab');
-            });
+            showPayVerify();
+            setTimeout(() => {
+                const _pvoLabelC = document.getElementById('pvoLabel');
+                const _pvoSubC   = document.getElementById('pvoSublabel');
+                if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
+                if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
+                showPayVerifySuccess(() => {
+                    notifyLive('✅ Payment Verified! All orders placed successfully!');
+                    switchTab('ordersTab');
+                });
+            }, 100);
         } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
 
@@ -3649,14 +3652,17 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            const _pvoLabelCW = document.getElementById('pvoLabel');
-            const _pvoSubCW   = document.getElementById('pvoSublabel');
-            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
-            if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
-            showPayVerifySuccess(() => {
-                notifyLive('✅ Wallet Payment Successful! Orders placed!');
-                switchTab('ordersTab');
-            });
+            showPayVerify();
+            setTimeout(() => {
+                const _pvoLabelCW = document.getElementById('pvoLabel');
+                const _pvoSubCW   = document.getElementById('pvoSublabel');
+                if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
+                if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+                showPayVerifySuccess(() => {
+                    notifyLive('✅ Wallet Payment Successful! Orders placed!');
+                    switchTab('ordersTab');
+                });
+            }, 100);
         } catch(e) { 
             _unlockOrder();
             hidePayVerify(); showToast('❌ Error: ' + e.message); 
