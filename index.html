@@ -1486,6 +1486,7 @@
     let currentUser = null; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
     let currentCatView = { level: 0, cat: '', subCat: '' };
+    let _ordersUnsubscribe = null;
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
     let _productsLoaded = false;
@@ -1615,7 +1616,7 @@
         document.querySelector('.content-area').scrollTo(0,0);
         // Force reload orders every time ordersTab is opened
         if(targetId === 'ordersTab' && currentUser) {
-            loadOrders();
+            if(!_ordersUnsubscribe) loadOrders();
         }
         // Reset userUnread badge when chat tab opened + scroll to latest message
         if(targetId === 'chatTab' && currentUser) {
@@ -2514,8 +2515,9 @@
 
     function loadOrders() {
         if(!currentUser) return;
+        if(_ordersUnsubscribe) { _ordersUnsubscribe(); _ordersUnsubscribe = null; }
         const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(currentUser.uid));
-        onValue(q, s => {
+        _ordersUnsubscribe = onValue(q, s => {
             const list = document.getElementById('ordersList'); activeSubscriptions = {}; 
             if(!s.exists()) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>'; renderSubscriptions(); return; }
             list.innerHTML = ''; const arr =[]; s.forEach(child => { arr.push({id: child.key, ...child.val()}); });
