@@ -1567,7 +1567,7 @@
         overlay.classList.add('active');
     }
 
-    function showPayVerifySuccess(onDone, labelText, subText) {
+    function showPayVerifySuccess(onDone) {
         const icon  = document.getElementById('pvoIconCenter');
         const label = document.getElementById('pvoLabel');
         const sub   = document.getElementById('pvoSublabel');
@@ -1578,12 +1578,16 @@
                 <circle class="pvo-tick-circle" cx="26" cy="26" r="25"/>
                 <path class="pvo-tick-check" d="M14 27 l8 8 l16-16"/>
             </svg>`;
-        if(label) label.textContent = labelText || 'Payment Verified! ✅';
-        if(sub)   sub.innerHTML     = subText   || 'Order placed successfully.<br>Redirecting to orders...';
+        label.textContent = 'Payment Verified! ✅';
+        sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
 
         setTimeout(() => {
-            document.getElementById('payVerifyOverlay').classList.remove('active');
-            if(onDone) onDone();
+            const overlay = document.getElementById('payVerifyOverlay');
+            overlay.classList.remove('active');
+            // Small delay after overlay hides so transition is clean before tab switch
+            setTimeout(() => {
+                if(onDone) onDone();
+            }, 80);
         }, 1400);
     }
 
@@ -2335,11 +2339,16 @@
             await push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
 
             playOrderSuccessSound();
-            showPayVerifySuccess(
-                () => { closeWalletFund(); notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`); switchTab('walletTab'); },
-                'Wallet Credited! ✅',
-                `₹${paidVal.toFixed(2)} added successfully.<br>Redirecting to wallet...`
-            );
+            // Show wallet-specific success message
+            const _pvoLabel = document.getElementById('pvoLabel');
+            const _pvoSub   = document.getElementById('pvoSublabel');
+            showPayVerifySuccess(() => {
+                closeWalletFund();
+                notifyLive(`✅ ₹${paidVal.toFixed(2)} added to your wallet!`);
+                switchTab('walletTab');
+            });
+            if(_pvoLabel) _pvoLabel.textContent = 'Wallet Credited! ✅';
+            if(_pvoSub)   _pvoSub.innerHTML = `₹${paidVal.toFixed(2)} added successfully.<br>Redirecting to wallet...`;
         } catch(e) { 
             hidePayVerify(); 
             showToast('❌ Error: ' + e.message); 
@@ -3070,13 +3079,14 @@
             playOrderSuccessSound();
             hideLoader();
             showPayVerify();
-            setTimeout(() => {
-                showPayVerifySuccess(
-                    () => { notifyLive('✅ Wallet Payment Successful! Order Placed.'); switchTab('ordersTab'); },
-                    'Order Placed! ✅',
-                    'Wallet payment successful.<br>Redirecting to orders...'
-                );
-            }, 100);
+            const _pvoLabelW = document.getElementById('pvoLabel');
+            const _pvoSubW   = document.getElementById('pvoSublabel');
+            if(_pvoLabelW) _pvoLabelW.textContent = 'Order Placed! ✅';
+            if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Wallet Payment Successful! Order Placed.');
+                switchTab('ordersTab');
+            });
 
             // Spend tracking & Referral
             get(ref(db, `users/${currentUser.uid}/profile`)).then(spentSnap => {
@@ -3205,13 +3215,14 @@
             playOrderSuccessSound();
             hideLoader();
             showPayVerify();
-            setTimeout(() => {
-                showPayVerifySuccess(
-                    () => { notifyLive('🎁 Free Service Claimed! Order Placed.'); switchTab('ordersTab'); },
-                    'Order Placed! 🎁',
-                    'Free service claimed.<br>Redirecting to orders...'
-                );
-            }, 100);
+            const _pvoLabel = document.getElementById('pvoLabel');
+            const _pvoSub   = document.getElementById('pvoSublabel');
+            if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
+            if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('🎁 Free Service Claimed! Order Placed.');
+                switchTab('ordersTab');
+            });
 
             // Start countdown immediately on the card (if still visible)
             const _infoEl = document.getElementById(`freeInfo_${checkoutItem.id}`);
@@ -3530,11 +3541,14 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            showPayVerifySuccess(
-                () => { notifyLive('✅ Payment Verified! All orders placed successfully!'); switchTab('ordersTab'); },
-                'Payment Verified! ✅',
-                'All orders placed successfully.<br>Redirecting to orders...'
-            );
+            const _pvoLabelC = document.getElementById('pvoLabel');
+            const _pvoSubC   = document.getElementById('pvoSublabel');
+            if(_pvoLabelC) _pvoLabelC.textContent = 'Payment Verified! ✅';
+            if(_pvoSubC)   _pvoSubC.innerHTML = 'All orders placed successfully.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Payment Verified! All orders placed successfully!');
+                switchTab('ordersTab');
+            });
         } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
 
@@ -3635,11 +3649,14 @@
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
-            showPayVerifySuccess(
-                () => { notifyLive('✅ Wallet Payment Successful! Orders placed!'); switchTab('ordersTab'); },
-                'Order Placed! ✅',
-                'Wallet payment successful.<br>Redirecting to orders...'
-            );
+            const _pvoLabelCW = document.getElementById('pvoLabel');
+            const _pvoSubCW   = document.getElementById('pvoSublabel');
+            if(_pvoLabelCW) _pvoLabelCW.textContent = 'Order Placed! ✅';
+            if(_pvoSubCW)   _pvoSubCW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
+            showPayVerifySuccess(() => {
+                notifyLive('✅ Wallet Payment Successful! Orders placed!');
+                switchTab('ordersTab');
+            });
         } catch(e) { 
             _unlockOrder();
             hidePayVerify(); showToast('❌ Error: ' + e.message); 
