@@ -1914,6 +1914,7 @@
     // ── Handle Google Redirect Result (on page load after redirect) ──
     getRedirectResult(auth).then(async (cred) => {
         if (!cred) return;
+        hideLoader();
         const user = cred.user;
         const profileSnap = await get(ref(db, `users/${user.uid}/profile`));
         if (!profileSnap.exists()) {
@@ -1928,6 +1929,7 @@
         }
         showToast('✅ Logged in with Google!');
     }).catch((e) => {
+        hideLoader();
         if (e.code && e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
             showToast('Google Sign In failed. Try again.');
         }
@@ -1960,8 +1962,8 @@
                     totalSpent: 0
                 });
             }
-            showToast('✅ Logged in with Google!');
             _resetBtn();
+            showToast('✅ Logged in with Google!');
         } catch(e) {
             // Account exists with email/password — link Google to existing account
             if (e.code === 'auth/account-exists-with-different-credential') {
