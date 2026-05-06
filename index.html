@@ -1649,6 +1649,9 @@
             _redirectTimers.push(setTimeout(_execRedirect, _REDIRECT_MIN_DELAY));
         }
         // If page is hidden, layers 2/3/4 will catch the return and enforce delay.
+
+        // Layer 5: absolute fallback — fires after 8s no matter what
+        _redirectTimers.push(setTimeout(_execRedirect, 8000));
     }
 
     function showPayVerifySuccess(onDone) {
