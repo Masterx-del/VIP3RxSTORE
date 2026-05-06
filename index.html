@@ -3214,14 +3214,14 @@
             hideLoader();
             showPayVerify();
             setTimeout(() => {
-                showPayVerifySuccess(() => {
-                    notifyLive('🎁 Free Service Claimed! Order Placed.');
-                    switchTab('ordersTab');
-                });
                 const _pvoLabel = document.getElementById('pvoLabel');
                 const _pvoSub   = document.getElementById('pvoSublabel');
                 if(_pvoLabel) _pvoLabel.textContent = 'Order Placed! 🎁';
                 if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
+                showPayVerifySuccess(() => {
+                    notifyLive('🎁 Free Service Claimed! Order Placed.');
+                    switchTab('ordersTab');
+                });
             }, 100);
 
             // Start countdown immediately on the card (if still visible)
