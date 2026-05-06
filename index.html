@@ -1567,6 +1567,48 @@
         overlay.classList.add('active');
     }
 
+    // ── Visibility-aware redirect helper ─────────────────────────────────────
+    // Guarantees onDone() fires even if user was in UPI app / another tab.
+    // - If page is visible: normal 1400ms timer (smooth experience).
+    // - If page is hidden:  wait for it to become visible, then fire instantly.
+    // - Safety net: absolute 30s timeout so it never gets stuck forever.
+    let _pvoOnDoneRef = null; // holds pending callback across visibility changes
+    function _scheduleRedirect(onDone) {
+        // Clear any previous pending redirect
+        if(_pvoOnDoneRef) { _pvoOnDoneRef = null; }
+
+        const _exec = () => {
+            _pvoOnDoneRef = null;
+            document.removeEventListener('visibilitychange', _visHandler);
+            document.getElementById('payVerifyOverlay').classList.remove('active');
+            if(onDone) onDone();
+        };
+
+        let _timer = null;
+        let _safetyNet = null;
+
+        const _visHandler = () => {
+            if(document.visibilityState === 'visible' && _pvoOnDoneRef) {
+                // Page just became visible — fire immediately
+                clearTimeout(_timer);
+                clearTimeout(_safetyNet);
+                _exec();
+            }
+        };
+
+        _pvoOnDoneRef = onDone;
+        document.addEventListener('visibilitychange', _visHandler);
+
+        if(document.visibilityState === 'visible') {
+            // Page is currently visible — use normal 1400ms delay
+            _timer = setTimeout(_exec, 1400);
+        } else {
+            // Page is hidden (user in UPI app etc.) — fire the moment they return
+            // Also set a 30s safety net in case visibilitychange never fires
+            _safetyNet = setTimeout(_exec, 30000);
+        }
+    }
+
     function showPayVerifySuccess(onDone) {
         const icon  = document.getElementById('pvoIconCenter');
         const label = document.getElementById('pvoLabel');
@@ -1581,10 +1623,7 @@
         label.textContent = 'Payment Verified! ✅';
         sub.innerHTML     = 'Order placed successfully.<br>Redirecting to orders...';
 
-        setTimeout(() => {
-            document.getElementById('payVerifyOverlay').classList.remove('active');
-            if(onDone) onDone();
-        }, 1400);
+        _scheduleRedirect(onDone);
     }
 
     function hidePayVerify() {
