@@ -1590,11 +1590,13 @@
         setTimeout(() => {
             const overlay = document.getElementById('payVerifyOverlay');
             overlay.classList.remove('active');
-            // Switch tab after overlay CSS transition completes (transition: ~300ms)
-            setTimeout(() => {
-                if(onDone) onDone();
-            }, 350);
-        }, 1400);
+            // Use requestAnimationFrame + setTimeout for reliable cross-environment execution
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if(onDone) onDone();
+                }, 400);
+            });
+        }, 1500);
     }
 
     function hidePayVerify() {
@@ -1611,6 +1613,10 @@
         if (targetId !== 'homeTab') { document.getElementById('categoryPane').style.display = 'none'; currentCatView.level = 0; }
         navItems.forEach(nav => { nav.classList.toggle('active', nav.dataset.target === targetId); });
         document.querySelector('.content-area').scrollTo(0,0);
+        // Force reload orders every time ordersTab is opened
+        if(targetId === 'ordersTab' && currentUser) {
+            loadOrders();
+        }
         // Reset userUnread badge when chat tab opened + scroll to latest message
         if(targetId === 'chatTab' && currentUser) {
             update(ref(db, `chats/${currentUser.uid}/info`), { userUnread: 0 });
@@ -2953,6 +2959,7 @@
             playOrderSuccessSound();
             showPayVerifySuccess(() => {
                 notifyLive('✅ Payment Verified & Order Placed Successfully!'); 
+                loadOrders();
                 switchTab('ordersTab');
             });
 
@@ -3091,6 +3098,7 @@
             if(_pvoSubW)   _pvoSubW.innerHTML = 'Wallet payment successful.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('✅ Wallet Payment Successful! Order Placed.');
+                loadOrders();
                 switchTab('ordersTab');
             });
 
@@ -3227,6 +3235,7 @@
             if(_pvoSub)   _pvoSub.innerHTML = 'Free service claimed.<br>Redirecting to orders...';
             showPayVerifySuccess(() => {
                 notifyLive('🎁 Free Service Claimed! Order Placed.');
+                loadOrders();
                 switchTab('ordersTab');
             });
 
