@@ -411,10 +411,10 @@
             backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
             display: flex; align-items: center; justify-content: center;
             flex-direction: column; gap: 0;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        #payVerifyOverlay.active { opacity: 1; pointer-events: all; }
+        #payVerifyOverlay.active { opacity: 1; visibility: visible; pointer-events: all; }
         .pvo-card {
             background: var(--card-solid, #fff);
             border-radius: 24px;
