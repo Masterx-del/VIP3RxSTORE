@@ -638,7 +638,7 @@
         </div>
 
         <div id="profileTab" class="tab-content">
-            <div id="authView" style="display:block;">
+            <div id="authView" style="display:none;">
                 <div class="card">
                     <h2 class="section-title" id="authTitle">Welcome Back</h2>
                     <p style="font-size:13px; color:var(--text-secondary); margin-bottom:24px;">Securely login to access your dashboard.</p>
@@ -1549,7 +1549,7 @@
         });
     }
 
-    let currentUser = null; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
+    let currentUser = null; let _authReady = false; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
@@ -2117,6 +2117,8 @@
     onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
+            _authReady = true;
+            hideLoader();
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
@@ -2150,7 +2152,9 @@
                 if(document.getElementById('refTotalJoined')) document.getElementById('refTotalJoined').textContent = cnt;
             }).catch(()=>{});
         } else {
+            _authReady = true;
             document.getElementById('authView').style.display = 'block'; document.getElementById('userProfileView').style.display = 'none'; document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>'; document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>'; activeSubscriptions = {}; notificationsBound = false; renderSubscriptions();
+            hideLoader();
         }
     });
 
@@ -3457,7 +3461,6 @@
         document.getElementById('cartCouponInput').value = '';
         document.getElementById('cartCouponMsg').textContent = '';
         cartAppliedCoupon = null; cartCouponDiscount = 0;
-        cart.forEach(item => { item.couponDiscount = 0; item.finalPrice = parseFloat(item.product.discountedPrice); });
         updateCartTotals();
 
         // Update Wallet Button text
@@ -3500,15 +3503,6 @@
 
     window.removeFromCart = (idx) => {
         cart.splice(idx, 1);
-        // Reset per-item discounts if coupon was applied
-        if(cartAppliedCoupon) {
-            const sub = cart.reduce((s, i) => s + parseFloat(i.product.discountedPrice), 0);
-            cart.forEach(item => {
-                const itemPrice = parseFloat(item.product.discountedPrice);
-                item.couponDiscount = sub > 0 ? (itemPrice / sub) * cartCouponDiscount : 0;
-                item.finalPrice = Math.max(0, itemPrice - item.couponDiscount);
-            });
-        }
         updateCartBadge();
         renderCartItems();
         updateCartTotals();
@@ -3546,17 +3540,9 @@
         if(validCoupon.usageLimit > 0 && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) { setMsg(msg,'warn','Coupon usage limit reached'); return; }
         const sub = getCartSubtotal();
         if(validCoupon.minOrder && sub < validCoupon.minOrder) { setMsg(msg,'warn',`Minimum order ₹${validCoupon.minOrder} required`); return; }
-        let totalDiscount = validCoupon.discountType === 'percentage' ? sub * (parseFloat(validCoupon.discountValue) / 100) : parseFloat(validCoupon.discountValue);
-        totalDiscount = Math.min(totalDiscount, sub);
-        // Apply proportional discount to each item individually
-        cart.forEach(item => {
-            const itemPrice = parseFloat(item.product.discountedPrice);
-            const itemDiscount = sub > 0 ? (itemPrice / sub) * totalDiscount : 0;
-            item.couponDiscount = itemDiscount;
-            item.finalPrice = Math.max(0, itemPrice - itemDiscount);
-        });
-        cartCouponDiscount = totalDiscount; cartAppliedCoupon = cKey;
-        setMsg(msg,'success',`Coupon applied! You saved ₹${totalDiscount.toFixed(2)}`);
+        let discount = validCoupon.discountType === 'percentage' ? sub * (parseFloat(validCoupon.discountValue) / 100) : parseFloat(validCoupon.discountValue);
+        cartCouponDiscount = discount; cartAppliedCoupon = cKey;
+        setMsg(msg,'success',`Coupon applied! You saved ₹${discount.toFixed(2)}`);
         updateCartTotals();
     };
 
@@ -3622,7 +3608,7 @@
                 const hasApi = !!(item.product.apiUrl && item.product.apiKey && item.product.serviceId && item.link);
                 const orderData = {
                     productId: item.id, productSnapshot: item.product, userId: currentUser.uid, userEmail: currentUser.email,
-                    finalAmount: (item.finalPrice !== undefined ? item.finalPrice : parseFloat(item.product.discountedPrice)).toFixed(2),
+                    finalAmount: (parseFloat(item.product.discountedPrice)).toFixed(2),
                     utrId: utr, targetLink: item.link, status: hasApi ? 'progress' : 'pending',
                     createdAt: new Date().toISOString(), isSubscription: false,
                     apiStatus: hasApi ? 'calling' : null, cartGroup: utr,
@@ -3735,7 +3721,7 @@
                 const hasApi = !!(item.product.apiUrl && item.product.apiKey && item.product.serviceId && item.link);
                 const orderData = {
                     productId: item.id, productSnapshot: item.product, userId: currentUser.uid, userEmail: currentUser.email,
-                    finalAmount: (item.finalPrice !== undefined ? item.finalPrice : parseFloat(item.product.discountedPrice)).toFixed(2),
+                    finalAmount: (parseFloat(item.product.discountedPrice)).toFixed(2),
                     utrId: utr, targetLink: item.link, status: hasApi ? 'progress' : 'pending',
                     createdAt: new Date().toISOString(), isSubscription: false,
                     apiStatus: hasApi ? 'calling' : null, cartGroup: utr, paymentMethod: 'wallet'
