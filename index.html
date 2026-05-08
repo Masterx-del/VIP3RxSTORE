@@ -754,9 +754,9 @@
                                 <div style="font-size:18px;font-weight:800;color:#f59e0b;" id="refInfoRewardVal">&#x20B9;0</div>
                                 <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Per Referral</div>
                             </div>
-                            <div id="refInfoMinOrder" style="display:none;flex:1;min-width:120px;background:rgba(37,99,235,0.06);border-radius:8px;padding:8px 10px;text-align:center;">
-                                <div style="font-size:18px;font-weight:800;color:var(--accent-cyan);" id="refInfoMinOrderVal">&#x20B9;0</div>
-                                <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Min. Order</div>
+                            <div id="refInfoSpendRate" style="display:none;flex:1;min-width:120px;background:rgba(37,99,235,0.06);border-radius:8px;padding:8px 10px;text-align:center;">
+                                <div style="font-size:18px;font-weight:800;color:var(--accent-cyan);" id="refInfoSpendRateVal">0%</div>
+                                <div style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Per Order Spend</div>
                             </div>
                             <div id="refInfoMaxCap" style="display:none;flex:1;min-width:120px;background:rgba(16,185,129,0.06);border-radius:8px;padding:8px 10px;text-align:center;">
                                 <div style="font-size:18px;font-weight:800;color:#10b981;" id="refInfoMaxCapVal">&#x20B9;0</div>
@@ -777,6 +777,12 @@
                             <div style="font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;">Earned</div>
                         </div>
                     </div>
+                    <!-- Referred Users List -->
+                    <div id="refUserListWrap" style="display:none;margin-bottom:14px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px;">👥 Referred Users</div>
+                        <div id="refUserList" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;"></div>
+                    </div>
+
                     <!-- Referral Link -->
                     <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Your Referral Link</div>
                     <div style="display:flex;gap:8px;align-items:center;">
@@ -1915,6 +1921,7 @@
                 const cred = await createUserWithEmailAndPassword(auth, email, pass); 
                 await updateProfile(cred.user, { displayName: name }); 
                 await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
+                if(referralSource) processSignupReferralReward(cred.user.uid, referralSource).catch(()=>{});
                 showToast('Account Created!'); 
             } else { 
                 await signInWithEmailAndPassword(auth, email, pass); 
@@ -2050,6 +2057,7 @@
                 walletBalance: 0,
                 totalSpent: 0
             });
+            if(referralSource) processSignupReferralReward(user.uid, referralSource).catch(()=>{});
         }
         showToast('✅ Logged in with Google!');
     }).catch((e) => {
@@ -2085,6 +2093,7 @@
                     walletBalance: 0,
                     totalSpent: 0
                 });
+                if(referralSource) processSignupReferralReward(user.uid, referralSource).catch(()=>{});
             }
             _resetBtn();
             showToast('✅ Logged in with Google!');
@@ -2128,8 +2137,8 @@
             // Add referral link to profile
             const refLink = `${window.location.origin}${window.location.pathname}?ref=${user.uid}`;
             if(document.getElementById('referralLinkDisplay')) document.getElementById('referralLinkDisplay').value = refLink;
-            // ── Update profile stats (orders count, wallet, referral earned) ──
-            get(ref(db, `users/${user.uid}/profile`)).then(snap => {
+            // ── Update profile stats (orders count, wallet, referral earned) — real-time ──
+            onValue(ref(db, `users/${user.uid}/profile`), snap => {
                 if(!snap.exists()) return;
                 const p = snap.val();
                 const walBal = parseFloat(p.walletBalance || 0);
@@ -2137,20 +2146,71 @@
                 if(document.getElementById('profileStatWallet')) document.getElementById('profileStatWallet').textContent = '₹' + walBal.toFixed(0);
                 if(document.getElementById('profileStatRef')) document.getElementById('profileStatRef').textContent = '₹' + refEarned.toFixed(0);
                 if(document.getElementById('refTotalEarned')) document.getElementById('refTotalEarned').textContent = '₹' + refEarned.toFixed(0);
-            }).catch(()=>{});
+                if(document.getElementById('walletRefAmount')) document.getElementById('walletRefAmount').textContent = '₹' + refEarned.toFixed(2);
+            }, { onlyOnce: false });
             get(ref(db, 'orders')).then(snap => {
                 if(!snap.exists()) return;
                 let cnt = 0;
                 snap.forEach(s => { if(s.val().userId === user.uid) cnt++; });
                 if(document.getElementById('profileStatOrders')) document.getElementById('profileStatOrders').textContent = cnt;
             }).catch(()=>{});
-            // Referral count
-            get(ref(db, 'users')).then(snap => {
+            // Referral count + referred users list (real-time)
+            onValue(ref(db, 'users'), async snap => {
                 if(!snap.exists()) return;
                 let cnt = 0;
-                snap.forEach(s => { if(s.val().profile?.referredBy === user.uid) cnt++; });
+                const referredList = [];
+                snap.forEach(s => {
+                    const p = s.val().profile;
+                    if(p?.referredBy === user.uid) {
+                        cnt++;
+                        referredList.push({ uid: s.key, name: p.name || 'Unknown', email: p.email || '', joinedAt: p.createdAt || '', totalSpent: parseFloat(p.totalSpent || 0) });
+                    }
+                });
                 if(document.getElementById('refTotalJoined')) document.getElementById('refTotalJoined').textContent = cnt;
-            }).catch(()=>{});
+
+                // Render referred users list
+                const listWrap = document.getElementById('refUserListWrap');
+                const listEl = document.getElementById('refUserList');
+                if(listWrap && listEl) {
+                    if(referredList.length > 0) {
+                        listWrap.style.display = 'block';
+
+                        // Read referrer's walletHistory — match by refUid for accurate per-user earned
+                        const _uidEarned = {};
+                        try {
+                            const _histSnap = await get(ref(db, `users/${user.uid}/walletHistory`));
+                            if(_histSnap.exists()) {
+                                _histSnap.forEach(h => {
+                                    const tx = h.val();
+                                    if(tx.type === 'referral' && tx.refUid) {
+                                        // Sum both signup + spend rewards per referred user
+                                        _uidEarned[tx.refUid] = (_uidEarned[tx.refUid] || 0) + parseFloat(tx.amount || 0);
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+
+                        listEl.innerHTML = referredList.map(u => {
+                            const dateStr = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+                            const earnedAmt = _uidEarned[u.uid] || 0;
+                            const earnedStr = `₹${earnedAmt.toFixed(2)}`;
+                            return `<div style="display:flex;justify-content:space-between;align-items:center;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;gap:8px;">
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:12px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.name}</div>
+                                    <div style="font-size:10px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
+                                    <div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">${dateStr}</div>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:13px;font-weight:800;color:#10b981;">${earnedStr}</div>
+                                    <div style="font-size:9px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;">Earned</div>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        listWrap.style.display = 'none';
+                    }
+                }
+            }, { onlyOnce: false });
         } else {
             _authReady = true;
             document.getElementById('authView').style.display = 'block'; document.getElementById('userProfileView').style.display = 'none'; document.getElementById('ordersList').innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>Login to view orders</p></div>'; document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:20px;">Login to chat</div>'; activeSubscriptions = {}; notificationsBound = false; renderSubscriptions();
@@ -2478,51 +2538,24 @@
         }
     };
 
-    // Referral reward: dynamic settings se reward lo (meta/referralSettings)
-    async function processReferralReward(userId, spentAmount) {
+    // ── DUAL REFERRAL REWARD SYSTEM ────────────────────────────────────────
+    // Type A: Signup reward (flat ₹) — called once when new user joins
+    // Type B: Spend % reward — called on every order
+
+    async function _applyReferralReward(referredBy, amount, note, subtype, refUid) {
         try {
-            // ── Step 1: Referral settings Firebase se fetch karo ──
-            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
-            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
-
-            // Program active hai ya nahi check karo
-            if(refSettings.active === false) return;
-
-            // ── Step 2: User ka referrer nikalo ──
-            const userSnap = await get(ref(db, `users/${userId}/profile`));
-            if(!userSnap.exists()) return;
-            const referredBy = userSnap.val().referredBy;
-            if(!referredBy) return;
-
-            // ── Step 3: Minimum order check ──
-            const minOrder = parseFloat(refSettings.minOrder || 0);
-            if(minOrder > 0 && spentAmount < minOrder) return;
-
-            // ── Step 4: Reward calculate karo ──
-            // rewardAmount > 0 ho to flat amount, warna 0 (admin ne set kiya)
-            const rewardAmount = parseFloat(refSettings.rewardAmount || 0);
-            if(rewardAmount <= 0) return;
-            const reward = rewardAmount;
-
-            // ── Step 5: Referrer ki profile fetch karo ──
             const refSnap = await get(ref(db, `users/${referredBy}/profile`));
             if(!refSnap.exists()) return;
             const refProfile = refSnap.val();
             const refBal = parseFloat(refProfile.walletBalance || 0);
             const refEarned = parseFloat(refProfile.referralEarned || 0);
 
-            // ── Step 6: maxRewardPerUser check ──
+            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
+            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
             const maxReward = parseFloat(refSettings.maxRewardPerUser || 0);
             if(maxReward > 0 && refEarned >= maxReward) return;
-
-            // Agar max limit ke paas ho to partial reward do
-            const actualReward = (maxReward > 0) ? Math.min(reward, maxReward - refEarned) : reward;
+            const actualReward = (maxReward > 0) ? Math.min(amount, maxReward - refEarned) : amount;
             if(actualReward <= 0) return;
-
-            // ── Step 7: Wallet update karo ──
-            const noteDesc = refSettings.description
-                ? `Referral Reward — ${refSettings.description}`
-                : `Referral Reward (₹${actualReward.toFixed(2)} per referral)`;
 
             await update(ref(db, `users/${referredBy}/profile`), {
                 walletBalance: refBal + actualReward,
@@ -2530,10 +2563,56 @@
             });
             await push(ref(db, `users/${referredBy}/walletHistory`), {
                 type: 'referral',
+                subtype,
                 amount: actualReward,
-                note: noteDesc,
+                note,
+                refUid: refUid || null,
                 createdAt: new Date().toISOString()
             });
+        } catch(e) {}
+    }
+
+    // ── TYPE A: Signup Reward — ek baar milta hai ──
+    async function processSignupReferralReward(newUserId, referredBy) {
+        try {
+            // Prevent duplicate: check if this new user already triggered signup reward
+            const newUserSnap = await get(ref(db, `users/${newUserId}/profile`));
+            if(newUserSnap.exists() && newUserSnap.val().signupRewardProcessed === true) return;
+
+            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
+            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
+            if(refSettings.active === false) return;
+            const signupReward = parseFloat(refSettings.rewardAmount || 0);
+            if(signupReward <= 0) return;
+
+            // Mark as processed first to prevent race conditions / double reward
+            await update(ref(db, `users/${newUserId}/profile`), { signupRewardProcessed: true });
+
+            const noteDesc = `🎉 Signup Reward — New user joined via your link`;
+            await _applyReferralReward(referredBy, signupReward, noteDesc, 'signup', newUserId);
+        } catch(e) {}
+    }
+
+    // ── TYPE B: Spend % Reward — har order pe ──
+    async function processReferralReward(userId, spentAmount) {
+        try {
+            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
+            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
+            if(refSettings.active === false) return;
+
+            const userSnap = await get(ref(db, `users/${userId}/profile`));
+            if(!userSnap.exists()) return;
+            const referredBy = userSnap.val().referredBy;
+            if(!referredBy) return;
+
+            const spendPercent = parseFloat(refSettings.spendPercent || 0);
+            if(spendPercent <= 0) return;
+
+            const reward = parseFloat(((spentAmount * spendPercent) / 100).toFixed(2));
+            if(reward <= 0) return;
+
+            const noteDesc = `💰 Spend Reward — ${spendPercent}% of ₹${spentAmount.toFixed(2)} order`;
+            await _applyReferralReward(referredBy, reward, noteDesc, 'spend', userId);
         } catch(e) {}
     }
 
@@ -2567,21 +2646,24 @@
             const rs = s.val();
             infoBox.style.display = 'block';
 
-            // Reward amount
+            // Signup Reward
             const rewardEl = document.getElementById('refInfoReward');
             const rewardValEl = document.getElementById('refInfoRewardVal');
             if(parseFloat(rs.rewardAmount || 0) > 0) {
                 rewardValEl.textContent = '₹' + parseFloat(rs.rewardAmount).toFixed(0);
+                rewardEl.querySelector ? (rewardEl.querySelector('div:last-child') || {}).textContent = 'Signup Reward' : null;
                 rewardEl.style.display = 'block';
             } else { rewardEl.style.display = 'none'; }
 
-            // Min order
-            const minEl = document.getElementById('refInfoMinOrder');
-            const minValEl = document.getElementById('refInfoMinOrderVal');
-            if(parseFloat(rs.minOrder || 0) > 0) {
-                minValEl.textContent = '₹' + parseFloat(rs.minOrder).toFixed(0);
-                minEl.style.display = 'block';
-            } else { minEl.style.display = 'none'; }
+            // Spend % Reward — show if configured
+            const spendEl = document.getElementById('refInfoSpendRate');
+            const spendValEl = document.getElementById('refInfoSpendRateVal');
+            if(spendEl && spendValEl) {
+                if(parseFloat(rs.spendPercent || 0) > 0) {
+                    spendValEl.textContent = parseFloat(rs.spendPercent).toFixed(0) + '%';
+                    spendEl.style.display = 'block';
+                } else { spendEl.style.display = 'none'; }
+            }
 
             // Max reward cap
             const capEl = document.getElementById('refInfoMaxCap');
