@@ -2577,7 +2577,7 @@
               if(botSnap.exists()){const {token,topUpChatId}=botSnap.val();
                 if(token&&topUpChatId){
                   const now=new Date().toLocaleString('en-IN');
-                  const msg=`💰 <b>Wallet Top-Up!</b>\n\n👤 <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${paidVal.toFixed(2)}\n📝 <b>UTR:</b> ${utr}\n⏰ <b>Time:</b> ${now}`;
+                  const msg=`💳 <b>Wallet Top-Up!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${paidVal.toFixed(2)}\n📝 <b>UTR:</b> ${utr}\n⏰ <b>Time:</b> ${now}`;
                   fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:topUpChatId,text:msg,parse_mode:'HTML'})}).catch(()=>{});
                 }
               }
@@ -2983,7 +2983,7 @@
           if(botSnap.exists()){const {token,supportChatId}=botSnap.val();
             if(token&&supportChatId){
               const now=new Date().toLocaleString('en-IN');
-              const tgMsg=`🎧 <b>New Support Message!</b>\n\n👤 <b>User:</b> ${displayName}\n📧 <b>Email:</b> ${currentUser.email}\n💬 <b>Message:</b> ${msg}\n⏰ <b>Time:</b> ${now}`;
+              const tgMsg=`🎧 <b>New Support Message!</b>\n\n➞ <b>User:</b> ${displayName}\n⚙️ <b>Email:</b> ${currentUser.email}\n📥 <b>Message:</b> ${msg}\n⏰ <b>Time:</b> ${now}`;
               fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:supportChatId,text:tgMsg,parse_mode:'HTML'})}).catch(()=>{});
             }
           }
@@ -4140,9 +4140,9 @@
             // Notify Telegram channel about gift code redemption
             sendTelegramChannelNotification(
                 '🎁 <b>Gift Code Redeemed!</b>\n\n' +
-                '👤 User: <code>' + currentUser.email + '</code>\n' +
-                '🏷️ Code: <b>' + code + '</b>\n' +
-                '💰 Amount: <b>₹' + rewardAmt.toFixed(2) + '</b>\n' +
+                '➞  User: <code>' + currentUser.email + '</code>\n' +
+                '🎊 Code: <b>' + code + '</b>\n' +
+                '💵 Amount: <b>₹' + rewardAmt.toFixed(2) + '</b>\n' +
                 '⏰ Time: ' + new Date().toLocaleString('en-IN')
             );
         } catch(e) {
