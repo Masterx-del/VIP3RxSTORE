@@ -443,6 +443,264 @@
         @keyframes bannerSlideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ── SKELETON LOADING ─────────────────────────────────────────── */
+        @keyframes shimmer {
+            0% { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 6px;
+        }
+        .skeleton-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+        }
+        .skeleton-line { height: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .skeleton-line.w-full { width: 100%; }
+        .skeleton-line.w-3quarter { width: 75%; }
+        .skeleton-line.w-half { width: 50%; }
+        .skeleton-line.w-quarter { width: 25%; }
+        .skeleton-circle { border-radius: 50%; }
+        .skeleton-btn { height: 44px; width: 100%; border-radius: 8px; margin-top: 14px; }
+        .skeleton-badge { height: 22px; width: 80px; border-radius: 20px; display: inline-block; }
+        .skeleton-price { height: 36px; width: 100px; border-radius: 6px; margin-bottom: 14px; }
+
+        /* Skeleton for service category grid */
+        .skeleton-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px; }
+        .skeleton-cat-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: var(--border-radius); padding: 16px 8px; text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .skeleton-cat-icon { width: 32px; height: 32px; border-radius: 50%; margin: 0 auto 10px; }
+        .skeleton-cat-text { height: 10px; width: 60%; margin: 0 auto; border-radius: 4px; }
+
+        /* Skeleton for product list cards */
+        .skeleton-product { display: flex; flex-direction: column; }
+        .skeleton-product-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+        /* Skeleton for wallet history */
+        .skeleton-tx { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-color); }
+        .skeleton-tx-icon { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton-tx-body { flex: 1; }
+
+        /* Skeleton for orders */
+        .skeleton-order-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .skeleton-order-content { display: flex; flex-direction: column; gap: 8px; }
+
+        /* ── ENHANCED EMPTY STATES ─────────────────────────────────────── */
+        .empty-state-enhanced {
+            text-align: center; padding: 52px 20px; color: var(--text-secondary); width: 100%;
+            animation: fadeIn 0.4s ease;
+        }
+        .empty-state-icon-wrap {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: var(--input-bg); border: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .empty-state-icon-wrap i { font-size: 28px; color: var(--text-secondary); opacity: 0.6; }
+        .empty-state-enhanced h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.2px; }
+        .empty-state-enhanced p { font-size: 13px; line-height: 1.5; max-width: 220px; margin: 0 auto 20px; }
+        .empty-state-enhanced .empty-cta { 
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--accent-cyan); color: #fff;
+            padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            border: none; cursor: pointer; transition: var(--transition);
+        }
+        .empty-state-enhanced .empty-cta:hover { background: var(--accent-purple); }
+
+        /* ── ENHANCED INPUT VALIDATION ─────────────────────────────────── */
+        .input-group input.input-error { border-color: #ef4444 !important; background: rgba(239,68,68,0.04) !important; }
+        .input-group input.input-success { border-color: #10b981 !important; background: rgba(16,185,129,0.04) !important; }
+        .input-group input.input-focus-ring:focus { box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; }
+        .input-hint { font-size: 11px; margin-top: 5px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+        .input-hint.hint-error { color: #ef4444; }
+        .input-hint.hint-success { color: #10b981; }
+
+        /* ── ENHANCED BUTTON STATES ──────────────────────────────────────── */
+        .btn-loading { position: relative; pointer-events: none; }
+        .btn-loading::after {
+            content: ''; position: absolute; right: 14px; top: 50%;
+            transform: translateY(-50%);
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .btn-success-flash { background: #10b981 !important; }
+        .btn-ripple { position: relative; overflow: hidden; }
+        .btn-ripple::after {
+            content: ''; position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            width: 0; height: 0;
+            transform: translate(-50%,-50%);
+            transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+        }
+        .btn-ripple:active::after { width: 200px; height: 200px; opacity: 1; transition: none; }
+
+        /* ── SMOOTH TAB TRANSITIONS ───────────────────────────────────────── */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: tabFadeIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── NAV ITEM ACTIVE INDICATOR ────────────────────────────────────── */
+        .nav-item { position: relative; }
+        .nav-item.active::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 3px; background: var(--accent-cyan); border-radius: 0 0 4px 4px;
+            animation: navIndicator 0.2s ease forwards;
+        }
+        @keyframes navIndicator { from { width: 0; opacity: 0; } to { width: 32px; opacity: 1; } }
+
+        /* ── CARD HOVER LIFT TRANSITIONS ─────────────────────────────────── */
+        .product-list-card { transition: var(--transition), transform 0.2s; }
+        .product-list-card:hover { transform: translateY(-2px); }
+        .order-card { transition: var(--transition); }
+        .subcategory-card { transition: var(--transition); }
+        .subcategory-card:active { transform: scale(0.98); }
+
+        /* ── TOAST ENHANCED ──────────────────────────────────────────────── */
+        .toast { border-radius: 12px !important; }
+        .toast.toast-success { background: #10b981 !important; }
+        .toast.toast-error { background: #ef4444 !important; }
+        .toast.toast-warn { background: #f59e0b !important; }
+
+        /* ── WALLET BALANCE PULSE ON LOAD ─────────────────────────────────── */
+        @keyframes balancePop {
+            0% { transform: scale(0.85); opacity: 0; }
+            70% { transform: scale(1.04); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .balance-pop { animation: balancePop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+        /* ── FORM FIELD FOCUS ANIMATION ──────────────────────────────────── */
+        .input-group { position: relative; }
+        .input-group input { transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+        .input-group label { transition: color 0.2s; }
+        .input-group:focus-within label { color: var(--accent-cyan); }
+
+        /* ── ACTION CARD HOVER GLOW ──────────────────────────────────────── */
+        .action-card-row { transition: var(--transition), box-shadow 0.2s; }
+        .action-card-row:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+
+        /* ── SERVICE CAT CARDS ───────────────────────────────────────────── */
+        .service-cat-card { transition: var(--transition); }
+        .service-cat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+
+        /* ── SCROLL TO TOP BUTTON ────────────────────────────────────────── */
+        .scroll-top-btn {
+            position: absolute; bottom: 80px; right: 16px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--accent-cyan); color: #fff;
+            border: none; cursor: pointer; z-index: 200;
+            display: none; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            transition: opacity 0.3s, transform 0.3s;
+            font-size: 14px;
+        }
+        .scroll-top-btn.visible { display: flex; animation: fadeIn 0.3s ease; }
+        .scroll-top-btn:hover { transform: translateY(-2px); }
+
+        /* ── ALERT BANNERS ───────────────────────────────────────────────── */
+        .alert-inline {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px; border-radius: 10px; font-size: 12.5px;
+            font-weight: 600; margin-bottom: 12px; animation: fadeIn 0.3s ease;
+        }
+        .alert-inline i { font-size: 14px; flex-shrink: 0; }
+        .alert-info { background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2); color: #2563eb; }
+        .alert-success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+        .alert-warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); color: #d97706; }
+        .alert-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+
+        /* ── NETWORK STATUS INDICATOR ────────────────────────────────────── */
+        .network-banner {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 500;
+            background: #ef4444; color: #fff; text-align: center;
+            font-size: 12px; font-weight: 600; padding: 6px 16px;
+            transform: translateY(-100%); transition: transform 0.3s ease;
+        }
+        .network-banner.show { transform: translateY(0); }
+        .network-banner.online { background: #10b981; }
+
+        /* ── BADGE COUNT BOUNCE ──────────────────────────────────────────── */
+        @keyframes badgeBounce { 0%{transform:scale(0)} 60%{transform:scale(1.25)} 100%{transform:scale(1)} }
+        .cart-badge.bounce { animation: badgeBounce 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+        /* ── WALLET HISTORY ITEM ANIMATION ──────────────────────────────── */
+        .wallet-item-enter {
+            animation: walletItemIn 0.3s ease forwards;
+        }
+        @keyframes walletItemIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── ORDER CARD STAGGER ──────────────────────────────────────────── */
+        .order-card-enter {
+            animation: orderCardIn 0.3s ease forwards;
+        }
+        @keyframes orderCardIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── GIFT CODE INPUT ENHANCED ────────────────────────────────────── */
+        #giftCodeInput {
+            transition: border-color 0.2s, box-shadow 0.2s, letter-spacing 0.2s;
+        }
+        #giftCodeInput:focus {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1) !important;
+        }
+
+        /* ── PROFILE AVATAR INITIALS ANIMATION ───────────────────────────── */
+        @keyframes avatarPop {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        #profileAvatar { animation: avatarPop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both; }
+
+        /* ── PULL-TO-REFRESH INDICATOR ───────────────────────────────────── */
+        .ptr-indicator {
+            text-align: center; padding: 12px; font-size: 12px;
+            color: var(--text-secondary); font-weight: 600;
+            display: none; align-items: center; justify-content: center; gap: 6px;
+        }
+        .ptr-indicator.show { display: flex; }
+        .ptr-spin { width: 14px; height: 14px; border: 2px solid var(--border-color); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+        /* ── SHAKE ANIMATION ───────────────────────────────────────────── */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.4s ease !important; }
+
+        /* ── NAV PULSE ─────────────────────────────────────────────────── */
+        @keyframes navPulse {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.25); }
+            60% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
         /* ── PAYMENT VERIFICATION OVERLAY ── */
         #payVerifyOverlay {
             position: fixed; inset: 0; z-index: 3000;
@@ -562,6 +820,11 @@
 <body class="light-mode">
 
 <div class="app-container">
+
+    <!-- NETWORK STATUS BANNER -->
+    <div class="network-banner" id="networkBanner">
+        <i class="fas fa-wifi-slash"></i> No internet connection
+    </div>
     
     <!-- ANNOUNCEMENT BANNER -->
     <div class="ann-banner" id="annBanner">
@@ -614,7 +877,16 @@
             </div>
 
             <h2 class="section-title">Select Service</h2>
-            <div class="services-grid">
+            <!-- Skeleton shown while products load -->
+            <div class="skeleton-grid" id="serviceGridSkeleton">
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+                <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
+            </div>
+            <div class="services-grid" id="servicesGridReal" style="display:none;">
                 <div class="service-cat-card" onclick="openCategory('Instagram')"><i class="fab fa-instagram" style="color: #E1306C;"></i><div class="service-cat-name">Instagram</div></div>
                 <div class="service-cat-card" onclick="openCategory('Facebook')"><i class="fab fa-facebook" style="color: #1877F2;"></i><div class="service-cat-name">Facebook</div></div>
                 <div class="service-cat-card" onclick="openCategory('Telegram')"><i class="fab fa-telegram" style="color: #0088cc;"></i><div class="service-cat-name">Telegram</div></div>
@@ -631,7 +903,24 @@
 
         <div id="subsTab" class="tab-content">
             <h2 class="section-title">Premium Subscriptions</h2>
-            <div id="subsGrid" class="grid" style="grid-template-columns: 1fr;">
+            <!-- Subs skeleton -->
+            <div id="subsSkeleton">
+                <div class="skeleton-card" style="padding:24px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><div class="skeleton skeleton-line" style="width:120px;height:18px;"></div><div class="skeleton skeleton-badge"></div></div>
+                    <div class="skeleton skeleton-price"></div>
+                    <div class="skeleton skeleton-line w-full"></div>
+                    <div class="skeleton skeleton-line w-3quarter" style="margin-top:8px;"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+                <div class="skeleton-card" style="padding:24px;margin-top:4px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><div class="skeleton skeleton-line" style="width:140px;height:18px;"></div><div class="skeleton skeleton-badge"></div></div>
+                    <div class="skeleton skeleton-price"></div>
+                    <div class="skeleton skeleton-line w-full"></div>
+                    <div class="skeleton skeleton-line w-3quarter" style="margin-top:8px;"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+            </div>
+            <div id="subsGrid" class="grid" style="grid-template-columns: 1fr; display:none;">
                 <div class="empty-state"><i class="fas fa-calendar-times"></i><p>No plans available</p></div>
             </div>
         </div>
@@ -641,7 +930,22 @@
                 <button onclick="switchTab('homeTab')" class="icon-btn" style="width:35px; height:35px;"><i class="fas fa-arrow-left"></i></button>
                 <h2 class="section-title" style="margin:0;">My Orders</h2>
             </div>
-            <div id="ordersList">
+            <!-- Orders skeleton -->
+            <div id="ordersSkeleton">
+                <div class="skeleton-card">
+                    <div class="skeleton-order-header"><div class="skeleton skeleton-line w-quarter"></div><div class="skeleton skeleton-badge"></div></div>
+                    <div class="skeleton-order-content"><div class="skeleton skeleton-line w-full"></div><div class="skeleton skeleton-line w-3quarter"></div><div class="skeleton skeleton-line w-half"></div></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-order-header"><div class="skeleton skeleton-line w-quarter"></div><div class="skeleton skeleton-badge"></div></div>
+                    <div class="skeleton-order-content"><div class="skeleton skeleton-line w-full"></div><div class="skeleton skeleton-line w-3quarter"></div></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-order-header"><div class="skeleton skeleton-line w-quarter"></div><div class="skeleton skeleton-badge"></div></div>
+                    <div class="skeleton-order-content"><div class="skeleton skeleton-line w-full"></div><div class="skeleton skeleton-line w-3quarter"></div></div>
+                </div>
+            </div>
+            <div id="ordersList" style="display:none;">
                 <div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>
             </div>
         </div>
@@ -666,7 +970,18 @@
                 <button id="wfOrders" class="wf-tab" onclick="setWalletFilter('orders',this)"><i class="fas fa-shopping-bag"></i> Orders</button>
             </div>
             <div id="walletHistory">
-                <div class="empty-state"><i class="fas fa-file-invoice"></i><p>No transactions yet</p></div>
+                <!-- Wallet skeleton -->
+                <div id="walletHistorySkeleton">
+                    <div class="skeleton-card" style="padding:16px;">
+                        <div class="skeleton-tx"><div class="skeleton skeleton-tx-icon skeleton-circle"></div><div class="skeleton-tx-body"><div class="skeleton skeleton-line w-3quarter"></div><div class="skeleton skeleton-line w-half" style="margin-top:6px;"></div></div><div class="skeleton skeleton-badge"></div></div>
+                        <div class="skeleton-tx"><div class="skeleton skeleton-tx-icon skeleton-circle"></div><div class="skeleton-tx-body"><div class="skeleton skeleton-line w-3quarter"></div><div class="skeleton skeleton-line w-half" style="margin-top:6px;"></div></div><div class="skeleton skeleton-badge"></div></div>
+                        <div class="skeleton-tx"><div class="skeleton skeleton-tx-icon skeleton-circle"></div><div class="skeleton-tx-body"><div class="skeleton skeleton-line w-3quarter"></div><div class="skeleton skeleton-line w-half" style="margin-top:6px;"></div></div><div class="skeleton skeleton-badge"></div></div>
+                        <div class="skeleton-tx" style="border:none;"><div class="skeleton skeleton-tx-icon skeleton-circle"></div><div class="skeleton-tx-body"><div class="skeleton skeleton-line w-3quarter"></div><div class="skeleton skeleton-line w-half" style="margin-top:6px;"></div></div><div class="skeleton skeleton-badge"></div></div>
+                    </div>
+                </div>
+                <div id="walletHistoryContent" style="display:none;">
+                    <div class="empty-state"><i class="fas fa-file-invoice"></i><p>No transactions yet</p></div>
+                </div>
             </div>
         </div>
 
@@ -696,7 +1011,13 @@
                         <label>Full Name</label><input type="text" id="authName" placeholder="John Doe">
                     </div>
                     <div class="input-group"><label>Email Address</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
-                    <div class="input-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+                    <div class="input-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <label style="margin-bottom:0;">Password</label>
+                            <a href="#" id="forgotPasswordLink" style="font-size:12px; color:var(--accent-cyan); font-weight:600; text-decoration:none; display:none;" onclick="openForgotPassword(); return false;">Forgot Password?</a>
+                        </div>
+                        <input type="password" id="authPassword" placeholder="••••••••">
+                    </div>
                     
                     <button id="authSubmitBtn" class="btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login Securely</button>
                     
@@ -846,6 +1167,31 @@
                     </div>
                 </div>
 
+                <!-- Legal Links -->
+                <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--border-radius);overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow);">
+                    <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;padding:14px 16px 10px;">Legal & Info</div>
+                    <button onclick="openLegalModal('privacy')" style="width:100%;padding:14px 16px;background:none;border:none;border-top:1px solid var(--border-color);display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;transition:var(--transition);" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='none'">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-shield-alt" style="color:var(--accent-cyan);font-size:15px;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Privacy Policy</div>
+                            <div style="font-size:11px;color:var(--text-secondary);margin-top:1px;">How we collect & protect your data</div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color:var(--text-secondary);font-size:12px;flex-shrink:0;"></i>
+                    </button>
+                    <button onclick="openLegalModal('terms')" style="width:100%;padding:14px 16px;background:none;border:none;border-top:1px solid var(--border-color);display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;transition:var(--transition);" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='none'">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-file-contract" style="color:#10b981;font-size:15px;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Terms & Conditions</div>
+                            <div style="font-size:11px;color:var(--text-secondary);margin-top:1px;">Rules & guidelines for using our service</div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color:var(--text-secondary);font-size:12px;flex-shrink:0;"></i>
+                    </button>
+                </div>
+
                 <!-- Logout -->
                 <div style="text-align:center;padding-bottom:10px;">
                     <button id="logoutBtn" class="btn" style="background:var(--card-solid);color:var(--accent-pink);border:1px solid var(--accent-pink);width:auto;padding:12px 36px;display:inline-block;box-shadow:none;font-size:14px;">
@@ -857,6 +1203,11 @@
         </div>
 
     </main>
+
+    <!-- SCROLL TO TOP -->
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="document.querySelector('.content-area').scrollTo({top:0,behavior:'smooth'})">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <nav class="bottom-nav">
         <a class="nav-item active" data-target="homeTab"><i class="fas fa-home"></i>Home</a>
@@ -1520,12 +1871,201 @@
     </div>
 </div>
 
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgotPasswordModal" style="position:fixed !important;">
+    <div class="bottom-sheet" style="max-height:auto; overflow:visible;">
+        <div class="sheet-header">
+            <div>
+                <div class="sheet-title">Reset Password</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">We'll send a reset link to your email</div>
+            </div>
+            <button onclick="closeForgotPassword()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;">×</button>
+        </div>
+
+        <!-- Step 1: Enter email -->
+        <div id="fpStep1">
+            <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.18);border-radius:10px;padding:12px 14px;margin-bottom:18px;display:flex;align-items:flex-start;gap:9px;">
+                <i class="fas fa-info-circle" style="color:var(--accent-cyan);margin-top:1px;flex-shrink:0;"></i>
+                <span style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;">Enter the email linked to your account. If it exists, you'll receive a password reset link.</span>
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="fpEmailInput" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div id="fpMsg" style="margin-bottom:12px;min-height:32px;transition:all 0.3s;"></div>
+            <button id="fpSendBtn" class="btn" onclick="sendPasswordReset()">
+                <i class="fas fa-paper-plane" style="font-size:13px;"></i> Send Reset Link
+            </button>
+            <button onclick="closeForgotPassword()" style="width:100%;padding:12px;background:none;border:none;color:var(--text-secondary);font-size:13px;font-weight:500;cursor:pointer;margin-top:10px;">Cancel</button>
+        </div>
+
+        <!-- Step 2: Success state -->
+        <div id="fpStep2" style="display:none;text-align:center;padding:8px 0 16px;">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,0.12);border:2px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="fas fa-envelope-open-text" style="font-size:26px;color:#10b981;"></i>
+            </div>
+            <div style="font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:6px;letter-spacing:-0.3px;">Check Your Inbox</div>
+            <div id="fpSuccessEmail" style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;"></div>
+            <button class="btn" style="background:#10b981;box-shadow:0 2px 8px rgba(16,185,129,0.25);" onclick="closeForgotPassword()">
+                <i class="fas fa-check"></i> Got It
+            </button>
+            <div style="margin-top:12px;font-size:12px;color:var(--text-secondary);">
+                Didn't get it? Check spam or <a href="#" onclick="resetFpToStep1();return false;" style="color:var(--accent-cyan);font-weight:600;text-decoration:none;">try again</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EMAIL VERIFICATION MODAL -->
+<div id="emailVerifyModal" style="display:none;position:fixed;inset:0;z-index:2500;background:rgba(15,23,42,0.7);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:var(--card-solid,#fff);border-radius:22px;overflow:hidden;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:giftModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+        <div style="background:linear-gradient(135deg,#2563eb 0%,#1e3a8a 100%);padding:24px 20px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.18);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:2px solid rgba(255,255,255,0.3);">
+                <i class="fas fa-envelope-open-text" style="font-size:28px;color:#fff;"></i>
+            </div>
+            <div style="font-size:19px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Verify Your Email</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">One last step to secure your account</div>
+        </div>
+        <div style="padding:24px 20px;">
+            <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.18);border-radius:12px;padding:14px 16px;margin-bottom:18px;text-align:center;">
+                <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;">A verification link has been sent to</div>
+                <div id="evModalEmail" style="font-size:14px;font-weight:700;color:var(--accent-cyan);margin-top:4px;word-break:break-all;"></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">Check your inbox (and spam folder) and click the link to verify.</div>
+            </div>
+            <div id="evMsg" style="margin-bottom:10px;min-height:0;transition:all 0.3s;"></div>
+            <button id="evResendBtn" class="btn" onclick="window.resendVerificationEmail()" style="margin-bottom:10px;">
+                <i class="fas fa-paper-plane" style="font-size:13px;"></i> Resend Verification Email
+            </button>
+            <button class="btn" onclick="window.checkEmailVerified()" style="background:var(--accent-purple);margin-bottom:10px;">
+                <i class="fas fa-sync-alt" style="font-size:13px;"></i> I've Verified — Continue
+            </button>
+            <button onclick="window.signOutFromVerifyModal()" style="width:100%;padding:11px;background:none;border:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i class="fas fa-sign-out-alt" style="font-size:12px;"></i> Use Different Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LEGAL MODAL (Privacy Policy & Terms)
+     ══════════════════════════════════════════ -->
+<style>
+#legalModal {
+    position: fixed; inset: 0; z-index: 3500;
+    background: rgba(15,23,42,0.7);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    display: none; align-items: flex-end; justify-content: center;
+    padding: 0;
+}
+#legalModal.active { display: flex; }
+.legal-sheet {
+    background: var(--card-solid, #fff);
+    border-radius: 22px 22px 0 0;
+    width: 100%; max-width: 480px;
+    max-height: 88vh; max-height: 88dvh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+}
+#legalModal.active .legal-sheet {
+    transform: translateY(0);
+}
+.legal-sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+}
+.legal-sheet-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px 14px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+#legalIconWrap {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.legal-sheet-title {
+    font-size: 16px; font-weight: 800;
+    color: var(--text-primary); flex: 1;
+    letter-spacing: -0.3px;
+}
+.legal-close-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%; border: 1px solid var(--border-color);
+    background: var(--input-bg); color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; flex-shrink: 0;
+    transition: all 0.2s;
+}
+.legal-close-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.legal-sheet-body {
+    flex: 1; overflow-y: auto; padding: 18px 18px 24px;
+    -webkit-overflow-scrolling: touch;
+}
+.legal-section { margin-bottom: 20px; }
+.legal-updated {
+    display: inline-block; font-size: 10.5px; font-weight: 700;
+    color: var(--text-secondary); background: var(--input-bg);
+    border: 1px solid var(--border-color); border-radius: 20px;
+    padding: 3px 10px; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
+.legal-section p {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.65; font-weight: 500;
+}
+.legal-section-title {
+    font-size: 13px; font-weight: 800;
+    color: var(--text-primary); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 7px;
+}
+.legal-section-title i { color: var(--accent-cyan); font-size: 13px; }
+.legal-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    margin-bottom: 8px; font-size: 13px;
+    color: var(--text-secondary); line-height: 1.5; font-weight: 500;
+}
+.legal-item i { font-size: 9px; margin-top: 4px; flex-shrink: 0; color: var(--accent-cyan); }
+.legal-contact {
+    background: rgba(37,99,235,0.06);
+    border: 1px solid rgba(37,99,235,0.18);
+    border-radius: 10px; padding: 12px 14px;
+    font-size: 12.5px; font-weight: 600;
+    color: var(--accent-cyan);
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 4px;
+}
+</style>
+
+<div id="legalModal" onclick="if(event.target===this)closeLegalModal()">
+    <div class="legal-sheet">
+        <div class="legal-sheet-handle"></div>
+        <div class="legal-sheet-header">
+            <div id="legalIconWrap" style="background:rgba(37,99,235,0.12);">
+                <i id="legalModalIcon" class="fas fa-shield-alt" style="color:var(--accent-cyan);font-size:16px;"></i>
+            </div>
+            <div id="legalModalTitle" class="legal-sheet-title">Privacy Policy</div>
+            <button class="legal-close-btn" onclick="closeLegalModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="legal-sheet-body" id="legalModalBody"></div>
+    </div>
+</div>
+
 <div class="toast" id="toastBox"><i class="fas fa-info-circle"></i> <span>Message</span></div>
 <div class="loader-overlay" id="loaderBox"><div class="spinner"></div></div>
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
     import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
@@ -1618,7 +2158,48 @@
     const urlParams = new URLSearchParams(window.location.search);
     const referralSource = urlParams.get('ref') || '';
 
-    const showToast = (msg) => { const t = document.getElementById('toastBox'); t.querySelector('span').textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
+    // ── ENHANCED TOAST with types ───────────────────────────────────────
+    const showToast = (msg, type = 'info') => {
+        const t = document.getElementById('toastBox');
+        t.querySelector('span').textContent = msg;
+        t.classList.remove('toast-success','toast-error','toast-warn');
+        if(type === 'success') t.classList.add('toast-success');
+        else if(type === 'error') t.classList.add('toast-error');
+        else if(type === 'warn') t.classList.add('toast-warn');
+        const icon = t.querySelector('i');
+        if(icon) { icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-times-circle' : type === 'warn' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'; }
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+    };
+
+    // ── NETWORK STATUS MONITOR ─────────────────────────────────────────
+    (function initNetworkMonitor() {
+        const banner = document.getElementById('networkBanner');
+        function setOnline() {
+            banner.textContent = '✓ Back online!';
+            banner.classList.add('online','show');
+            setTimeout(() => banner.classList.remove('show','online'), 2500);
+        }
+        function setOffline() {
+            banner.innerHTML = '<i class="fas fa-wifi" style="margin-right:6px;"></i> No internet connection';
+            banner.classList.remove('online');
+            banner.classList.add('show');
+        }
+        if (!navigator.onLine) setOffline();
+        window.addEventListener('online', setOnline);
+        window.addEventListener('offline', setOffline);
+    })();
+
+    // ── SCROLL-TO-TOP BUTTON ───────────────────────────────────────────
+    (function initScrollTop() {
+        const area = document.querySelector('.content-area');
+        const btn = document.getElementById('scrollTopBtn');
+        if (!area || !btn) return;
+        area.addEventListener('scroll', () => {
+            btn.classList.toggle('visible', area.scrollTop > 200);
+        }, { passive: true });
+    })();
 
     // ── Attractive inline message helper ──
     const setMsg = (el, type, text) => {
@@ -1775,8 +2356,16 @@
 
     const navItems = document.querySelectorAll('.nav-item'); const tabContents = document.querySelectorAll('.tab-content');
     function switchTab(targetId) {
-        if(!currentUser && (targetId === 'ordersTab' || targetId === 'chatTab' || targetId === 'walletTab')) { showToast('Please login to access this area.'); switchTab('profileTab'); return; }
-        tabContents.forEach(tc => tc.classList.remove('active')); document.getElementById(targetId).classList.add('active');
+        if(!currentUser && (targetId === 'ordersTab' || targetId === 'chatTab' || targetId === 'walletTab')) {
+            // Friendly auth guard with bounce animation on profile nav icon
+            const profileNav = document.querySelector('.nav-item[data-target="profileTab"]');
+            if(profileNav) { profileNav.style.animation = 'none'; profileNav.offsetWidth; profileNav.style.animation = 'navPulse 0.5s ease'; }
+            showToast('Please login to access this area.', 'warn');
+            switchTab('profileTab');
+            return;
+        }
+        tabContents.forEach(tc => tc.classList.remove('active'));
+        document.getElementById(targetId).classList.add('active');
         if (targetId !== 'homeTab') { document.getElementById('categoryPane').style.display = 'none'; currentCatView.level = 0; }
         navItems.forEach(nav => { nav.classList.toggle('active', nav.dataset.target === targetId); });
         document.querySelector('.content-area').scrollTo(0,0);
@@ -1956,14 +2545,147 @@
 
     let isSignupMode = false;
     document.getElementById('authToggleBtn').addEventListener('click', (e) => { 
-        e.preventDefault(); isSignupMode = !isSignupMode; document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back'; document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely'; document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?'; document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up'; document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
+        e.preventDefault(); isSignupMode = !isSignupMode;
+        document.getElementById('authTitle').textContent = isSignupMode ? 'Create Account' : 'Welcome Back';
+        document.getElementById('authSubmitBtn').innerHTML = isSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login Securely';
+        document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : 'Don\'t have an account?';
+        document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Login' : 'Sign Up';
+        document.getElementById('signupNameGroup').style.display = isSignupMode ? 'block' : 'none';
+        // Show "Forgot Password?" only in login mode
+        document.getElementById('forgotPasswordLink').style.display = isSignupMode ? 'none' : 'inline';
+    });
+
+    // Show Forgot Password link on initial load (login mode by default)
+    document.getElementById('forgotPasswordLink').style.display = 'inline';
+
+    // ── FORGOT PASSWORD FUNCTIONS ──────────────────────────────────────
+    window.openForgotPassword = () => {
+        // Pre-fill email if already typed
+        const emailVal = document.getElementById('authEmail').value.trim();
+        if(emailVal) document.getElementById('fpEmailInput').value = emailVal;
+        document.getElementById('fpStep1').style.display = 'block';
+        document.getElementById('fpStep2').style.display = 'none';
+        document.getElementById('fpMsg').innerHTML = '';
+        document.getElementById('fpEmailInput').classList.remove('input-error','input-success');
+        document.getElementById('forgotPasswordModal').classList.add('active');
+        setTimeout(() => document.getElementById('fpEmailInput').focus(), 350);
+    };
+
+    window.closeForgotPassword = () => {
+        document.getElementById('forgotPasswordModal').classList.remove('active');
+    };
+
+    window.resetFpToStep1 = () => {
+        document.getElementById('fpStep1').style.display = 'block';
+        document.getElementById('fpStep2').style.display = 'none';
+        document.getElementById('fpMsg').innerHTML = '';
+        document.getElementById('fpEmailInput').value = '';
+        document.getElementById('fpEmailInput').classList.remove('input-error','input-success');
+        setTimeout(() => document.getElementById('fpEmailInput').focus(), 100);
+    };
+
+    window.sendPasswordReset = async () => {
+        const emailInp = document.getElementById('fpEmailInput');
+        const email = emailInp.value.trim();
+        const btn = document.getElementById('fpSendBtn');
+        const msg = document.getElementById('fpMsg');
+
+        // Validate
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!email) {
+            emailInp.classList.add('input-error');
+            msg.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:12.5px;font-weight:600;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#ef4444;"><i class='fas fa-exclamation-circle'></i> Please enter your email address</span>`;
+            emailInp.style.animation = 'shake 0.4s ease';
+            setTimeout(() => emailInp.style.animation = '', 400);
+            return;
+        }
+        if(!emailRegex.test(email)) {
+            emailInp.classList.add('input-error');
+            msg.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:12.5px;font-weight:600;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#ef4444;"><i class='fas fa-exclamation-circle'></i> Enter a valid email address</span>`;
+            return;
+        }
+
+        emailInp.classList.remove('input-error');
+        btn.disabled = true;
+        btn.classList.add('btn-loading');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:13px;"></i> Sending...';
+        msg.innerHTML = '';
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            // Show success step
+            document.getElementById('fpStep1').style.display = 'none';
+            document.getElementById('fpSuccessEmail').innerHTML = `A reset link has been sent to<br><strong style="color:var(--text-primary);">${email}</strong><br><span style="font-size:12px;">Click the link in the email to set a new password. It may take a minute to arrive.</span>`;
+            document.getElementById('fpStep2').style.display = 'block';
+        } catch(e) {
+            let errMsg = 'Something went wrong. Please try again.';
+            if(e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email') {
+                errMsg = 'No account found with this email address.';
+                emailInp.classList.add('input-error');
+            } else if(e.code === 'auth/too-many-requests') {
+                errMsg = 'Too many attempts. Please wait a few minutes and try again.';
+            }
+            msg.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:12.5px;font-weight:600;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#ef4444;"><i class='fas fa-exclamation-circle'></i> ${errMsg}</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('btn-loading');
+            btn.innerHTML = '<i class="fas fa-paper-plane" style="font-size:13px;"></i> Send Reset Link';
+        }
+    };
+
+    // Allow Enter key in forgot password email input
+    document.getElementById('fpEmailInput').addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') { e.preventDefault(); sendPasswordReset(); }
+    });
+    // Clear error on typing
+    document.getElementById('fpEmailInput').addEventListener('input', function() {
+        if(this.classList.contains('input-error') && this.value) {
+            this.classList.remove('input-error');
+            document.getElementById('fpMsg').innerHTML = '';
+        }
+    });
+    // Close modal on backdrop tap
+    document.getElementById('forgotPasswordModal').addEventListener('click', function(e) {
+        if(e.target === this) closeForgotPassword();
     });
 
     document.getElementById('authSubmitBtn').addEventListener('click', async () => { 
-        const email = document.getElementById('authEmail').value; 
-        const pass = document.getElementById('authPassword').value; 
-        const name = document.getElementById('authName').value;
-        if(!email || !pass || (isSignupMode && !name)) return showToast('Fill all fields'); 
+        const emailInput = document.getElementById('authEmail');
+        const passInput = document.getElementById('authPassword');
+        const nameInput = document.getElementById('authName');
+        const email = emailInput.value.trim();
+        const pass = passInput.value;
+        const name = nameInput.value.trim();
+
+        // ── Client-side validation with visual feedback ──
+        let hasError = false;
+        const _mark = (el, ok, hint) => {
+            el.classList.toggle('input-error', !ok);
+            el.classList.toggle('input-success', ok);
+            // Remove existing hint
+            const prev = el.parentElement.querySelector('.input-hint');
+            if(prev) prev.remove();
+            if(!ok && hint) {
+                const h = document.createElement('div');
+                h.className = 'input-hint hint-error';
+                h.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${hint}`;
+                el.parentElement.appendChild(h);
+            }
+        };
+
+        if(isSignupMode && !name) { _mark(nameInput, false, 'Full name is required'); hasError = true; } else if(isSignupMode) { _mark(nameInput, true); }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!email) { _mark(emailInput, false, 'Email address is required'); hasError = true; }
+        else if(!emailRegex.test(email)) { _mark(emailInput, false, 'Enter a valid email address'); hasError = true; }
+        else { _mark(emailInput, true); }
+        if(!pass) { _mark(passInput, false, 'Password is required'); hasError = true; }
+        else if(isSignupMode && pass.length < 6) { _mark(passInput, false, 'Password must be at least 6 characters'); hasError = true; }
+        else { _mark(passInput, true); }
+        if(hasError) return;
+
+        const btn = document.getElementById('authSubmitBtn');
+        btn.classList.add('btn-loading');
+        btn.disabled = true;
         showLoader();
         try { 
             if(isSignupMode) { 
@@ -1971,24 +2693,45 @@
                 await updateProfile(cred.user, { displayName: name }); 
                 await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
                 if(referralSource) processSignupReferralReward(cred.user.uid, referralSource).catch(()=>{});
-                showToast('Account Created!'); 
+                // Send email verification
+                try { await sendEmailVerification(cred.user); } catch(_) {}
+                // Clear validation marks on success
+                [emailInput, passInput, nameInput].forEach(el => { el.classList.remove('input-error','input-success'); });
+                hideLoader();
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+                showEmailVerifyModal(cred.user.email);
+                return; 
             } else { 
-                await signInWithEmailAndPassword(auth, email, pass); 
-                showToast('Logged In Successfully'); 
+                const loginCred = await signInWithEmailAndPassword(auth, email, pass);
+                [emailInput, passInput].forEach(el => { el.classList.remove('input-error','input-success'); });
+                // Check email verification for email/password users
+                if (!loginCred.user.emailVerified) {
+                    // Send a fresh verification email silently
+                    try { await sendEmailVerification(loginCred.user); } catch(_) {}
+                    hideLoader();
+                    btn.classList.remove('btn-loading');
+                    btn.disabled = false;
+                    showEmailVerifyModal(loginCred.user.email);
+                    return;
+                }
+                showToast('Logged In Successfully ✓', 'success'); 
             } 
         } catch(e) { 
             hideLoader();
+            btn.classList.remove('btn-loading');
+            btn.disabled = false;
             if (!isSignupMode && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-login-credentials')) {
                 // Check if this email exists with Google provider
                 try {
                     const methods = await fetchSignInMethodsForEmail(auth, email);
                     if (methods.includes('google.com')) {
-                        // Email exists but with Google — offer to link accounts
                         _showLinkAccountPrompt(email, pass);
                         return;
                     }
                 } catch(_) {}
-                showToast('Account not found. Switching to Sign Up...');
+                _mark(emailInput, false, 'Account not found. Switching to Sign Up...');
+                showToast('Account not found. Switching to Sign Up...', 'warn');
                 isSignupMode = true;
                 document.getElementById('authTitle').textContent = 'Create Account';
                 document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up Securely';
@@ -1996,20 +2739,22 @@
                 document.getElementById('authToggleBtn').textContent = 'Login';
                 document.getElementById('signupNameGroup').style.display = 'block';
             } else if (!isSignupMode && e.code === 'auth/wrong-password') {
-                // Wrong password — check if they also have Google linked
                 try {
                     const methods = await fetchSignInMethodsForEmail(auth, email);
                     if (methods.includes('google.com') && !methods.includes('password')) {
-                        showToast('⚠️ This account uses Google login. Try "Continue with Google".');
+                        showToast('⚠️ This account uses Google login. Try "Continue with Google".', 'warn');
                         return;
                     }
                 } catch(_) {}
-                showToast('Incorrect password. Please try again.');
+                _mark(passInput, false, 'Incorrect password. Please try again.');
+                showToast('Incorrect password. Please try again.', 'error');
             } else {
-                showToast(e.message.replace('Firebase: ', '')); 
+                showToast(e.message.replace('Firebase: ', ''), 'error'); 
             }
             return;
         } 
+        btn.classList.remove('btn-loading');
+        btn.disabled = false;
         hideLoader();
     });
 
@@ -2175,8 +2920,23 @@
     onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
+            // ── Email verification gate (skip for Google/provider users) ──
+            const isEmailProvider = user.providerData.some(p => p.providerId === 'password');
+            if(isEmailProvider && !user.emailVerified) {
+                // User is logged in but email not verified — show modal, block dashboard
+                currentUser = null; // treat as logged out for dashboard purposes
+                _authReady = true;
+                hideLoader();
+                document.getElementById('authView').style.display = 'none';
+                document.getElementById('userProfileView').style.display = 'none';
+                showEmailVerifyModal(user.email);
+                return;
+            }
             _authReady = true;
             hideLoader();
+            // Close verify modal if somehow open
+            const evModal = document.getElementById('emailVerifyModal');
+            if(evModal) evModal.style.display = 'none';
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
@@ -2339,18 +3099,25 @@
     }
 
     function renderWalletHistory() {
-        const hist = document.getElementById('walletHistory');
-        if(!hist) return;
+        const contentEl = document.getElementById('walletHistoryContent');
+        if(!contentEl) return;
         let txns = [..._allWalletTxns];
         if(_walletFilter === 'credit')  txns = txns.filter(tx => _isCreditTx(tx));
         else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx));
         else if(_walletFilter === 'orders') txns = txns.filter(tx => _isOrderTx(tx));
 
         if(txns.length === 0) {
-            hist.innerHTML = '<div class="empty-state"><i class="fas fa-file-invoice"></i><p>No transactions found</p></div>';
+            const emptyLabels = {
+                all: { icon: 'fa-file-invoice', title: 'No Transactions Yet', msg: 'Add funds to get started.' },
+                credit: { icon: 'fa-plus-circle', title: 'No Credits Found', msg: 'No credit transactions yet.' },
+                debit: { icon: 'fa-minus-circle', title: 'No Debits Found', msg: 'No debit transactions yet.' },
+                orders: { icon: 'fa-shopping-bag', title: 'No Orders Found', msg: 'Place an order to see it here.' }
+            };
+            const e = emptyLabels[_walletFilter] || emptyLabels.all;
+            contentEl.innerHTML = `<div class="empty-state-enhanced"><div class="empty-state-icon-wrap"><i class="fas ${e.icon}"></i></div><h3>${e.title}</h3><p>${e.msg}</p></div>`;
             return;
         }
-        hist.innerHTML = txns.map(tx => {
+        contentEl.innerHTML = txns.map((tx, i) => {
             const isCredit = _isCreditTx(tx);
             const color  = isCredit ? '#10b981' : '#ef4444';
             const sign   = isCredit ? '+' : '-';
@@ -2360,7 +3127,7 @@
             const amt    = parseFloat(tx.amount||0).toFixed(2);
             const utrHtml= tx.utrId ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Ref: <span style="font-family:monospace;">${tx.utrId}</span></div>` : '';
             const badge  = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};color:${color};border:1px solid ${isCredit?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)'};">${isCredit?'CREDIT':'DEBIT'}</span>`;
-            return `<div class="order-card" style="padding:14px 16px;margin-bottom:10px;">
+            return `<div class="order-card wallet-item-enter" style="padding:14px 16px;margin-bottom:10px;animation-delay:${i*40}ms;">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="width:36px;height:36px;border-radius:50%;background:${isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i class="fas ${icon}" style="color:${color};font-size:14px;"></i>
@@ -2392,7 +3159,12 @@
             const p = snap.val();
             walletBalance = parseFloat(p.walletBalance || 0);
             const refEarned = parseFloat(p.referralEarned || 0);
-            document.getElementById('walletBalance').textContent = `₹${walletBalance.toFixed(2)}`;
+            const balEl = document.getElementById('walletBalance');
+            balEl.textContent = `₹${walletBalance.toFixed(2)}`;
+            // Pop animation on balance update
+            balEl.classList.remove('balance-pop');
+            void balEl.offsetWidth;
+            balEl.classList.add('balance-pop');
             document.getElementById('walletRefAmount').textContent = `₹${refEarned.toFixed(2)}`;
             const chkBtn = document.getElementById('chkWalletBtn');
             if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
@@ -2402,6 +3174,11 @@
             if(afBal) afBal.textContent = `₹${walletBalance.toFixed(2)}`;
         });
         onValue(ref(db, `users/${currentUser.uid}/walletHistory`), snap => {
+            // Hide skeleton, reveal content
+            const skelEl = document.getElementById('walletHistorySkeleton');
+            const contentEl = document.getElementById('walletHistoryContent');
+            if(skelEl) skelEl.style.display = 'none';
+            if(contentEl) contentEl.style.display = 'block';
             _allWalletTxns = [];
             if(snap.exists()) {
                 snap.forEach(c => {
@@ -2508,8 +3285,18 @@
 
     window.goToWfStep2 = () => {
         wfAmount = parseFloat(document.getElementById('wfAmountInput').value);
-        if(!wfAmount || wfAmount < 10)  return showToast('⚠️ Minimum ₹10 required');
-        if(wfAmount > 30000)            return showToast('⚠️ Maximum ₹30,000 allowed');
+        const inp = document.getElementById('wfAmountInput');
+        if(!wfAmount || wfAmount < 10) {
+            inp.classList.add('input-error');
+            inp.style.animation = 'none'; inp.offsetWidth; inp.style.animation = 'shake 0.4s ease';
+            return showToast('⚠️ Minimum ₹10 required', 'warn');
+        }
+        if(wfAmount > 30000) {
+            inp.classList.add('input-error');
+            return showToast('⚠️ Maximum ₹30,000 allowed', 'warn');
+        }
+        inp.classList.remove('input-error');
+        inp.classList.add('input-success');
         wfOrderId = generateUTR(12);
         const upiId = "Paytmqr6i3w0w@ptys";
         document.getElementById('wfUpiId').textContent     = upiId;
@@ -2675,15 +3462,26 @@
         } catch(e) {}
     }
 
-    function renderSubscriptions() { 
+    function renderSubscriptions() {
         const grid = document.getElementById('subsGrid');
-        if(!subsData || Object.keys(subsData).length === 0) { grid.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No active plans</p></div>'; return; }
+        const skeleton = document.getElementById('subsSkeleton');
+        // Hide skeleton, show grid
+        if (skeleton) skeleton.style.display = 'none';
+        if (grid) grid.style.display = 'block';
+        if(!subsData || Object.keys(subsData).length === 0) {
+            grid.innerHTML = '<div class="empty-state-enhanced"><div class="empty-state-icon-wrap"><i class="fas fa-calendar-times"></i></div><h3>No Plans Available</h3><p>Check back soon for premium subscription plans.</p></div>';
+            return;
+        }
         grid.innerHTML = '';
         Object.entries(subsData).forEach(([id, sub]) => {
             let feats = (sub.features ||[]).map(f => `<li style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"><i class="fas fa-check-circle" style="color:var(--accent-cyan);"></i>${f}</li>`).join('');
-            let actionHtml = `<button class="btn" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>`;
-            if (activeSubscriptions[id] && activeSubscriptions[id] > new Date()) { const diffTime = Math.abs(activeSubscriptions[id] - new Date()); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); actionHtml = `<button class="btn" style="background: var(--text-secondary); cursor: default; display: flex; justify-content: center; align-items: center; gap: 8px;" disabled><i class="fas fa-clock"></i> Subscribed (${diffDays} Days Left)</button>`; }
-            grid.innerHTML += `<div class="item-card" style="padding:24px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><div style="font-size:18px; font-weight:800; color:var(--text-primary);">${sub.planName}</div><div style="background:var(--input-bg); color:var(--accent-cyan); padding:4px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div></div><div class="item-price" style="font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:16px;">₹${sub.price}</div><p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:20px; line-height:1.5;">${sub.description || 'Premium access plan'}</p><ul style="list-style:none; font-size:13px; margin-bottom:24px; color:var(--text-primary);">${feats}</ul>${actionHtml}</div>`;
+            let actionHtml = `<button class="btn btn-ripple" onclick="initCheckout('${id}', 'subscription')">Subscribe Now</button>`;
+            if (activeSubscriptions[id] && activeSubscriptions[id] > new Date()) {
+                const diffTime = Math.abs(activeSubscriptions[id] - new Date());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                actionHtml = `<button class="btn" style="background: var(--text-secondary); cursor: default; display: flex; justify-content: center; align-items: center; gap: 8px;" disabled><i class="fas fa-clock"></i> Subscribed (${diffDays} Days Left)</button>`;
+            }
+            grid.innerHTML += `<div class="item-card" style="padding:24px; animation: tabFadeIn 0.3s ease forwards;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><div style="font-size:18px; font-weight:800; color:var(--text-primary);">${sub.planName}</div><div style="background:var(--input-bg); color:var(--accent-cyan); padding:4px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; font-weight:700;">${sub.duration} Days</div></div><div class="item-price" style="font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:16px;">₹${sub.price}</div><p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:20px; line-height:1.5;">${sub.description || 'Premium access plan'}</p><ul style="list-style:none; font-size:13px; margin-bottom:24px; color:var(--text-primary);">${feats}</ul>${actionHtml}</div>`;
         });
     }
 
@@ -2693,7 +3491,20 @@
         onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
         onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
         let _firstProductLoad = true;
-        onValue(ref(db, 'products'), s => { productsData = s.exists() ? s.val() : {}; _productsLoaded = true; if(document.getElementById('categoryPane').style.display === 'block') { if(currentCatView.level === 1) { openCategory(currentCatView.cat); } else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); } } if(_firstProductLoad) { _firstProductLoad = false; } });
+        onValue(ref(db, 'products'), s => {
+            productsData = s.exists() ? s.val() : {};
+            _productsLoaded = true;
+            // ── Reveal real service grid, hide skeleton ──
+            const skeleton = document.getElementById('serviceGridSkeleton');
+            const realGrid = document.getElementById('servicesGridReal');
+            if (skeleton) skeleton.style.display = 'none';
+            if (realGrid) realGrid.style.display = 'grid';
+            if(document.getElementById('categoryPane').style.display === 'block') {
+                if(currentCatView.level === 1) { openCategory(currentCatView.cat); }
+                else if(currentCatView.level === 2) { openSubCategory(currentCatView.cat, currentCatView.subCat); }
+            }
+            if(_firstProductLoad) { _firstProductLoad = false; }
+        });
         onValue(ref(db, 'subscriptions'), s => { subsData = s.exists() ? s.val() : {}; renderSubscriptions(); });
         onValue(ref(db, 'coupons'), s => { couponsData = s.exists() ? s.val() : {}; });
 
@@ -2768,9 +3579,17 @@
         if(!currentUser) return;
         const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(currentUser.uid));
         onValue(q, s => {
-            const list = document.getElementById('ordersList'); activeSubscriptions = {}; 
-            if(!s.exists()) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders found</p></div>'; renderSubscriptions(); return; }
-            list.innerHTML = ''; const arr =[]; s.forEach(child => { arr.push({id: child.key, ...child.val()}); });
+            const skeleton = document.getElementById('ordersSkeleton');
+            const list = document.getElementById('ordersList');
+            activeSubscriptions = {};
+            // Hide skeleton, show list
+            if (skeleton) skeleton.style.display = 'none';
+            if (list) list.style.display = 'block';
+            if(!s.exists()) {
+                list.innerHTML = `<div class="empty-state-enhanced"><div class="empty-state-icon-wrap"><i class="fas fa-box-open"></i></div><h3>No Orders Yet</h3><p>Browse services and place your first order.</p><button class="empty-cta" onclick="switchTab('homeTab')"><i class="fas fa-store"></i> Browse Services</button></div>`;
+                renderSubscriptions(); return;
+            }
+            list.innerHTML = ''; const arr = []; s.forEach(child => { arr.push({id: child.key, ...child.val()}); });
             arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             arr.forEach(o => {
@@ -2827,8 +3646,10 @@
                             <span style="font-weight:700; color:#10b981; font-size:13px;">Order Completed Successfully</span>
                         </div>`;
                         // Skip rest of progress block
-                        list.innerHTML += `
-                            <div class="order-card">
+                        const _cardDiv = document.createElement('div');
+                        _cardDiv.className = 'order-card order-card-enter';
+                        _cardDiv.style.animationDelay = (arr.indexOf(o) * 60) + 'ms';
+                        _cardDiv.innerHTML = `
                                 <div class="order-header">
                                     <span>Order ID: #${o.id.slice(-6).toUpperCase()}</span>
                                     ${statusBadge}
@@ -2838,8 +3659,8 @@
                                     ${o.targetLink ? `<div><span>Link:</span> <a href="${o.targetLink.startsWith('http') ? o.targetLink : 'https://'+o.targetLink}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink}</a></div>` : ''}
                                     <div><span>Amount:</span> <strong style="color:#10b981;">₹${parseFloat(o.finalAmount||0).toFixed(2)}</strong></div>
                                 </div>
-                                ${estTimeHtml}
-                            </div>`;
+                                ${estTimeHtml}`;
+                        list.appendChild(_cardDiv);
                         return;
                     }
                     const pct = Math.min(99, Math.max(1, Math.round(elapsed / totalMs * 100)));
@@ -2873,8 +3694,10 @@
                     </div>`;
                 }
 
-                list.innerHTML += `
-                    <div class="order-card">
+                const _oCard = document.createElement('div');
+                _oCard.className = 'order-card order-card-enter';
+                _oCard.style.animationDelay = (arr.indexOf(o) * 60) + 'ms';
+                _oCard.innerHTML = `
                         <div class="order-header">
                             <span>Order ID: #${o.id.slice(-6).toUpperCase()}</span>
                             ${statusBadge}
@@ -2893,8 +3716,8 @@
                         </div>
                         ${estTimeHtml}
                         ${actionHtml}
-                    </div>
-                `;
+                    `;
+                list.appendChild(_oCard);
             });
             renderSubscriptions();
             startUserProgressTicker();
@@ -4156,6 +4979,82 @@
         }
     };
 
+    // ── EMAIL VERIFICATION HELPERS ────────────────────────────────────────
+
+    function showEmailVerifyModal(email) {
+        const modal = document.getElementById('emailVerifyModal');
+        const emailEl = document.getElementById('evModalEmail');
+        const msg = document.getElementById('evMsg');
+        if(emailEl) emailEl.textContent = email || '';
+        if(msg) msg.innerHTML = '';
+        if(modal) { modal.style.display = 'flex'; }
+    }
+
+    window.resendVerificationEmail = async () => {
+        const btn = document.getElementById('evResendBtn');
+        const msg = document.getElementById('evMsg');
+        if(!auth.currentUser) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:13px;"></i> Sending...';
+        msg.innerHTML = '';
+        try {
+            await sendEmailVerification(auth.currentUser);
+            msg.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);color:#10b981;margin-bottom:8px;"><i class="fas fa-check-circle"></i> Verification email resent! Check your inbox.</div>`;
+        } catch(e) {
+            let errMsg = 'Failed to resend. Please wait a moment and try again.';
+            if(e.code === 'auth/too-many-requests') errMsg = 'Too many attempts. Wait a few minutes before retrying.';
+            msg.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#ef4444;margin-bottom:8px;"><i class="fas fa-exclamation-circle"></i> ${errMsg}</div>`;
+        } finally {
+            // Cooldown 30s
+            let cd = 30;
+            const interval = setInterval(() => {
+                cd--;
+                if(!document.getElementById('evResendBtn')) { clearInterval(interval); return; }
+                document.getElementById('evResendBtn').innerHTML = `<i class="fas fa-clock" style="font-size:13px;"></i> Resend again in ${cd}s`;
+                if(cd <= 0) { clearInterval(interval); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="font-size:13px;"></i> Resend Verification Email'; }
+            }, 1000);
+        }
+    };
+
+    window.checkEmailVerified = async () => {
+        const msg = document.getElementById('evMsg');
+        if(!auth.currentUser) return;
+        msg.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);color:var(--accent-cyan);margin-bottom:8px;"><i class="fas fa-spinner fa-spin"></i> Checking verification status...</div>`;
+        try {
+            await auth.currentUser.reload();
+            if(auth.currentUser.emailVerified) {
+                document.getElementById('emailVerifyModal').style.display = 'none';
+                showToast('✅ Email verified! Welcome 🎉', 'success');
+                // Manually trigger auth state update
+                const u = auth.currentUser;
+                currentUser = u;
+                document.getElementById('authView').style.display = 'none';
+                document.getElementById('userProfileView').style.display = 'block';
+                document.getElementById('profileName').textContent = u.displayName || 'User';
+                document.getElementById('profileEmail').textContent = u.email;
+                document.getElementById('profileAvatar').textContent = (u.displayName || 'U').charAt(0).toUpperCase();
+                loadOrders(); loadChat(); loadWallet();
+                bindRealTimeNotifications(u.uid);
+                bindAdminMessageNotification(u.uid);
+                const refLink = `${window.location.origin}${window.location.pathname}?ref=${u.uid}`;
+                if(document.getElementById('referralLinkDisplay')) document.getElementById('referralLinkDisplay').value = refLink;
+                if(document.getElementById('profileTab').classList.contains('active')) switchTab('homeTab');
+            } else {
+                msg.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);color:#d97706;margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Email not verified yet. Please click the link in your inbox.</div>`;
+            }
+        } catch(e) {
+            msg.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#ef4444;margin-bottom:8px;"><i class="fas fa-exclamation-circle"></i> Error checking status. Try again.</div>`;
+        }
+    };
+
+    window.signOutFromVerifyModal = async () => {
+        try { await signOut(auth); } catch(_) {}
+        document.getElementById('emailVerifyModal').style.display = 'none';
+        document.getElementById('authView').style.display = 'block';
+        document.getElementById('userProfileView').style.display = 'none';
+        showToast('Signed out. Please login again.', 'warn');
+    };
+
     // ── TELEGRAM CHANNEL NOTIFICATIONS ───────────────────────────────
     
     async function sendTelegramChannelNotification(messageText, inlineButtons = null) {
@@ -4196,6 +5095,169 @@
     };
 
     loadPublicData(); window.switchTab = switchTab;
+
+    // ── LEGAL MODAL FUNCTIONS ─────────────────────────────────────────────
+    window.openLegalModal = function(type) {
+        const modal = document.getElementById('legalModal');
+        const title = document.getElementById('legalModalTitle');
+        const icon  = document.getElementById('legalModalIcon');
+        const body  = document.getElementById('legalModalBody');
+
+        if(type === 'privacy') {
+            title.textContent = 'Privacy Policy';
+            icon.className = 'fas fa-shield-alt';
+            icon.style.color = 'var(--accent-cyan)';
+            document.getElementById('legalIconWrap').style.background = 'rgba(37,99,235,0.12)';
+            body.innerHTML = `
+                <div class="legal-section">
+                    <div class="legal-updated">Last updated: January 2025</div>
+                    <p>We value your privacy. This Privacy Policy explains how <b id="legalBrandInline">our platform</b> collects, uses, and protects your information when you use our services.</p>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-database"></i> Information We Collect</div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span><b>Account Info:</b> Name when you register.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span><b>Transaction Data:</b> Payment records, wallet top-ups, order history, and UTR references.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span><b>Usage Data:</b> Pages visited, features used, and device/browser type for improving our service.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span><b>Referral Info:</b> Referral links clicked and users referred by you.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-cogs"></i> How We Use Your Data</div>
+                    <div class="legal-item"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>To process orders and manage your wallet balance.</span></div>
+                    <div class="legal-item"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>To send transactional notifications and order updates.</span></div>
+                    <div class="legal-item"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>To prevent fraud and ensure platform security.</span></div>
+                    <div class="legal-item"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>To improve our platform features and user experience.</span></div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>We <b>never sell</b> your personal data to third parties.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-lock"></i> Data Security</div>
+                    <p>Your data is stored securely using Firebase (Google Cloud). All payment references are encrypted. Passwords are hashed and never stored in plain text. We use HTTPS encryption for all data transfers.</p>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-user-shield"></i> Your Rights</div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Request deletion of your account and personal data.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Access a copy of data we hold about you.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Update or correct your account information at any time.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-cookie-bite"></i> Cookies</div>
+                    <p>We use essential cookies only to keep you logged in and maintain your session. No tracking or advertising cookies are used.</p>
+                </div>
+                <div class="legal-contact">
+                    <i class="fas fa-envelope"></i> For privacy concerns, contact us via the Support section in the app.
+                </div>`;
+        } else {
+            title.textContent = 'Terms & Conditions';
+            icon.className = 'fas fa-file-contract';
+            icon.style.color = '#10b981';
+            document.getElementById('legalIconWrap').style.background = 'rgba(16,185,129,0.12)';
+            body.innerHTML = `
+                <div class="legal-section">
+                    <div class="legal-updated">Last updated: January 2025</div>
+                    <p>By using our platform, you agree to these Terms & Conditions. Please read them carefully before placing any orders or making payments.</p>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-clipboard-check"></i> Acceptance of Terms</div>
+                    <p>By creating an account or using any feature of our service, you confirm you are at least 13 years of age and accept these terms in full.</p>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-shopping-bag"></i> Orders & Services</div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>All orders are non-refundable once processing has begun.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Delivery times shown are estimates and may vary.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>You must provide accurate links and details for your orders.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>We reserve the right to cancel orders that violate platform policies.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-wallet"></i> Wallet & Payments</div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Wallet balance is non-transferable and non-withdrawable.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Always pay the exact amount shown — incorrect payments may be lost.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Save your UTR/transaction reference after every payment.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>In case of payment issues, contact support within 24 hours with proof.</span></div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Fraudulent payment claims will result in immediate account ban.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-ban"></i> Prohibited Activities</div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Creating fake accounts or using bots to abuse referral systems.</span></div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Attempting to exploit platform bugs or payment systems.</span></div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Sharing account credentials with others.</span></div>
+                    <div class="legal-item"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Using our services for any illegal activities.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-gift"></i> Referral Program</div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Referral rewards are credited only after the referred user completes a valid order.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>Self-referrals and fake account referrals are strictly prohibited.</span></div>
+                    <div class="legal-item"><i class="fas fa-dot-circle"></i><span>We reserve the right to modify or terminate the referral program at any time.</span></div>
+                </div>
+                <div class="legal-section">
+                    <div class="legal-section-title"><i class="fas fa-gavel"></i> Liability & Disputes</div>
+                    <p>We are not liable for any indirect losses arising from the use of our services. All disputes must be raised through our support system. We reserve the right to update these terms at any time with notice.</p>
+                </div>
+                <div class="legal-contact">
+                    <i class="fas fa-headset"></i> For any queries, reach us through the Support tab in the app.
+                </div>`;
+        }
+
+        // Update brand name inline
+        const brandNameEl = document.getElementById('brandName');
+        const inline = document.getElementById('legalBrandInline');
+        if(inline && brandNameEl) inline.textContent = brandNameEl.textContent || 'our platform';
+
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => modal.classList.add('active'));
+    };
+
+    window.closeLegalModal = function() {
+        const modal = document.getElementById('legalModal');
+        modal.classList.remove('active');
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    };
+
+    // ── GIFT CODE LIVE FORMATTING ───────────────────────────────────────
+    const giftInput = document.getElementById('giftCodeInput');
+    if(giftInput) {
+        giftInput.addEventListener('input', function() {
+            // Strip non-alphanumeric, uppercase, max 20 chars
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20);
+            const msg = document.getElementById('giftCodeMsg');
+            if(msg && this.value.length > 0) {
+                msg.innerHTML = this.value.length >= 4 ? '' : '<span style="font-size:12px;color:var(--text-secondary);">Keep typing your gift code...</span>';
+            }
+        });
+        giftInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') { e.preventDefault(); redeemGiftCode(); }
+        });
+    }
+
+    // ── INPUT FOCUS RING ON ALL INPUTS ─────────────────────────────────
+    document.querySelectorAll('.input-group input, .af-custom-input').forEach(inp => {
+        inp.classList.add('input-focus-ring');
+        inp.addEventListener('input', function() {
+            if(this.classList.contains('input-error') && this.value) {
+                this.classList.remove('input-error');
+                const hint = this.parentElement.querySelector('.input-hint');
+                if(hint) hint.remove();
+            }
+        });
+    });
+
+    // ── CART BADGE BOUNCE ON UPDATE ──────────────────────────────────
+    const _origUpdateCartBadge = window.updateCartBadge;
+    const _cartBadgeEl = document.getElementById('cartBadge');
+    if(_cartBadgeEl) {
+        const _obs = new MutationObserver(() => {
+            _cartBadgeEl.classList.remove('bounce');
+            void _cartBadgeEl.offsetWidth;
+            _cartBadgeEl.classList.add('bounce');
+        });
+        _obs.observe(_cartBadgeEl, { characterData: true, childList: true, subtree: true });
+    }
+
+    // ── BTN RIPPLE on all .btn elements ────────────────────────────────
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn, .plc-buy, .af-pay-btn');
+        if(btn && !btn.disabled) {
+            btn.classList.add('btn-ripple');
+        }
+    });
 
     // ── Background Auto-Complete Poller ──────────────────────────────────
     // Completes orders whose autoCompleteAt time has passed — works even
