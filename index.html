@@ -3265,7 +3265,8 @@
                 const referredList = [];
                 snap.forEach(s => {
                     const p = s.val().profile;
-                    if(p?.referredBy === user.uid) {
+                    // Count only verified users (signupRewardProcessed = true means email verified / Google signup done)
+                    if(p?.referredBy === user.uid && p?.signupRewardProcessed === true) {
                         cnt++;
                         referredList.push({ uid: s.key, name: p.name || 'Unknown', email: p.email || '', joinedAt: p.createdAt || '', totalSpent: parseFloat(p.totalSpent || 0) });
                     }
