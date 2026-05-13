@@ -2403,18 +2403,24 @@
             badgeEl.innerHTML = '<span class="osm-status-badge osm-status-pending"><i class="fas fa-clock"></i> Pending Validation</span>';
         }
 
-        // Detail rows
-        const rows = [];
-        if(d.product) rows.push(['Service', d.product]);
-        if(d.utr)     rows.push(['Ref / UTR', d.utr]);
-        if(d.method)  rows.push(['Payment', d.method]);
-        const now = new Date();
-        rows.push(['Date', now.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})]);
-        rows.push(['Time', now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})]);
+        // Detail rows — Order ID, Item, Link, Paid/Amount, Date, Ref ID
+        const now     = new Date();
+        const dateStr = now.toLocaleString('en-IN', { day:'numeric', month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
-        document.getElementById('osmRows').innerHTML = rows.map(([l,v]) =>
-            `<div class="osm-row"><span class="osm-row-label">${l}</span><span class="osm-row-value" title="${v}">${v}</span></div>`
-        ).join('');
+        const rows = [];
+        if(d.orderId) rows.push(['Order ID', '#' + d.orderId]);
+        if(d.product && !d.isWalletTopup) rows.push(['Item', d.product]);
+        if(d.link)    rows.push(['Link', d.link]);
+        rows.push(['Paid', (d.isWalletTopup ? '+' : '') + '₹' + d.amount]);
+        rows.push(['Date', dateStr]);
+        if(d.utr)     rows.push(['Ref ID', d.utr]);
+        if(d.method)  rows.push(['Payment', d.method]);
+
+        document.getElementById('osmRows').innerHTML = rows.map(([l, v]) => {
+            // Truncate long links for display but keep title for full text
+            const display = (l === 'Link' && v && v.length > 32) ? v.substring(0, 30) + '…' : v;
+            return `<div class="osm-row"><span class="osm-row-label">${l}</span><span class="osm-row-value" title="${v}">${display}</span></div>`;
+        }).join('');
     }
 
     window.closeOrderSummary = (tab) => {
@@ -4173,6 +4179,8 @@
                 amount: checkoutFinalAmt.toFixed(2),
                 product: checkoutItem.title || checkoutItem.planName || 'Service',
                 utr: utr,
+                link: targetLink || null,
+                orderId: newOrderRef.key.slice(-6).toUpperCase(),
                 method: 'UPI',
                 status: orderData.status,
                 notifyMsg: '✅ Payment Verified & Order Placed Successfully!'
@@ -4282,6 +4290,8 @@
                     amount: checkoutFinalAmt.toFixed(2),
                     product: checkoutItem.title || checkoutItem.planName || 'Service',
                     utr: utr,
+                    link: targetLink || null,
+                    orderId: newOrderRef.key.slice(-6).toUpperCase(),
                     method: 'Wallet',
                     status: orderData.status,
                     notifyMsg: '✅ Wallet Payment Successful! Order Placed.'
@@ -4389,6 +4399,8 @@
                     amount: '0.00',
                     product: checkoutItem.title || checkoutItem.planName || 'Service',
                     utr: null,
+                    link: targetLink || null,
+                    orderId: newOrderRef.key.slice(-6).toUpperCase(),
                     method: 'Free',
                     isFree: true,
                     status: orderData.status,
@@ -4658,14 +4670,17 @@
             sendTelegramOrderNotification(cart, paidVal, utr, cart[0]?.link || null);
 
             const cartItemCount = cart.length;
+            const _cartFirstProduct = cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service');
+            const _cartFirstLink = cart[0]?.link || null;
             cart = []; updateCartBadge();
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
             showPayVerifySuccess({
                 amount: paidVal.toFixed(2),
-                product: cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service'),
+                product: _cartFirstProduct,
                 utr: utr,
+                link: _cartFirstLink,
                 method: 'UPI',
                 isCart: true,
                 itemCount: cartItemCount,
@@ -4741,14 +4756,17 @@
             sendTelegramOrderNotification(cart, cartFinalAmt, utr, cart[0]?.link || null);
 
             const cartItemCount = cart.length;
+            const _wCartFirstProduct = cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service');
+            const _wCartFirstLink = cart[0]?.link || null;
             cart = []; updateCartBadge();
             _unlockOrder();
             closeCart();
             playOrderSuccessSound();
             showPayVerifySuccess({
                 amount: cartFinalAmt.toFixed(2),
-                product: cart.length > 1 ? cart.map(c=>c.product?.title||'Service').join(', ') : (cart[0]?.product?.title || 'Service'),
+                product: _wCartFirstProduct,
                 utr: utr,
+                link: _wCartFirstLink,
                 method: 'Wallet',
                 isCart: true,
                 itemCount: cartItemCount,
