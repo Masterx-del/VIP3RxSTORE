@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,7 @@
     <link rel="icon" type="image/jpeg" href="https://i.ibb.co/F46TgHLt/IMG-20251101-010328-873.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --bg-color: #f4f6f8; 
@@ -59,7 +58,7 @@
             display: flex; flex-direction: column; overflow: hidden; 
             transition: var(--transition); 
         }
-        
+
         .header { 
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; 
             background: var(--card-bg); border-bottom: 1px solid var(--border-color); 
@@ -68,7 +67,7 @@
         .brand-info { display: flex; align-items: center; gap: 12px; }
         .brand-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; display: none; border: 1px solid var(--border-color); }
         .brand-name { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
-        
+
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { 
             width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color); 
@@ -231,7 +230,7 @@
             border-radius: var(--border-radius); overflow: hidden; display: flex; flex-direction: column; 
             box-shadow: var(--shadow); 
         }
-        
+
         .btn { 
             width: 100%; padding: 14px; background: var(--accent-cyan); 
             border: none; border-radius: 8px; color: #fff; font-weight: 600; 
@@ -263,7 +262,7 @@
             font-size: 13px; font-weight: 700; margin-bottom: 12px; padding-bottom: 12px; 
             border-bottom: 1px solid var(--border-color); color: var(--text-primary);
         }
-        
+
         .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #fff; font-weight: 600; letter-spacing: 0.3px; }
         .bg-pending { background: #f59e0b; color: #fff; } 
         .bg-progress { background: #3b82f6; } 
@@ -320,13 +319,13 @@
         .modal-overlay.active .bottom-sheet { transform: translateY(0); }
         .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .sheet-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text-primary); }
-        
+
         .checkout-summary { 
             background: var(--bg-color); border: 1px solid var(--border-color); 
             border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; gap: 16px; align-items: center; 
         }
         .checkout-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; display: none; border: 1px solid var(--border-color); }
-        
+
         .coupon-box { display: flex; gap: 10px; margin-bottom: 8px; }
         .coupon-box input { 
             flex: 1; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); 
@@ -334,7 +333,7 @@
         }
         .btn-apply { padding: 0 16px; background: var(--text-primary); color: var(--card-solid); border: none; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;}
         .btn-apply:hover { opacity: 0.9; }
-        
+
         .payment-box { 
             background: rgba(37, 99, 235, 0.04); border: 1px solid rgba(37, 99, 235, 0.2); 
             border-radius: 12px; padding: 20px 16px; margin: 10px 0 20px 0; text-align: center; position: relative;
@@ -346,7 +345,7 @@
             display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .upi-text { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-primary); margin: 8px 0; user-select: all; cursor: pointer; background: var(--card-solid); padding: 8px; border-radius: 6px; border: 1px dashed var(--border-color); display: inline-block;}
-        
+
         /* QR Code Premium Design CSS */
         .qr-wrapper { 
             background: #fff; padding: 12px; border-radius: 16px; 
@@ -373,7 +372,7 @@
         .cart-promo-row { display:flex; gap:8px; margin-bottom:8px; }
         .cart-promo-row input { flex:1; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary); font-size:13px; outline:none; text-transform:uppercase; }
         .cart-promo-row button { padding:0 14px; background:var(--text-primary); color:var(--card-solid); border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; }
-        
+
         .toast { 
             position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); 
             background: var(--text-primary); color: var(--card-solid); padding: 14px 24px; 
@@ -387,7 +386,7 @@
         .loader-overlay.active { display: flex; }
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
+
         .empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); width: 100%; }
         .empty-state i { font-size: 48px; color: var(--border-color); margin-bottom: 16px; }
         .empty-state p { font-size: 14px; font-weight: 500; }
@@ -395,7 +394,7 @@
 
         .progress-circle { position: relative; display: inline-block; }
         .progress-circle svg { transform: rotate(-90deg); }
-        
+
         .tick-anim { display: block; border-radius: 50%; stroke-width: 3; stroke: #10b981; stroke-miterlimit: 10; box-shadow: inset 0px 0px 0px #10b981; animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both; background: rgba(16,185,129,0.1); }
         .tick-anim circle { stroke-dasharray: 166; stroke-dashoffset: 166; animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
         .tick-anim path { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards; }
@@ -438,7 +437,7 @@
         }
         .wf-tab:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
         .wf-tab-active { background: var(--accent-cyan) !important; color: #fff !important; border-color: var(--accent-cyan) !important; }
-        
+
         #giftCodeModal { position: fixed !important; }
 
         @keyframes bannerSlideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
@@ -910,7 +909,7 @@
     <div class="network-banner" id="networkBanner">
         <i class="fas fa-wifi-slash"></i> No internet connection
     </div>
-    
+
     <!-- ANNOUNCEMENT BANNER -->
     <div class="ann-banner" id="annBanner">
         <span id="annBannerText"></span>
@@ -1091,7 +1090,7 @@
                 <div class="card">
                     <h2 class="section-title" id="authTitle">Welcome Back</h2>
                     <p style="font-size:13px; color:var(--text-secondary); margin-bottom:24px;">Securely login to access your dashboard.</p>
-                    
+
                     <div id="signupNameGroup" class="input-group" style="display:none;">
                         <label>Full Name</label><input type="text" id="authName" placeholder="John Doe">
                     </div>
@@ -1103,9 +1102,9 @@
                         </div>
                         <input type="password" id="authPassword" placeholder="••••••••">
                     </div>
-                    
+
                     <button id="authSubmitBtn" class="btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login Securely</button>
-                    
+
                     <div style="display:flex; align-items:center; gap:10px; margin:18px 0 4px;">
                         <div style="flex:1; height:1px; background:var(--border-color);"></div>
                         <span style="font-size:12px; color:var(--text-secondary); font-weight:500; white-space:nowrap;">or continue with</span>
@@ -1774,7 +1773,7 @@
                 <div class="sheet-title">Secure Checkout</div>
                 <button class="icon-btn" onclick="closeCheckout()" style="background:transparent; border:none; box-shadow:none; height: 32px; width: 32px;"><i class="fas fa-times" style="font-size:18px;"></i></button>
             </div>
-            
+
             <!-- STEP 1: Details and Promo Code -->
             <div id="chkStep1">
                 <div class="checkout-summary">
@@ -1818,7 +1817,7 @@
                 <div class="payment-box">
                     <div class="secure-badge"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
                     <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom: 4px;">Pay exactly <span id="chkPayAmt" style="color:var(--accent-cyan); font-size:18px; font-weight:800;"></span></div>
-                    
+
                     <div class="qr-wrapper">
                         <div class="qr-corner qr-tl"></div>
                         <div class="qr-corner qr-tr"></div>
@@ -1826,7 +1825,7 @@
                         <div class="qr-corner qr-br"></div>
                         <img id="dynamic-qr" src="" alt="Scan to Pay">
                     </div>
-                    
+
                     <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom: 15px; display:flex; justify-content:center; align-items:center; gap:8px;">
                         <i class="fas fa-qrcode" style="font-size:16px;"></i>
                         <span>Scan to pay via Any UPI App</span>
@@ -1834,7 +1833,7 @@
 
                     <div class="upi-text" id="chkUpiId" title="Click to copy" style="font-size: 14px;">Paytmqr6i3w0w@ptys</div>
                     <div style="font-size:11px; color:var(--text-secondary); margin-bottom: 12px;">Tap UPI ID to copy</div>
-                    
+
                     <div style="background: rgba(225, 29, 72, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(225, 29, 72, 0.3);">
                         Order Ref ID: <b id="chkOrderIdDisplay" style="color:var(--accent-pink); font-family:monospace; font-size:15px; letter-spacing:1px;"></b>
                         <div style="font-size:10px; margin-top:4px; color:var(--text-secondary);">* Do not change amount while paying</div>
@@ -1844,7 +1843,7 @@
                 <button class="btn" onclick="confirmPurchase()"><i class="fas fa-lock"></i> I Have Paid. Verify Now</button>
                 <button class="btn" style="background:transparent; color:var(--text-secondary); box-shadow:none; border:1px solid var(--border-color); margin-top:10px; height: 45px;" onclick="goBackToStep1()"><i class="fas fa-arrow-left"></i> Back to Details</button>
             </div>
-            
+
         </div>
     </div>
 
@@ -2382,10 +2381,10 @@
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
     let linkMgmtRules = {};
     let _productsLoaded = false;
-    
+
     // To store Auto-generated ID
     let currentOrderId = "";
-    
+
     // Referral from URL
     const urlParams = new URLSearchParams(window.location.search);
     const referralSource = urlParams.get('ref') || '';
@@ -2972,7 +2971,7 @@
                 const cred = await createUserWithEmailAndPassword(auth, email, pass); 
                 await updateProfile(cred.user, { displayName: name }); 
                 await set(ref(db, `users/${cred.user.uid}/profile`), { name, email, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
-                if(referralSource) processSignupReferralReward(cred.user.uid, referralSource).catch(()=>{});
+                // NOTE: Referral reward for email signup is given AFTER email verification (handled in onAuthStateChanged)
                 // Send email verification
                 try { await sendEmailVerification(cred.user); } catch(_) {}
                 // Clear validation marks on success
@@ -3131,7 +3130,7 @@
                 walletBalance: 0,
                 totalSpent: 0
             });
-            if(referralSource) processSignupReferralReward(user.uid, referralSource).catch(()=>{});
+            // NOTE: Referral reward is given via onAuthStateChanged after verification
         }
         showToast('✅ Logged in with Google!');
     }).catch((e) => {
@@ -3167,7 +3166,7 @@
                     walletBalance: 0,
                     totalSpent: 0
                 });
-                if(referralSource) processSignupReferralReward(user.uid, referralSource).catch(()=>{});
+                // NOTE: Referral reward is given via onAuthStateChanged after verification
             }
             _resetBtn();
             showToast('✅ Logged in with Google!');
@@ -3217,6 +3216,21 @@
             // Close verify modal if somehow open
             const evModal = document.getElementById('emailVerifyModal');
             if(evModal) evModal.style.display = 'none';
+
+            // ── Referral Reward: Give signup reward after verification (email or Google) ──
+            // Fires once per user when they access dashboard with a verified account
+            (async () => {
+                try {
+                    const _profSnap = await get(ref(db, `users/${user.uid}/profile`));
+                    if(_profSnap.exists()) {
+                        const _prof = _profSnap.val();
+                        if(_prof.referredBy && !_prof.signupRewardProcessed) {
+                            await processSignupReferralReward(user.uid, _prof.referredBy);
+                        }
+                    }
+                } catch(_) {}
+            })();
+
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
@@ -3603,7 +3617,7 @@
         _wfVerifyInProgress = true;
         const utr = wfOrderId;
         if(!utr) { _wfVerifyInProgress = false; return showToast('⚠️ Invalid Order ID'); }
-        
+
         showPayVerify();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
@@ -3625,13 +3639,13 @@
                 if(!retryResult) { hidePayVerify(); return showToast("❌ Network Error. Check internet and try again."); }
                 verifyResult = retryResult;
             }
-            
+
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
                 hidePayVerify(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Try again in a few seconds.")); 
             }
-            
+
             const paidVal = parseFloat(result.TXNAMOUNT);
             if(paidVal < wfAmount) { hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
 
@@ -4074,12 +4088,12 @@
         const input = document.getElementById('chatInput'); const msg = input.value.trim(); if(!msg) return;
 
         push(ref(db, `chats/${currentUser.uid}/messages`), { message: msg, sender: 'user', timestamp: new Date().toISOString() });
-        
+
         const infoRef = ref(db, `chats/${currentUser.uid}/info`);
         // Always get latest name from profile to ensure correct display
         const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
         const displayName = profileSnap.exists() ? (profileSnap.val().name || currentUser.displayName || 'User') : (currentUser.displayName || 'User');
-        
+
         get(infoRef).then(snap => {
             let unread = 1; if(snap.exists() && snap.val().adminUnread) { unread = snap.val().adminUnread + 1; }
             update(infoRef, { userName: displayName, lastMessage: msg, lastMessageTime: new Date().toISOString(), adminUnread: unread });
@@ -4096,7 +4110,7 @@
             }
           }
         }catch(e){}})();
-        
+
         input.value = '';
     });
 
@@ -4111,12 +4125,12 @@
         const upiId = "Paytmqr6i3w0w@ptys"; 
         const upiName = "SACHIN SAYSING RAUT"; 
         document.getElementById('chkUpiId').textContent = upiId;
-        
+
         const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tr=${orderId}`;
         const qrImg = document.getElementById('dynamic-qr');
-        
+
         if(qrImg) qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(upiString);
-        
+
         document.getElementById('chkOrderIdDisplay').textContent = orderId;
     };
 
@@ -4164,7 +4178,7 @@
         document.getElementById('chkFinalPrice').textContent = isFreeService ? 'FREE' : `₹${checkoutFinalAmt}`; 
         document.getElementById('chkPayAmt').textContent = isFreeService ? 'FREE' : `₹${checkoutFinalAmt}`;
         document.getElementById('chkCouponInput').value = ''; document.getElementById('chkCouponMsg').textContent = ''; document.getElementById('chkLinkInput').value = ''; document.getElementById('chkLinkInput2').value = ''; document.getElementById('chkLinkInput3').value = ''; document.getElementById('chkLinkInput4').value = ''; document.getElementById('chkLinkInput5').value = ''; document.getElementById('chkPollInput').value = '';
-        
+
         // Free service — hide payment/coupon/wallet, change button
         const paymentBox = document.querySelector('#chkStep2 .payment-box');
         const couponSection = document.querySelector('.coupon-box')?.closest('.input-group') || document.querySelector('.coupon-box')?.parentElement;
@@ -4209,7 +4223,7 @@
             const MERCHANT_ID_PW = "MdXwlu49903940058924";
             prewarmProxies(`https://verify.pikaapis.workers.dev/?trn=PREWARM&id=${MERCHANT_ID_PW}`);
         }
-        
+
         document.getElementById('chkLinkContainer').style.display = 'block';
         if (type === 'product') {
             document.getElementById('chkExtraLinksContainer').style.display = 'none';
@@ -4228,18 +4242,18 @@
         }
         document.getElementById('checkoutModal').classList.add('active');
     }
-    
+
     window.goToStep2 = () => {
         const targetLink = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption = document.getElementById('chkPollInput').value.trim(); 
-        
+
         if (checkoutItem.purchaseType === 'product') { 
             if (!targetLink) return showToast('Please enter the required link/username');
             if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) { 
                 return showToast('Please enter the poll vote option'); 
             } 
         }
-        
+
         document.getElementById('chkStep1').style.display = 'none';
         document.getElementById('chkStep2').style.display = 'block';
     };
@@ -4262,7 +4276,7 @@
         if(validCoupon.discountType === 'percentage') { discount = basePrice * (parseFloat(validCoupon.discountValue) / 100); } else { discount = parseFloat(validCoupon.discountValue); }
         checkoutFinalAmt = Math.max(0, basePrice - discount); appliedCouponKey = cKey; setMsg(msg,'success',`Coupon applied! You saved ₹${discount.toFixed(2)}`);
         document.getElementById('chkFinalPrice').textContent = `₹${checkoutFinalAmt.toFixed(2)}`; document.getElementById('chkPayAmt').textContent = `₹${checkoutFinalAmt.toFixed(2)}`;
-        
+
         // Update Wallet Button Text dynamically after coupon
         const chkBtn = document.getElementById('chkWalletBtn');
         if(chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
@@ -4286,14 +4300,14 @@
         if (_guardOrder()) { _resetBtn(); return; }
         const utr = currentOrderId; 
         if(!utr) { _unlockOrder(); _resetBtn(); return showToast('❌ Invalid Order ID'); }
-        
+
         const targetLink  = document.getElementById('chkLinkInput').value.trim(); 
         const pollOption  = document.getElementById('chkPollInput').value.trim(); 
         const targetLink2 = document.getElementById('chkLinkInput2').value.trim();
         const targetLink3 = document.getElementById('chkLinkInput3').value.trim();
         const targetLink4 = document.getElementById('chkLinkInput4').value.trim();
         const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
-        
+
         showPayVerify();
         try {
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
@@ -4317,7 +4331,7 @@
             }
 
             const result = verifyResult.json;
-            
+
             // ── Step 3: Validate Payment Status ──
             if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
                 _unlockOrder(); _resetBtn(); hidePayVerify();
@@ -4776,14 +4790,14 @@
 
     window.proceedCartCheckout = () => {
         if(cart.length === 0) return showToast('Cart is empty!');
-        
+
         // Validate all links inside the cart
         for(let i=0; i<cart.length; i++) {
             if(!cart[i].link.trim()) { 
                 return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
             }
         }
-        
+
         cartOrderId = generateUTR(12);
         const upiId = "Paytmqr6i3w0w@ptys";
         document.getElementById('cartUpiId').textContent = upiId;
@@ -4821,13 +4835,13 @@
 
             if(utrSnapshot.exists()) { _unlockOrder(); hidePayVerify(); return showToast('❌ This Order ID already used!'); }
             if(!verifyResult) { _unlockOrder(); hidePayVerify(); return showToast("❌ Network Error."); }
-            
+
             const result = verifyResult.json;
             if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
                 _unlockOrder(); hidePayVerify(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again.")); 
             }
-            
+
             const paidVal = parseFloat(result.TXNAMOUNT);
             if(paidVal < cartFinalAmt) { _unlockOrder(); hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
 
@@ -4841,7 +4855,7 @@
                     createdAt: new Date().toISOString(), isSubscription: false,
                     apiStatus: hasApi ? 'calling' : null, cartGroup: utr,
                 };
-                
+
                 const newOrderRef = push(ref(db, 'orders'));
                 await set(newOrderRef, orderData);
 
@@ -4895,7 +4909,7 @@
     window.confirmCartWalletPurchase = async () => {
         if (_guardOrder()) return;
         if(cart.length === 0) { _unlockOrder(); return showToast('Cart is empty!'); }
-        
+
         for(let i=0; i<cart.length; i++) {
             if(!cart[i].link.trim()) { 
                 _unlockOrder(); return showToast(`⚠️ Enter link for item: ${cart[i].product.title}`); 
@@ -4937,7 +4951,7 @@
                     createdAt: new Date().toISOString(), isSubscription: false,
                     apiStatus: hasApi ? 'calling' : null, cartGroup: utr, paymentMethod: 'wallet'
                 };
-                
+
                 const newOrderRef = push(ref(db, 'orders'));
                 await set(newOrderRef, orderData);
 
@@ -5047,7 +5061,7 @@
             switchTab('walletTab');
         }
     };
-    
+
     // Gift coin burst animation helper
     function _launchGiftCoins() {
         const burst = document.getElementById('giftCoinBurst');
@@ -5088,31 +5102,31 @@
             let foundKey = null, foundCode = null;
             snap.forEach(c => { if((c.val().code || '').toUpperCase() === code && c.val().isActive !== false) { foundKey = c.key; foundCode = c.val(); } });
             if(!foundKey) { hideLoader(); setMsg(msg,'error','Invalid or expired gift code'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
-            
+
             // Check if already redeemed — stored in user profile to avoid permission issues
             const alreadySnap = await get(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`));
             if(alreadySnap.exists()) { hideLoader(); setMsg(msg,'warn','You have already redeemed this code!'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
-            
+
             // Check time expiry
             if(foundCode.expiresAt) {
                 if(new Date() > new Date(foundCode.expiresAt)) { hideLoader(); setMsg(msg,'error','This gift code has expired'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
             }
-            
+
             // Check user limit
             const usedCount = parseInt(foundCode.usedCount || 0);
             if(foundCode.maxUsers && parseInt(foundCode.maxUsers) > 0 && usedCount >= parseInt(foundCode.maxUsers)) {
                 hideLoader(); setMsg(msg,'error','Gift code usage limit reached'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return;
             }
-            
+
             // Validate reward amount
             const rewardAmt = parseFloat(foundCode.amount || 0);
             if(rewardAmt <= 0) { hideLoader(); setMsg(msg,'error','Invalid reward amount'); if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-gift"></i> Redeem Gift Code';} return; }
-            
+
             // Get current balance
             const profileSnap = await get(ref(db, `users/${currentUser.uid}/profile`));
             const curBal = parseFloat(profileSnap.exists() ? (profileSnap.val().walletBalance || 0) : 0);
             const newBal = curBal + rewardAmt;
-            
+
             // Write ONLY to user node (auth.uid == $uid permission) + giftCodes (auth != null)
             await Promise.all([
                 update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal }),
@@ -5122,7 +5136,7 @@
                 set(ref(db, `users/${currentUser.uid}/redeemedGiftCodes/${foundKey}`), new Date().toISOString()),
                 update(ref(db, `giftCodes/${foundKey}`), { usedCount: usedCount + 1 }),
             ]);
-            
+
             hideLoader();
             // ── Show animated success screen ──
             _launchGiftCoins();
@@ -5226,7 +5240,7 @@
     };
 
     // ── TELEGRAM CHANNEL NOTIFICATIONS ───────────────────────────────
-    
+
     async function sendTelegramChannelNotification(messageText, inlineButtons = null) {
         try {
             const botSnap = await get(ref(db, 'meta/telegramBot'));
