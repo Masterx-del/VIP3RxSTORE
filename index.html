@@ -2167,7 +2167,7 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged, runTransaction } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+    import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged, runTransaction, remove } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyDrjP8o8adBYGih_28XrDrCwVpL3WRu9rE",
@@ -3234,6 +3234,7 @@
             document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
+            resumePendingVerification(user.uid);
             if(document.getElementById('profileTab').classList.contains('active')){ switchTab('homeTab'); }
             bindRealTimeNotifications(user.uid);
             bindAdminMessageNotification(user.uid);
@@ -3620,6 +3621,14 @@
 
         showPayVerify();
         try {
+            // ── PHASE 1: Save pendingVerification to Firebase BEFORE verifying ──
+            // If user closes browser mid-flow, this will be picked up on next app open
+            await set(ref(db, `users/${currentUser.uid}/pendingVerification`), {
+                utr,
+                amount: wfAmount,
+                initiatedAt: new Date().toISOString()
+            });
+
             // ── Steps 1+2: Firebase duplicate check AND payment verify IN PARALLEL ──
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
@@ -3631,29 +3640,42 @@
             ]);
             let verifyResult = _wfVerifyResult0;
 
-            if(utrSnapshot.exists()) { hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
+            if(utrSnapshot.exists()) {
+                await remove(ref(db, `users/${currentUser.uid}/pendingVerification`));
+                hidePayVerify(); return showToast('❌ This Order ID has already been used!');
+            }
             if(!verifyResult) { 
                 showToast('⚠️ Network slow, retrying...');
                 await new Promise(r => setTimeout(r, 2500));
                 const retryResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
-                if(!retryResult) { hidePayVerify(); return showToast("❌ Network Error. Check internet and try again."); }
+                if(!retryResult) {
+                    await remove(ref(db, `users/${currentUser.uid}/pendingVerification`));
+                    hidePayVerify(); return showToast("❌ Network Error. Check internet and try again.");
+                }
                 verifyResult = retryResult;
             }
 
             const result = verifyResult.json;
-            if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") { 
+            if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
+                await remove(ref(db, `users/${currentUser.uid}/pendingVerification`));
                 hidePayVerify(); 
                 return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Try again in a few seconds.")); 
             }
 
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(paidVal < wfAmount) { hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`); }
+            if(paidVal < wfAmount) {
+                await remove(ref(db, `users/${currentUser.uid}/pendingVerification`));
+                hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`);
+            }
 
             // ── Step 3: Wallet Addition Logic ──
             const newBal = walletBalance + paidVal;
             await update(ref(db, `users/${currentUser.uid}/profile`), { walletBalance: newBal });
             await push(ref(db, `users/${currentUser.uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up', utrId: utr, createdAt: new Date().toISOString() });
             await push(ref(db, 'orders'), { userId: currentUser.uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
+
+            // ── PHASE 2 Complete: Remove pendingVerification after successful credit ──
+            await remove(ref(db, `users/${currentUser.uid}/pendingVerification`));
 
             // ── Telegram: Top-Up Channel Notification ──
             (async()=>{try{
@@ -3682,6 +3704,64 @@
             _wfVerifyInProgress = false;
         }
     };
+
+    // ── RESUME PENDING VERIFICATION (called on login / app open) ────────────
+    // If user closed browser mid-payment, this picks up and completes it safely
+    async function resumePendingVerification(uid) {
+        try {
+            const pendSnap = await get(ref(db, `users/${uid}/pendingVerification`));
+            if(!pendSnap.exists()) return;
+            const pend = pendSnap.val();
+            const utr = pend.utr;
+            const amount = parseFloat(pend.amount || 0);
+            if(!utr || amount <= 0) {
+                await remove(ref(db, `users/${uid}/pendingVerification`));
+                return;
+            }
+
+            // Already credited? (UTR exists in orders)
+            const utrSnap = await get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr)));
+            if(utrSnap.exists()) {
+                await remove(ref(db, `users/${uid}/pendingVerification`));
+                return;
+            }
+
+            showToast('⏳ Resuming your last payment verification...', 'warn');
+
+            const MERCHANT_ID = "MdXwlu49903940058924";
+            const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
+            const verifyURLs = buildVerifyURLs(verifyUrl);
+            const verifyResult = await raceFetch(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
+
+            if(!verifyResult) {
+                showToast('⚠️ Could not verify last payment. Please contact support if amount was deducted.', 'warn');
+                await remove(ref(db, `users/${uid}/pendingVerification`));
+                return;
+            }
+
+            const result = verifyResult.json;
+            if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
+                await remove(ref(db, `users/${uid}/pendingVerification`));
+                return;
+            }
+
+            const paidVal = parseFloat(result.TXNAMOUNT);
+            if(paidVal < amount) {
+                await remove(ref(db, `users/${uid}/pendingVerification`));
+                return;
+            }
+
+            // Credit wallet
+            const profSnap = await get(ref(db, `users/${uid}/profile`));
+            const curBal = parseFloat(profSnap.exists() ? (profSnap.val().walletBalance || 0) : 0);
+            await update(ref(db, `users/${uid}/profile`), { walletBalance: curBal + paidVal });
+            await push(ref(db, `users/${uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up (Auto-Resumed)', utrId: utr, createdAt: new Date().toISOString() });
+            await push(ref(db, 'orders'), { userId: uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
+            await remove(ref(db, `users/${uid}/pendingVerification`));
+
+            showToast(`✅ ₹${paidVal.toFixed(2)} credited! (Resumed from last session)`, 'success');
+        } catch(e) {}
+    }
 
     // ── DUAL REFERRAL REWARD SYSTEM ────────────────────────────────────────
     // Type A: Signup reward (flat ₹) — called once when new user joins
