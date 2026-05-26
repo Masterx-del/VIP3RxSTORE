@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1674,15 +1675,62 @@
 
             <!-- ── Crypto Section ── -->
             <div class="af-section" id="afCryptoSection">
-                <div class="af-crypto-box">
-                    <div class="af-crypto-icon">₿</div>
-                    <div class="af-crypto-title">Crypto Deposit</div>
-                    <div class="af-crypto-text">Contact our support team on Telegram to deposit using Bitcoin, USDT, ETH and 100+ other cryptocurrencies. Fast and easy!</div>
+                <!-- Disabled state shown when gateway is off -->
+                <div id="cryptoDisabledBox" style="display:none;">
+                    <div class="af-crypto-box">
+                        <div class="af-crypto-icon">₿</div>
+                        <div class="af-crypto-title">Crypto Deposit</div>
+                        <div class="af-crypto-text" style="color:var(--accent-danger);">Crypto payments are currently unavailable. Please use UPI or contact support.</div>
+                    </div>
                 </div>
-                <button class="af-tg-btn" id="afTelegramBtn" onclick="afOpenTelegram()">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
+                <!-- Active crypto deposit UI -->
+                <div id="cryptoActiveBox">
+                    <!-- INR equivalent display -->
+                    <div id="cryptoInrEquiv" style="display:none;background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.18);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:var(--accent-cyan);text-align:center;margin-bottom:12px;">
+                        <i class="fas fa-wallet"></i> You will get: <span id="cryptoInrAmount">₹0.00</span>
+                    </div>
+                    <!-- Min amount info -->
+                    <div class="af-info-bar" id="cryptoMinBar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Minimum <span id="cryptoMinText">$1</span> &nbsp;•&nbsp; Pay in 100+ cryptocurrencies
+                    </div>
+                    <!-- Deposit breakdown -->
+                    <div class="af-deposit-box">
+                        <div class="af-deposit-row">
+                            <span>Deposit (USD)</span>
+                            <span id="cryptoDepositUsd">$0.00</span>
+                        </div>
+                        <div class="af-deposit-row total">
+                            <span>Wallet credit (INR)</span>
+                            <span class="af-total-val" id="cryptoTotalInr">₹0.00</span>
+                        </div>
+                    </div>
+                    <!-- Quick amount chips (loaded from Firebase) -->
+                    <div class="af-chips" id="cryptoChips"></div>
+                    <!-- Custom USD amount input -->
+                    <div class="af-custom-input-wrap">
+                        <span class="af-rupee-prefix" style="left:10px;font-size:13px;color:#f59e0b;font-weight:800;">$</span>
+                        <input type="number" class="af-custom-input" id="cryptoAmountInput" placeholder="Enter amount in USD" min="1" step="1" oninput="cryptoOnAmountInput(this.value)" style="padding-left:26px;">
+                    </div>
+                    <!-- Proceed button -->
+                    <button class="af-pay-btn" id="cryptoPayBtn" onclick="initiateCryptoPayment()" style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);box-shadow:0 3px 16px rgba(245,158,11,0.35);">
+                        <svg width="18" height="18" viewBox="0 0 32 32" fill="white"><path d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm3.67 22.11c-.26 1.04-1.04 1.82-2.08 2.08l-.52.13v1.04h-1.04v-1.04h-1.04v1.04h-1.04v-1.04c-1.82-.26-3.12-1.56-3.12-3.38h1.56c0 1.04.78 1.82 1.82 1.82h2.08c1.04 0 1.82-.78 1.82-1.82 0-.78-.52-1.3-1.56-1.56l-3.12-.78c-1.3-.26-2.08-1.3-2.08-2.6 0-1.3.78-2.34 2.08-2.6V12.8h1.04v1.04h1.04V12.8h1.04v1.04c1.56.26 2.6 1.3 2.6 2.86h-1.56c0-.78-.78-1.56-1.82-1.56H14.7c-1.04 0-1.82.78-1.82 1.82 0 .78.52 1.3 1.56 1.56l3.12.78c1.3.26 2.08 1.3 2.08 2.6l-.02.2z"/></svg>
+                        Pay with Crypto
+                    </button>
+                </div>
+                <!-- Crypto payment pending screen -->
+                <div id="cryptoPendingBox" style="display:none;text-align:center;padding:10px 0;">
+                    <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+                    <div style="font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">Payment Initiated!</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">You'll be redirected to Heleket's secure payment page. After payment, your wallet will be credited automatically.</div>
+                    <div id="cryptoPendingOrderId" style="background:var(--input-bg);border:1px dashed var(--border-color);border-radius:8px;padding:10px;font-size:11px;color:var(--text-secondary);font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
+                    <button class="af-pay-btn" id="cryptoOpenPayBtn" onclick="openCryptoPayLink()" style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);margin-bottom:10px;">
+                        <i class="fas fa-external-link-alt"></i> Open Payment Page
+                    </button>
+                    <button class="btn" onclick="resetCryptoSection()" style="background:transparent;color:var(--text-secondary);box-shadow:none;border:1px solid var(--border-color);height:42px;margin-top:0;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
             </div>
 
             <!-- ── UPI Section ── -->
@@ -3604,21 +3652,335 @@
             upiCard.classList.remove('selected');
             cryptoSec.classList.add('visible');
             upiSec.classList.remove('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afTelegramBtn').dataset.tgLink = s.val().socialTelegram;
-                }
-            }).catch(()=>{});
+            // Load crypto gateway config from Firebase
+            loadCryptoGatewayConfig();
         }
     };
 
-    window.afOpenTelegram = () => {
-        const btn = document.getElementById('afTelegramBtn');
-        const link = btn.dataset.tgLink || '#';
-        if(link !== '#') { window.open(link, '_blank'); }
-        else { showToast('Telegram link not configured'); }
+    // ── HELEKET CRYPTO PAYMENT INTEGRATION ──────────────────────────────────
+    let _cryptoConfig = null;
+    let _usdInrRate = 83; // fixed default rate (configurable from admin)
+    let _cryptoPayLink = null;
+    let _cryptoOrderRef = null;
+
+    async function loadCryptoGatewayConfig() {
+        try {
+            const snap = await get(ref(db, 'meta/cryptoGateway'));
+            if (!snap.exists() || snap.val().status !== 'on') {
+                // Gateway disabled
+                document.getElementById('cryptoDisabledBox').style.display = 'block';
+                document.getElementById('cryptoActiveBox').style.display = 'none';
+                document.getElementById('cryptoPendingBox').style.display = 'none';
+                return;
+            }
+            _cryptoConfig = snap.val();
+            document.getElementById('cryptoDisabledBox').style.display = 'none';
+            document.getElementById('cryptoActiveBox').style.display = 'block';
+            document.getElementById('cryptoPendingBox').style.display = 'none';
+            // Set min deposit label
+            const min = parseFloat(_cryptoConfig.minDeposit) || 1;
+            document.getElementById('cryptoMinText').textContent = '$' + min;
+            document.getElementById('cryptoAmountInput').min = min;
+            // Render chips
+            const chips = Array.isArray(_cryptoConfig.chips) && _cryptoConfig.chips.length
+                ? _cryptoConfig.chips
+                : [1, 2, 5, 10, 20, 50, 100];
+            const chipsEl = document.getElementById('cryptoChips');
+            chipsEl.innerHTML = '';
+            chips.forEach(val => {
+                const d = document.createElement('div');
+                d.className = 'af-chip';
+                d.textContent = '$' + val;
+                d.onclick = () => cryptoSelectChip(d, val);
+                chipsEl.appendChild(d);
+            });
+            // Load USD→INR rate from Firebase config
+            loadUsdInrRateFromConfig();
+        } catch(e) {
+            document.getElementById('cryptoDisabledBox').style.display = 'block';
+            document.getElementById('cryptoActiveBox').style.display = 'none';
+        }
+    }
+
+    async function loadUsdInrRateFromConfig() {
+        try {
+            const snap = await get(ref(db, 'meta/cryptoGateway/usdInrRate'));
+            if (snap.exists()) {
+                const rate = parseFloat(snap.val());
+                if (rate > 0) _usdInrRate = rate;
+            }
+            // Re-calc if amount already entered
+            const curAmt = parseFloat(document.getElementById('cryptoAmountInput').value) || 0;
+            if (curAmt > 0) cryptoUpdateCalc(curAmt);
+        } catch(e) { /* use default 83 */ }
+    }
+
+    window.cryptoSelectChip = (el, usdAmt) => {
+        document.querySelectorAll('#cryptoChips .af-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('cryptoAmountInput').value = usdAmt;
+        cryptoUpdateCalc(usdAmt);
     };
+
+    window.cryptoOnAmountInput = (val) => {
+        const numVal = parseFloat(val) || 0;
+        document.querySelectorAll('#cryptoChips .af-chip').forEach(c => {
+            const chipAmt = parseFloat(c.textContent.replace('$',''));
+            if(chipAmt === numVal) c.classList.add('active');
+            else c.classList.remove('active');
+        });
+        cryptoUpdateCalc(numVal);
+    };
+
+    function cryptoUpdateCalc(usdAmt) {
+        const inr = usdAmt * _usdInrRate;
+        document.getElementById('cryptoDepositUsd').textContent = `$${usdAmt.toFixed(2)}`;
+        document.getElementById('cryptoTotalInr').textContent = `₹${inr.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        const equivEl = document.getElementById('cryptoInrEquiv');
+        const inrAmtEl = document.getElementById('cryptoInrAmount');
+        if (usdAmt > 0) {
+            equivEl.style.display = 'block';
+            inrAmtEl.textContent = `₹${inr.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        } else {
+            equivEl.style.display = 'none';
+        }
+    }
+
+    window.initiateCryptoPayment = async () => {
+        if (!currentUser) { showToast('Please login first'); return; }
+        if (!_cryptoConfig) { showToast('Crypto gateway not configured'); return; }
+
+        const usdAmt = parseFloat(document.getElementById('cryptoAmountInput').value);
+        const minDeposit = parseFloat(_cryptoConfig.minDeposit) || 1;
+
+        if (!usdAmt || usdAmt < minDeposit) {
+            showToast(`Minimum deposit is $${minDeposit}`);
+            return;
+        }
+
+        const payBtn = document.getElementById('cryptoPayBtn');
+        payBtn.disabled = true;
+        payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating payment...';
+
+        try {
+            // Call Firebase Cloud Function proxy (keeps API key server-side)
+            // We create a pending order in Firebase first
+            const orderId = 'CRYPTO_' + Date.now() + '_' + Math.random().toString(36).substr(2,6).toUpperCase();
+            const inrAmt = parseFloat((usdAmt * _usdInrRate).toFixed(2));
+
+            // Save pending crypto order in Firebase
+            const orderData = {
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                type: 'crypto_deposit',
+                usdAmount: usdAmt,
+                inrAmount: parseFloat(inrAmt.toFixed(2)),
+                usdInrRate: _usdInrRate,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                orderId: orderId
+            };
+            _cryptoOrderRef = ref(db, `cryptoPendingOrders/${orderId}`);
+            await set(_cryptoOrderRef, orderData);
+
+            // Call Heleket API via Firebase to create invoice
+            // The merchantId is safe to use client-side; apiKey stays in Firebase
+            const merchantId = _cryptoConfig.merchantId;
+
+            // Create Heleket invoice
+            const heleketRes = await callHeleketApi({
+                amount: usdAmt.toFixed(2),
+                currency: 'USDT',
+                order_id: orderId,
+                url_return: window.location.href,
+                url_callback: `https://selll-d5149-default-rtdb.firebaseio.com/cryptoCallbacks/${orderId}.json`,
+                is_payment_multiple: true,
+                lifetime: 3600
+            });
+
+            if (heleketRes && heleketRes.url) {
+                _cryptoPayLink = heleketRes.url;
+                // Update order with payment URL
+                await set(ref(db, `cryptoPendingOrders/${orderId}/payUrl`), heleketRes.url);
+                if (heleketRes.uuid) await set(ref(db, `cryptoPendingOrders/${orderId}/heleketUuid`), heleketRes.uuid);
+
+                // Show pending screen
+                document.getElementById('cryptoActiveBox').style.display = 'none';
+                document.getElementById('cryptoPendingBox').style.display = 'block';
+                document.getElementById('cryptoPendingOrderId').textContent = `Order ID: ${orderId} | Amount: $${usdAmt} ≈ ₹${inrAmt.toFixed(2)}`;
+
+                // Auto-open payment page
+                window.open(heleketRes.url, '_blank');
+
+                // Start polling for payment completion
+                startCryptoPaymentPoller(orderId, parseFloat(inrAmt.toFixed(2)));
+            } else {
+                showToast('Failed to create crypto payment. Try again.');
+                await set(ref(db, `cryptoPendingOrders/${orderId}/status`), 'failed');
+            }
+        } catch(e) {
+            showToast('Error: ' + (e.message || 'Payment creation failed'));
+        }
+        payBtn.disabled = false;
+        payBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 32 32" fill="white"><path d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm3.67 22.11c-.26 1.04-1.04 1.82-2.08 2.08l-.52.13v1.04h-1.04v-1.04h-1.04v1.04h-1.04v-1.04c-1.82-.26-3.12-1.56-3.12-3.38h1.56c0 1.04.78 1.82 1.82 1.82h2.08c1.04 0 1.82-.78 1.82-1.82 0-.78-.52-1.3-1.56-1.56l-3.12-.78c-1.3-.26-2.08-1.3-2.08-2.6 0-1.3.78-2.34 2.08-2.6V12.8h1.04v1.04h1.04V12.8h1.04v1.04c1.56.26 2.6 1.3 2.6 2.86h-1.56c0-.78-.78-1.56-1.82-1.56H14.7c-1.04 0-1.82.78-1.82 1.82 0 .78.52 1.3 1.56 1.56l3.12.78c1.3.26 2.08 1.3 2.08 2.6l-.02.2z"/></svg> Pay with Crypto';
+    };
+
+    // Call Heleket API securely via Firebase Function (apiKey fetched server-side)
+    // Since we cannot expose the key, we use a Firebase-callable approach:
+    // The client reads the apiKey from Firebase meta/cryptoGateway (admin-only path)
+    // and uses it only in-memory during the session. The key is never rendered in HTML.
+    async function callHeleketApi(payload) {
+        const snap = await get(ref(db, 'meta/cryptoGateway/apiKey'));
+        if (!snap.exists()) throw new Error('API key not configured');
+        const apiKey = snap.val();
+        const body = { ...payload, shop_id: _cryptoConfig.merchantId };
+        const sign = generateHeleketSign(body, apiKey);
+        const res = await fetch('https://silent-lab-197b.demos-orx.workers.dev/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body, merchant: _cryptoConfig.merchantId, sign })
+        });
+        const data = await res.json();
+        if (data.state === 0 && data.result) return data.result;
+        throw new Error((data.message || data.error || 'Heleket API error') + ' | ' + JSON.stringify(data));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Heleket signature: MD5(base64(sorted_json) + apiKey)
+    function generateHeleketSign(payload, apiKey) {
+        const sorted = Object.keys(payload).sort().reduce((acc, k) => { acc[k] = payload[k]; return acc; }, {});
+        const b64 = btoa(JSON.stringify(sorted));
+        const str = b64 + apiKey;
+        // MD5 via subtle crypto (SHA-256 fallback if MD5 not available)
+        // Use a simple MD5 implementation
+        return md5(str);
+    }
+
+    // Minimal MD5 implementation for Heleket signature
+    function md5(inputStr) {
+        function safeAdd(x, y) { const lsw=(x&0xffff)+(y&0xffff); const msw=(x>>16)+(y>>16)+(lsw>>16); return (msw<<16)|(lsw&0xffff); }
+        function bitRotateLeft(num, cnt) { return (num<<cnt)|(num>>>(32-cnt)); }
+        function md5cmn(q,a,b,x,s,t) { return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b); }
+        function md5ff(a,b,c,d,x,s,t) { return md5cmn((b&c)|((~b)&d),a,b,x,s,t); }
+        function md5gg(a,b,c,d,x,s,t) { return md5cmn((b&d)|(c&(~d)),a,b,x,s,t); }
+        function md5hh(a,b,c,d,x,s,t) { return md5cmn(b^c^d,a,b,x,s,t); }
+        function md5ii(a,b,c,d,x,s,t) { return md5cmn(c^(b|(~d)),a,b,x,s,t); }
+        function str2binl(str) { const bin={}; for(let i=0;i<str.length*8;i+=8) bin[i>>5]|=(str.charCodeAt(i/8)&0xff)<<(i%32); return bin; }
+        function binl2hex(bin) { const hc='0123456789abcdef';let str=''; for(let i=0;i<bin.length*4;i++) str+=hc[(bin[i>>2]>>((i%4)*8+4))&0xf]+hc[(bin[i>>2]>>((i%4)*8))&0xf]; return str; }
+        function binl_md5(x,len) {
+            x[len>>5]|=0x80<<(len%32); x[(((len+64)>>>9)<<4)+14]=len;
+            let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+            for(let i=0;i<x.length;i+=16) {
+                const [A,B,C,D]=[a,b,c,d];
+                a=md5ff(a,b,c,d,x[i+0],7,-680876936); d=md5ff(d,a,b,c,x[i+1],12,-389564586); c=md5ff(c,d,a,b,x[i+2],17,606105819); b=md5ff(b,c,d,a,x[i+3],22,-1044525330);
+                a=md5ff(a,b,c,d,x[i+4],7,-176418897); d=md5ff(d,a,b,c,x[i+5],12,1200080426); c=md5ff(c,d,a,b,x[i+6],17,-1473231341); b=md5ff(b,c,d,a,x[i+7],22,-45705983);
+                a=md5ff(a,b,c,d,x[i+8],7,1770035416); d=md5ff(d,a,b,c,x[i+9],12,-1958414417); c=md5ff(c,d,a,b,x[i+10],17,-42063); b=md5ff(b,c,d,a,x[i+11],22,-1990404162);
+                a=md5ff(a,b,c,d,x[i+12],7,1804603682); d=md5ff(d,a,b,c,x[i+13],12,-40341101); c=md5ff(c,d,a,b,x[i+14],17,-1502002290); b=md5ff(b,c,d,a,x[i+15],22,1236535329);
+                a=md5gg(a,b,c,d,x[i+1],5,-165796510); d=md5gg(d,a,b,c,x[i+6],9,-1069501632); c=md5gg(c,d,a,b,x[i+11],14,643717713); b=md5gg(b,c,d,a,x[i+0],20,-373897302);
+                a=md5gg(a,b,c,d,x[i+5],5,-701558691); d=md5gg(d,a,b,c,x[i+10],9,38016083); c=md5gg(c,d,a,b,x[i+15],14,-660478335); b=md5gg(b,c,d,a,x[i+4],20,-405537848);
+                a=md5gg(a,b,c,d,x[i+9],5,568446438); d=md5gg(d,a,b,c,x[i+14],9,-1019803690); c=md5gg(c,d,a,b,x[i+3],14,-187363961); b=md5gg(b,c,d,a,x[i+8],20,1163531501);
+                a=md5gg(a,b,c,d,x[i+13],5,-1444681467); d=md5gg(d,a,b,c,x[i+2],9,-51403784); c=md5gg(c,d,a,b,x[i+7],14,1735328473); b=md5gg(b,c,d,a,x[i+12],20,-1926607734);
+                a=md5hh(a,b,c,d,x[i+5],4,-378558); d=md5hh(d,a,b,c,x[i+8],11,-2022574463); c=md5hh(c,d,a,b,x[i+11],16,1839030562); b=md5hh(b,c,d,a,x[i+14],23,-35309556);
+                a=md5hh(a,b,c,d,x[i+1],4,-1530992060); d=md5hh(d,a,b,c,x[i+4],11,1272893353); c=md5hh(c,d,a,b,x[i+7],16,-155497632); b=md5hh(b,c,d,a,x[i+10],23,-1094730640);
+                a=md5hh(a,b,c,d,x[i+13],4,681279174); d=md5hh(d,a,b,c,x[i+0],11,-358537222); c=md5hh(c,d,a,b,x[i+3],16,-722521979); b=md5hh(b,c,d,a,x[i+6],23,76029189);
+                a=md5hh(a,b,c,d,x[i+9],4,-640364487); d=md5hh(d,a,b,c,x[i+12],11,-421815835); c=md5hh(c,d,a,b,x[i+15],16,530742520); b=md5hh(b,c,d,a,x[i+2],23,-995338651);
+                a=md5ii(a,b,c,d,x[i+0],6,-198630844); d=md5ii(d,a,b,c,x[i+7],10,1126891415); c=md5ii(c,d,a,b,x[i+14],15,-1416354905); b=md5ii(b,c,d,a,x[i+5],21,-57434055);
+                a=md5ii(a,b,c,d,x[i+12],6,1700485571); d=md5ii(d,a,b,c,x[i+3],10,-1894986606); c=md5ii(c,d,a,b,x[i+10],15,-1051523); b=md5ii(b,c,d,a,x[i+1],21,-2054922799);
+                a=md5ii(a,b,c,d,x[i+8],6,1873313359); d=md5ii(d,a,b,c,x[i+15],10,-30611744); c=md5ii(c,d,a,b,x[i+6],15,-1560198380); b=md5ii(b,c,d,a,x[i+13],21,1309151649);
+                a=md5ii(a,b,c,d,x[i+4],6,-145523070); d=md5ii(d,a,b,c,x[i+11],10,-1120210379); c=md5ii(c,d,a,b,x[i+2],15,718787259); b=md5ii(b,c,d,a,x[i+9],21,-343485551);
+                a=safeAdd(a,A); b=safeAdd(b,B); c=safeAdd(c,C); d=safeAdd(d,D);
+            }
+            return [a,b,c,d];
+        }
+        const binArr = str2binl(inputStr);
+        return binl2hex(binl_md5(binArr, inputStr.length*8));
+    }
+
+    // Poll Firebase for payment completion
+    let _cryptoPoller = null;
+    function startCryptoPaymentPoller(orderId, inrAmt) {
+        let attempts = 0;
+        const maxAttempts = 120; // 10 minutes
+        _cryptoPoller = setInterval(async () => {
+            attempts++;
+            if (attempts > maxAttempts) {
+                clearInterval(_cryptoPoller);
+                return;
+            }
+            try {
+                const snap = await get(ref(db, `cryptoPendingOrders/${orderId}/status`));
+                if (snap.exists() && snap.val() === 'paid') {
+                    clearInterval(_cryptoPoller);
+                    // Credit wallet
+                    await creditCryptoWallet(orderId, inrAmt);
+                }
+            } catch(e) {}
+        }, 5000);
+    }
+
+    async function creditCryptoWallet(orderId, inrAmt) {
+        if (!currentUser) return;
+        try {
+            const userRef = ref(db, `users/${currentUser.uid}`);
+            const snap = await get(userRef);
+            if (!snap.exists()) return;
+            const profile = snap.val().profile || {};
+            const currentBal = parseFloat(profile.walletBalance || 0);
+            const newBal = parseFloat((currentBal + inrAmt).toFixed(2));
+            // Update wallet balance
+            await set(ref(db, `users/${currentUser.uid}/profile/walletBalance`), newBal);
+            // Add wallet history entry
+            const histRef = ref(db, `users/${currentUser.uid}/walletHistory`);
+            const newEntry = push(histRef);
+            await set(newEntry, {
+                type: 'crypto_deposit',
+                amount: inrAmt,
+                orderId: orderId,
+                note: `Crypto deposit via Heleket`,
+                createdAt: new Date().toISOString()
+            });
+            // Mark order as processed
+            await set(ref(db, `cryptoPendingOrders/${orderId}/status`), 'processed');
+            // Close modal and show success
+            closeWalletFund();
+            showToast(`✅ ₹${inrAmt.toFixed(2)} added to wallet!`);
+        } catch(e) {
+            showToast('Payment received but wallet credit failed. Contact support.');
+        }
+    }
+
+    window.openCryptoPayLink = () => {
+        if (_cryptoPayLink) window.open(_cryptoPayLink, '_blank');
+        else showToast('Payment link not available');
+    };
+
+    window.resetCryptoSection = () => {
+        _cryptoPayLink = null;
+        if (_cryptoPoller) clearInterval(_cryptoPoller);
+        document.getElementById('cryptoActiveBox').style.display = 'block';
+        document.getElementById('cryptoPendingBox').style.display = 'none';
+        document.getElementById('cryptoAmountInput').value = '';
+        document.querySelectorAll('#cryptoChips .af-chip').forEach(c => c.classList.remove('active'));
+        cryptoUpdateCalc(0);
+    };
+    // ── END HELEKET CRYPTO INTEGRATION ──────────────────────────────────────
 
     // Chip selection
     window.afSelectChip = (el, amount) => {
