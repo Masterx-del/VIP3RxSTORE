@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="heleket" content="ca69b3fa"/>
     <title>Premium User Dashboard</title>
     <link rel="icon" type="image/jpeg" href="https://i.ibb.co/F46TgHLt/IMG-20251101-010328-873.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -4300,9 +4299,14 @@
                                 <div class="order-info">
                                     <div><span>Item:</span> <strong style="color:var(--text-primary);">${o.productSnapshot?.title || o.productSnapshot?.planName || 'Unknown'}</strong></div>
                                     ${o.targetLink ? `<div><span>Link:</span> <a href="${o.targetLink.startsWith('http') ? o.targetLink : 'https://'+o.targetLink}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink}</a></div>` : ''}
-                                    <div><span>Paid:</span> <strong style="color:#10b981;">₹${parseFloat(o.finalAmount||0).toFixed(2)}</strong></div>
-                                    <div><span>Date:</span> <strong style="color:var(--text-primary);">${o.createdAt ? new Date(o.createdAt).toLocaleString('en-IN') : 'N/A'}</strong></div>
-                                    ${o.utr ? `<div><span>Ref ID:</span> <strong style="color:var(--accent-cyan); font-family:monospace;">${o.utr}</strong></div>` : ''}
+                                    ${o.targetLink2 ? `<div><span>Link 2:</span> <a href="${o.targetLink2.startsWith('http') ? o.targetLink2 : 'https://'+o.targetLink2}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink2}</a></div>` : ''}
+                                    ${o.targetLink3 ? `<div><span>Link 3:</span> <a href="${o.targetLink3.startsWith('http') ? o.targetLink3 : 'https://'+o.targetLink3}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink3}</a></div>` : ''}
+                                    ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
+                                    ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
+                                    ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
+                                    <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
+                                    <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
+                                    <div><span>Ref ID:</span> <span style="font-family:monospace; color:var(--text-primary);">${o.utrId}</span></div>
                                 </div>
                                 ${estTimeHtml}`;
                         list.appendChild(_cardDiv);
@@ -4355,9 +4359,9 @@
                             ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
                             ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
                             ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
-                            <div><span>Paid:</span> <strong style="color:#10b981;">₹${parseFloat(o.finalAmount||0).toFixed(2)}</strong></div>
-                            <div><span>Date:</span> <strong style="color:var(--text-primary);">${o.createdAt ? new Date(o.createdAt).toLocaleString('en-IN') : 'N/A'}</strong></div>
-                            ${o.utr ? `<div><span>Ref ID:</span> <strong style="color:var(--accent-cyan); font-family:monospace;">${o.utr}</strong></div>` : ''}
+                            <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
+                            <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
+                            <div><span>Ref ID:</span> <span style="font-family:monospace; color:var(--text-primary);">${o.utrId}</span></div>
                         </div>
                         ${estTimeHtml}
                         ${actionHtml}
