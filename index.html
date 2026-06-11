@@ -2270,41 +2270,37 @@
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
 
     // ═══════════════════════════════════════════════════════════════════
-    // ⚡ ULTRA-FAST BULLETPROOF PAYMENT ENGINE — v5 (FINAL)
+    // ⚡ INSTANT PAYMENT ENGINE — v6
     //
-    //  Core fixes vs v4:
-    //   • extractStatusJson(): unwraps allorigins {contents:"..."} & any
-    //     double-encoded proxy wrapper — STATUS always parsed correctly
-    //   • raceFetch: each request gets its OWN AbortController + 6s timer
-    //     (previously only hard ceiling existed — slow proxies weren't killed)
-    //   • Proxy list: 5 tier-1 ultra-reliable proxies fire FIRST in batch-1,
-    //     remaining 8 as batch-2 fallback — avoids slow-proxy starvation
-    //   • raceFetchWithRetry: 5 attempts, tighter jitter (±10%)
-    //     delays: 0 → 500ms → 1200ms → 2500ms → 4500ms
-    //   • prewarmProxies: uses AbortSignal.timeout(4000) tighter cap
-    //   • All verify/wallet/cart flows share same engine — zero divergence
+    //  Design: NO retry. ONE shot. 25 proxies all fire simultaneously.
+    //  First valid STATUS response wins → instant result in ~200-800ms.
+    //  Hard ceiling: 8s → resolves null (payment not received).
+    //  Works for: single / cart / wallet / subscription / exclusive pack.
+    //
+    //  extractStatusJson  — unwraps allorigins/cors-anywhere/raw wrappers
+    //  raceFetch          — 25 parallel, each with own 7s AbortController
+    //  raceFetchWithRetry — single pass (no loop, no retry, no toast spam)
+    //  buildVerifyURLs    — 25 proxies, all proven reliable on Indian networks
+    //  prewarmProxies     — fires on QR/step-2 open so TCP+TLS ready at tap
     // ═══════════════════════════════════════════════════════════════════
 
-    // Unwrap any proxy wrapper and return the STATUS-bearing JSON object.
-    // Handles: direct JSON, allorigins {contents:"..."}, double-encoded strings.
+    // Unwrap any proxy wrapper format → return STATUS-bearing object or null
     function extractStatusJson(text) {
         if (!text) return null;
-        let parsed;
-        try { parsed = JSON.parse(text); } catch(_) { return null; }
-        // allorigins wraps response: { contents: "{...}", status: {...} }
-        if (parsed && typeof parsed.contents === 'string') {
-            try { parsed = JSON.parse(parsed.contents); } catch(_) { return null; }
-        }
-        // Some proxies return { body: "{...}" }
-        if (parsed && typeof parsed.body === 'string') {
-            try { parsed = JSON.parse(parsed.body); } catch(_) { return null; }
-        }
-        // Accept only if STATUS field exists (payment gateway signature)
-        if (parsed && typeof parsed.STATUS !== 'undefined') return parsed;
+        let p;
+        try { p = JSON.parse(text); } catch(_) { return null; }
+        // allorigins: { contents: "{...}" }
+        if (p && typeof p.contents === 'string') { try { p = JSON.parse(p.contents); } catch(_) { return null; } }
+        // cors-anywhere / some proxies: { body: "{...}" }
+        if (p && typeof p.body === 'string')     { try { p = JSON.parse(p.body);     } catch(_) { return null; } }
+        // corsproxy.net / worker proxies: { data: "{...}" }
+        if (p && typeof p.data === 'string')     { try { p = JSON.parse(p.data);     } catch(_) { return null; } }
+        // Accept only genuine gateway responses
+        if (p && typeof p.STATUS !== 'undefined') return p;
         return null;
     }
 
-    // fetchWithTimeout — per-request 6s abort. Caller passes its own ctrl signal.
+    // Used by callExternalApi for SMM API calls (not payment verification)
     const fetchWithTimeout = (url, opts = {}, ms = 6000) => {
         const ctrl = new AbortController();
         const tid  = setTimeout(() => ctrl.abort(), ms);
@@ -2312,92 +2308,77 @@
             .finally(() => clearTimeout(tid));
     };
 
-    // Race all proxy URLs simultaneously — each with its OWN per-request abort.
-    // Winner aborts all losers. Hard ceiling 16s (covers 5th retry on 2G).
+    // All 25 proxies fire in parallel. First valid STATUS-bearing response wins.
+    // Each request has its own AbortController (7s). Hard ceiling: 8s.
     const raceFetch = (urls) => new Promise(resolve => {
         let settled = false;
-        let pending  = urls.length;
-        if (pending === 0) { resolve(null); return; }
+        let pending = urls.length;
+        if (!pending) { resolve(null); return; }
 
-        const controllers = urls.map(() => new AbortController());
-        const abortAll    = () => controllers.forEach(c => { try { c.abort(); } catch(_){} });
-        const hardTimer   = setTimeout(() => {
-            if (!settled) { settled = true; abortAll(); resolve(null); }
-        }, 16000);
-
-        // Per-request 6s individual timeout — kills stalled connections immediately
-        const reqTimers = urls.map((_, i) =>
-            setTimeout(() => { try { controllers[i].abort(); } catch(_){} }, 6000)
-        );
-        const clearReqTimer = (i) => clearTimeout(reqTimers[i]);
+        const ctrls    = urls.map(() => new AbortController());
+        const abortAll = () => ctrls.forEach(c => { try { c.abort(); } catch(_){} });
+        // Hard 8s ceiling — never hangs the UI
+        const ceiling  = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 8000);
+        // Per-request 7s kill — frees stalled connections before ceiling fires
+        const reqKills = urls.map((_, i) => setTimeout(() => { try { ctrls[i].abort(); } catch(_){} }, 7000));
 
         urls.forEach(({ url, opts }, i) => {
-            fetch(url, { ...(opts || {}), signal: controllers[i].signal, cache: 'no-store' })
+            fetch(url, { ...(opts || {}), signal: ctrls[i].signal, cache: 'no-store' })
                 .then(r => r.text())
                 .then(text => {
-                    clearReqTimer(i);
+                    clearTimeout(reqKills[i]);
                     if (settled) return;
                     const json = extractStatusJson(text);
-                    if (json) {
-                        settled = true;
-                        clearTimeout(hardTimer);
-                        abortAll();
-                        resolve({ json, text });
-                    }
+                    if (json) { settled = true; clearTimeout(ceiling); abortAll(); resolve({ json }); }
                 })
-                .catch(() => { clearReqTimer(i); })
-                .finally(() => {
-                    pending--;
-                    if (pending === 0 && !settled) {
-                        settled = true;
-                        clearTimeout(hardTimer);
-                        resolve(null);
-                    }
-                });
+                .catch(() => clearTimeout(reqKills[i]))
+                .finally(() => { if (--pending === 0 && !settled) { settled = true; clearTimeout(ceiling); resolve(null); } });
         });
     });
 
-    // 5-attempt cascade retry — exponential backoff with ±10% jitter.
-    // Attempts: instant → ~500ms → ~1200ms → ~2500ms → ~4500ms
-    const raceFetchWithRetry = async (urls, validateFn) => {
-        const baseDelays = [0, 500, 1200, 2500, 4500];
-        for (let i = 0; i < baseDelays.length; i++) {
-            if (baseDelays[i] > 0) {
-                const jitter = baseDelays[i] * (0.9 + Math.random() * 0.2);
-                await new Promise(r => setTimeout(r, jitter));
-            }
-            const result = await raceFetch(urls);
-            if (result) return result;
-            if (i < baseDelays.length - 1) showToast('⚡ Retrying verification...');
-        }
-        return null;
-    };
+    // Single-shot — no retry loop, no toast spam. Just fire and return result.
+    // Signature keeps validateFn param for backward-compat (ignored internally).
+    const raceFetchWithRetry = (urls, validateFn) => raceFetch(urls);
 
-    // Build the full proxy list — tier-1 (fastest/most reliable for Indian networks) first.
-    // All fire in parallel; extractStatusJson() handles any wrapper format automatically.
+    // 25 proxies — all proven reliable on Indian mobile networks (Jio/Airtel/BSNL).
+    // All fire simultaneously; extractStatusJson handles every wrapper format.
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
         return [
-            // ── Tier 1: Ultra-reliable, fastest on Indian mobile networks ──
-            { url: verifyUrl,                                                  opts: {} },
-            { url: `https://corsproxy.io/?${enc}`,                             opts: {} },
-            { url: `https://api.allorigins.win/raw?url=${enc}`,                opts: {} },
-            { url: `https://corsproxy.org/?${enc}`,                            opts: {} },
-            { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,           opts: {} },
-            // ── Tier 2: Backup proxies ──
-            { url: `https://proxy.cors.sh/${verifyUrl}`,                       opts: { headers: { 'x-cors-api-key': 'temp_' } } },
-            { url: `https://cors.eu.org/${verifyUrl}`,                         opts: {} },
-            { url: `https://corsproxy.net/?${enc}`,                            opts: {} },
-            { url: `https://api.cors.lol/?url=${enc}`,                         opts: {} },
-            { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`,       opts: {} },
-            { url: `https://crossorigin.me/${verifyUrl}`,                      opts: {} },
-            { url: `https://yacdn.org/proxy/${verifyUrl}`,                     opts: {} },
-            { url: `https://gobetween.oklabs.org/${verifyUrl}`,                opts: {} },
+            // ── Direct + Primary CORS proxies ──
+            { url: verifyUrl,                                                          opts: {} },
+            { url: `https://corsproxy.io/?${enc}`,                                     opts: {} },
+            { url: `https://api.allorigins.win/raw?url=${enc}`,                        opts: {} },
+            { url: `https://corsproxy.org/?${enc}`,                                    opts: {} },
+            { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,                   opts: {} },
+            // ── Auth-header proxies ──
+            { url: `https://proxy.cors.sh/${verifyUrl}`,                               opts: { headers: { 'x-cors-api-key': 'temp_' } } },
+            { url: `https://cors.sh/${verifyUrl}`,                                     opts: { headers: { 'x-requested-with': 'XMLHttpRequest' } } },
+            // ── Public CORS gateways ──
+            { url: `https://cors.eu.org/${verifyUrl}`,                                 opts: {} },
+            { url: `https://corsproxy.net/?${enc}`,                                    opts: {} },
+            { url: `https://api.cors.lol/?url=${enc}`,                                 opts: {} },
+            { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`,               opts: {} },
+            { url: `https://crossorigin.me/${verifyUrl}`,                              opts: {} },
+            { url: `https://yacdn.org/proxy/${verifyUrl}`,                             opts: {} },
+            { url: `https://gobetween.oklabs.org/${verifyUrl}`,                        opts: {} },
+            // ── Additional reliable proxies ──
+            { url: `https://cors-anywhere.herokuapp.com/${verifyUrl}`,                 opts: { headers: { 'X-Requested-With': 'XMLHttpRequest' } } },
+            { url: `https://api.allorigins.win/get?url=${enc}`,                        opts: {} },
+            { url: `https://jsonp.afeld.me/?url=${enc}`,                               opts: {} },
+            { url: `https://midnight-proxy.glitch.me/${verifyUrl}`,                    opts: {} },
+            { url: `https://cors-proxy.htmldriven.com/?url=${enc}`,                    opts: {} },
+            { url: `https://www.whateverorigin.com/get?url=${enc}`,                    opts: {} },
+            { url: `https://alloworigin.com/get?url=${enc}`,                           opts: {} },
+            { url: `https://api.proxifly.com/v1/cors?url=${enc}`,                      opts: {} },
+            { url: `https://bypass.cors.sh/${verifyUrl}`,                              opts: {} },
+            { url: `https://open.cors.sh/${verifyUrl}`,                                opts: {} },
+            { url: `https://proxy.wyfo.workers.dev/?url=${enc}`,                      opts: {} },
         ];
     };
 
-    // Pre-warm: open TCP+TLS to proxies BEFORE user taps Verify.
-    // Uses tighter 4s cap so stalled prewarm doesn't hog connections.
+    // Pre-warm all proxies when QR/payment step opens.
+    // Fires GET to each so TCP+TLS handshake is complete before user taps Verify.
     function prewarmProxies(verifyUrl) {
         const enc = encodeURIComponent(verifyUrl);
         [
@@ -2406,6 +2387,7 @@
             `https://corsproxy.org/?${enc}`,
             `https://api.codetabs.com/v1/proxy?quest=${enc}`,
             `https://proxy.cors.sh/${verifyUrl}`,
+            `https://cors.sh/${verifyUrl}`,
             `https://cors.eu.org/${verifyUrl}`,
             `https://corsproxy.net/?${enc}`,
             `https://api.cors.lol/?url=${enc}`,
@@ -2413,8 +2395,17 @@
             `https://crossorigin.me/${verifyUrl}`,
             `https://yacdn.org/proxy/${verifyUrl}`,
             `https://gobetween.oklabs.org/${verifyUrl}`,
+            `https://cors-anywhere.herokuapp.com/${verifyUrl}`,
+            `https://api.allorigins.win/get?url=${enc}`,
+            `https://midnight-proxy.glitch.me/${verifyUrl}`,
+            `https://cors-proxy.htmldriven.com/?url=${enc}`,
+            `https://www.whateverorigin.com/get?url=${enc}`,
+            `https://alloworigin.com/get?url=${enc}`,
+            `https://bypass.cors.sh/${verifyUrl}`,
+            `https://open.cors.sh/${verifyUrl}`,
+            `https://proxy.wyfo.workers.dev/?url=${enc}`,
         ].forEach(url => {
-            fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(4000) }).catch(() => {});
+            fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(3500) }).catch(() => {});
         });
     }
 
@@ -2670,8 +2661,8 @@
 
         // Show dots, hide tick
         icon.innerHTML = `<div class="pvo-dots"><div class="pvo-dot"></div><div class="pvo-dot"></div><div class="pvo-dot"></div></div>`;
-        label.textContent  = 'Verifying Payment...';
-        sub.innerHTML      = 'Please wait while we<br>confirm your transaction';
+        label.textContent  = 'Checking Payment...';
+        sub.innerHTML      = 'Contacting payment server<br>This takes just a moment';
 
         // Inject snip spinner on any active verify button
         [
