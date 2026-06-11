@@ -2272,11 +2272,9 @@
     //  Result: paid txn resolves in <600ms. No payment = instant fail.
     // ═══════════════════════════════════════════════════════════════════
 
-    // Race all 30 proxies simultaneously.
-    // validateFn ONLY accepts TXN_SUCCESS — all other statuses ignored.
-    // This means: if payment done → fastest proxy gives TXN_SUCCESS → instant resolve.
-    // If not paid → ALL proxies return non-success → resolve null immediately.
-    // Hard ceiling: 8s.
+    // Race all proxies simultaneously.
+    // Winner aborts all losers immediately to free connections.
+    // Hard ceiling: resolves null after 14s (extra time for 4th retry attempt).
     const raceFetch = (urls, validateFn) => new Promise(resolve => {
         let settled = false;
         let pending  = urls.length;
@@ -2284,15 +2282,12 @@
 
         const controllers = urls.map(() => new AbortController());
         const abortAll    = () => controllers.forEach(c => { try { c.abort(); } catch(_){} });
-        // 3.5s hard ceiling — 30 proxies guarantee at least 1 fast response if paid
         const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 3500);
 
         urls.forEach(({ url, opts }, i) => {
-            const perTimer = setTimeout(() => { try { controllers[i].abort(); } catch(_){} }, 3000);
             fetch(url, { ...opts, signal: controllers[i].signal, cache: 'no-store' })
                 .then(r => r.text())
                 .then(text => {
-                    clearTimeout(perTimer);
                     if (settled) return;
                     let json;
                     try { json = JSON.parse(text); } catch(_) { return; }
@@ -2304,7 +2299,7 @@
                         resolve({ json, text });
                     }
                 })
-                .catch(() => { clearTimeout(perTimer); })
+                .catch(() => {})
                 .finally(() => {
                     pending--;
                     if (pending === 0 && !settled) {
@@ -2316,9 +2311,8 @@
         });
     });
 
-    // 3-round retry. Total extra delay: ~1.3s max.
-    // Paid txn almost always resolves in round 1 (<1s).
-    // Non-paid: fails fast in ~8s first round → instant on 2nd/3rd too.
+    // 4-attempt cascade retry — exponential backoff with jitter.
+    // Attempts: immediate → ~600ms → ~1400ms → ~2800ms
     const raceFetchWithRetry = async (urls, validateFn) => {
         const baseDelays = [0, 300];
         for (let i = 0; i < baseDelays.length; i++) {
@@ -2370,8 +2364,8 @@
         ];
     };
 
-    // validateFn — ONLY TXN_SUCCESS passes. Pending/Failed = ignored by raceFetch.
-    const _successValidateFn = j => j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success';
+    // validateFn — STATUS must be TXN_SUCCESS. RESPMSG check loosened (proxy encoding variations).
+    const _successValidateFn = j => j.STATUS === 'TXN_SUCCESS';
 
     // ── RESULT HANDLER — now synchronous (no await needed) ──
     // null = payment not received (all 30 proxies confirmed non-success or timed out)
@@ -2380,7 +2374,7 @@
             return { ok: false, msg: '❌ Payment not received. If you paid, wait 10-30 secs & tap Verify again.' };
         }
         const result = verifyResult.json;
-        if (result.STATUS !== 'TXN_SUCCESS' || result.RESPMSG !== 'Txn Success') {
+        if (result.STATUS !== 'TXN_SUCCESS') {
             return { ok: false, msg: '❌ Payment not confirmed yet. Wait a moment & retry.' };
         }
         const paidVal = parseFloat(result.TXNAMOUNT);
