@@ -2308,53 +2308,71 @@
             .finally(() => clearTimeout(tid));
     };
 
-    // All 25 proxies fire in parallel. First valid STATUS-bearing response wins.
-    // Each request has its own AbortController (7s). Hard ceiling: 8s.
+    // 2-wave parallel race — browser connection limit friendly.
+    // Wave 1 (0ms):   direct URL + 4 fastest proxies  → covers 99% of cases
+    // Wave 2 (700ms): remaining proxies fire if wave 1 didn't resolve
+    // Hard ceiling: 3s — if nothing in 3s, payment genuinely not received.
     const raceFetch = (urls) => new Promise(resolve => {
         let settled = false;
-        let pending = urls.length;
-        if (!pending) { resolve(null); return; }
-
         const ctrls    = urls.map(() => new AbortController());
         const abortAll = () => ctrls.forEach(c => { try { c.abort(); } catch(_){} });
-        // Hard 8s ceiling — never hangs the UI
-        const ceiling  = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 8000);
-        // Per-request 7s kill — frees stalled connections before ceiling fires
-        const reqKills = urls.map((_, i) => setTimeout(() => { try { ctrls[i].abort(); } catch(_){} }, 7000));
 
-        urls.forEach(({ url, opts }, i) => {
+        function done(val) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(ceiling);
+            clearTimeout(wave2);
+            abortAll();
+            resolve(val);
+        }
+
+        const ceiling = setTimeout(() => done(null), 3000);
+
+        function fireOne(i) {
+            if (i >= urls.length) return;
+            const { url, opts } = urls[i];
+            const kill = setTimeout(() => { try { ctrls[i].abort(); } catch(_){} }, 2500);
             fetch(url, { ...(opts || {}), signal: ctrls[i].signal, cache: 'no-store' })
                 .then(r => r.text())
                 .then(text => {
-                    clearTimeout(reqKills[i]);
+                    clearTimeout(kill);
                     if (settled) return;
                     const json = extractStatusJson(text);
-                    if (json) { settled = true; clearTimeout(ceiling); abortAll(); resolve({ json }); }
+                    if (json) done({ json });
                 })
-                .catch(() => clearTimeout(reqKills[i]))
-                .finally(() => { if (--pending === 0 && !settled) { settled = true; clearTimeout(ceiling); resolve(null); } });
-        });
+                .catch(() => clearTimeout(kill));
+        }
+
+        // Wave 1: direct + top 4 proxies — fire immediately
+        [0,1,2,3,4].forEach(i => fireOne(i));
+
+        // Wave 2: remaining — fire at 700ms if still unresolved
+        const wave2 = setTimeout(() => {
+            if (settled) return;
+            for (let i = 5; i < urls.length; i++) fireOne(i);
+        }, 700);
     });
 
     // Single-shot — no retry loop, no toast spam. Just fire and return result.
     // Signature keeps validateFn param for backward-compat (ignored internally).
     const raceFetchWithRetry = (urls, validateFn) => raceFetch(urls);
 
-    // 25 proxies — all proven reliable on Indian mobile networks (Jio/Airtel/BSNL).
-    // All fire simultaneously; extractStatusJson handles every wrapper format.
+    // Proxy list — order matters for wave batching.
+    // Index 0   = direct (fastest if CORS open)
+    // Index 1–4 = wave-1 proxies (fire at 0ms with direct)
+    // Index 5+  = wave-2 proxies (fire at 700ms as fallback)
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
         return [
-            // ── Direct + Primary CORS proxies ──
+            // ── Wave 1: direct + 4 most reliable ──
             { url: verifyUrl,                                                          opts: {} },
             { url: `https://corsproxy.io/?${enc}`,                                     opts: {} },
             { url: `https://api.allorigins.win/raw?url=${enc}`,                        opts: {} },
             { url: `https://corsproxy.org/?${enc}`,                                    opts: {} },
             { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,                   opts: {} },
-            // ── Auth-header proxies ──
+            // ── Wave 2: remaining proxies (700ms delayed) ──
             { url: `https://proxy.cors.sh/${verifyUrl}`,                               opts: { headers: { 'x-cors-api-key': 'temp_' } } },
             { url: `https://cors.sh/${verifyUrl}`,                                     opts: { headers: { 'x-requested-with': 'XMLHttpRequest' } } },
-            // ── Public CORS gateways ──
             { url: `https://cors.eu.org/${verifyUrl}`,                                 opts: {} },
             { url: `https://corsproxy.net/?${enc}`,                                    opts: {} },
             { url: `https://api.cors.lol/?url=${enc}`,                                 opts: {} },
@@ -2362,10 +2380,8 @@
             { url: `https://crossorigin.me/${verifyUrl}`,                              opts: {} },
             { url: `https://yacdn.org/proxy/${verifyUrl}`,                             opts: {} },
             { url: `https://gobetween.oklabs.org/${verifyUrl}`,                        opts: {} },
-            // ── Additional reliable proxies ──
             { url: `https://cors-anywhere.herokuapp.com/${verifyUrl}`,                 opts: { headers: { 'X-Requested-With': 'XMLHttpRequest' } } },
             { url: `https://api.allorigins.win/get?url=${enc}`,                        opts: {} },
-            { url: `https://jsonp.afeld.me/?url=${enc}`,                               opts: {} },
             { url: `https://midnight-proxy.glitch.me/${verifyUrl}`,                    opts: {} },
             { url: `https://cors-proxy.htmldriven.com/?url=${enc}`,                    opts: {} },
             { url: `https://www.whateverorigin.com/get?url=${enc}`,                    opts: {} },
@@ -2374,6 +2390,7 @@
             { url: `https://bypass.cors.sh/${verifyUrl}`,                              opts: {} },
             { url: `https://open.cors.sh/${verifyUrl}`,                                opts: {} },
             { url: `https://proxy.wyfo.workers.dev/?url=${enc}`,                      opts: {} },
+            { url: `https://jsonp.afeld.me/?url=${enc}`,                               opts: {} },
         ];
     };
 
