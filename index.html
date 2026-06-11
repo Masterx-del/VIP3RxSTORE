@@ -3866,7 +3866,7 @@
                     utr, amount: wfAmount, initiatedAt: new Date().toISOString()
                 }),
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, _successValidateFn),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if(utrSnapshot.exists()) {
@@ -3955,7 +3955,7 @@
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
-            const rawVerifyResult = await raceFetchWithRetry(verifyURLs, _successValidateFn);
+            const rawVerifyResult = await raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
 
             const verified = handleVerifyResult(rawVerifyResult, verifyURLs, amount, 1.00);
             if (!verified.ok) {
@@ -4788,7 +4788,7 @@
             try {
                 const [utrSnapshot, rawVerifyResult] = await Promise.all([
                     get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                    raceFetchWithRetry(verifyURLs, _successValidateFn),
+                    raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
                 ]);
                 if (utrSnapshot.exists()) { _unlockOrder(); _resetBtnEx(); return showToast('❌ This Order ID has already been used!'); }
 
@@ -4853,7 +4853,7 @@
             // ── Verify + duplicate check in parallel — NO overlay yet ──
             const [utrSnapshot, rawVerifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, _successValidateFn),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if (utrSnapshot.exists()) {
@@ -5397,7 +5397,7 @@
         try {
             const [utrSnapshot, rawVerifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, _successValidateFn),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if(utrSnapshot.exists()) { _unlockOrder(); return showToast('❌ This Order ID already used!'); }
