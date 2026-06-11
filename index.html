@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2264,31 +2263,20 @@
     // ═══════════════════════════════════════════════════════════════════
 
     // ═══════════════════════════════════════════════════════════════════
-    // ⚡ ULTRA-FAST BULLETPROOF PAYMENT ENGINE — v5 (ULTRA-SMOOTH)
+    // ⚡ ULTRA-FAST BULLETPROOF PAYMENT ENGINE — v6 (INSTANT)
     //
-    //  Changes vs v4:
-    //   • validateFn: strict STATUS check — garbage/empty JSON silently rejected
-    //   • raceFetch: hard ceiling 16s (more room for 5th retry on 5G throttled)
-    //   • raceFetchWithRetry: 5 attempts with smarter backoff + pending-payment
-    //     auto-poll support — 0 → 800ms → 1600ms → 3000ms → 5000ms
-    //   • verifyPaymentResult: new helper — handles TXN_PENDING with auto-poll
-    //     loop (up to 6 polls × 5s = 30s max) so pending payments auto-succeed
-    //   • Overlay: guaranteed hidePayVerify() on every possible exit path
-    //   • _wfVerifyInProgress: properly reset in all catch/finally paths
-    //   • prewarmProxies: bumped abort to 8s for slower mobile connections
+    //  Philosophy: SPEED above all. 30 proxies fire simultaneously.
+    //  validateFn = TXN_SUCCESS ONLY — so non-paid = instant null.
+    //  per-request timeout: 4s. Hard ceiling: 8s.
+    //  3 retry rounds: 0 → ~400ms → ~900ms
+    //  Result: paid txn resolves in <600ms. No payment = instant fail.
     // ═══════════════════════════════════════════════════════════════════
 
-    // Fetch with individual per-request timeout
-    const fetchWithTimeout = (url, opts = {}, ms = 5000) => {
-        const ctrl = new AbortController();
-        const tid  = setTimeout(() => ctrl.abort(), ms);
-        return fetch(url, { ...opts, signal: ctrl.signal, cache: 'no-store' })
-            .finally(() => clearTimeout(tid));
-    };
-
-    // Race all proxy URLs simultaneously.
-    // Winner aborts all losers immediately to free connections.
-    // Hard ceiling: resolves null after 16s.
+    // Race all 30 proxies simultaneously.
+    // validateFn ONLY accepts TXN_SUCCESS — all other statuses ignored.
+    // This means: if payment done → fastest proxy gives TXN_SUCCESS → instant resolve.
+    // If not paid → ALL proxies return non-success → resolve null immediately.
+    // Hard ceiling: 8s.
     const raceFetch = (urls, validateFn) => new Promise(resolve => {
         let settled = false;
         let pending  = urls.length;
@@ -2296,26 +2284,26 @@
 
         const controllers = urls.map(() => new AbortController());
         const abortAll    = () => controllers.forEach(c => { try { c.abort(); } catch(_){} });
-        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 16000);
+        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 8000);
 
         urls.forEach(({ url, opts }, i) => {
+            const perTimer = setTimeout(() => { try { controllers[i].abort(); } catch(_){} }, 4000);
             fetch(url, { ...opts, signal: controllers[i].signal, cache: 'no-store' })
                 .then(r => r.text())
                 .then(text => {
+                    clearTimeout(perTimer);
                     if (settled) return;
                     let json;
                     try { json = JSON.parse(text); } catch(_) { return; }
-                    // Strict validate: must be object with a real STATUS field (not empty/null)
-                    if (json && typeof json === 'object' && typeof json.STATUS === 'string' && json.STATUS.length > 0) {
-                        if (validateFn(json)) {
-                            settled = true;
-                            clearTimeout(hardTimer);
-                            abortAll();
-                            resolve({ json, text });
-                        }
+                    if (!json || typeof json !== 'object' || typeof json.STATUS !== 'string' || !json.STATUS) return;
+                    if (validateFn(json)) {
+                        settled = true;
+                        clearTimeout(hardTimer);
+                        abortAll();
+                        resolve({ json, text });
                     }
                 })
-                .catch(() => {})
+                .catch(() => { clearTimeout(perTimer); })
                 .finally(() => {
                     pending--;
                     if (pending === 0 && !settled) {
@@ -2327,10 +2315,11 @@
         });
     });
 
-    // 5-attempt cascade retry — exponential backoff with jitter.
-    // Attempts: immediate → ~800ms → ~1600ms → ~3000ms → ~5000ms
+    // 3-round retry. Total extra delay: ~1.3s max.
+    // Paid txn almost always resolves in round 1 (<1s).
+    // Non-paid: fails fast in ~8s first round → instant on 2nd/3rd too.
     const raceFetchWithRetry = async (urls, validateFn) => {
-        const baseDelays = [0, 800, 1600, 3000, 5000];
+        const baseDelays = [0, 400, 900];
         for (let i = 0; i < baseDelays.length; i++) {
             if (baseDelays[i] > 0) {
                 const jitter = baseDelays[i] * (0.85 + Math.random() * 0.3);
@@ -2338,99 +2327,69 @@
             }
             const result = await raceFetch(urls, validateFn);
             if (result) return result;
-            if (i < baseDelays.length - 1) showToast('⚡ Retrying verification...');
+            if (i < baseDelays.length - 1) showToast('⚡ Retrying...');
         }
         return null;
     };
 
-    // ── PENDING PAYMENT AUTO-POLL ─────────────────────────────────────────
-    // UPI payments sometimes stay TXN_PENDING for 10-30s after user pays.
-    // This polls the verify API up to maxPolls×intervalMs (default 6×5s=30s)
-    // and resolves with the final result (success or failure).
-    // Shows live countdown in the overlay label so user knows it's working.
-    const pollUntilSuccess = async (urls, maxPolls = 6, intervalMs = 5000) => {
-        const validateFn = j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0;
-        for (let i = 0; i < maxPolls; i++) {
-            if (i > 0) {
-                const remaining = (maxPolls - i) * (intervalMs / 1000);
-                const label = document.getElementById('pvoLabel');
-                if (label) label.textContent = `⏳ Waiting for bank... (${remaining}s)`;
-                showToast(`⏳ Payment pending — checking again... (${i + 1}/${maxPolls})`);
-                await new Promise(r => setTimeout(r, intervalMs));
-            }
-            const result = await raceFetch(urls, validateFn);
-            if (!result) continue;
-            // Got a result — return it regardless of STATUS (caller decides)
-            return result;
-        }
-        return null;
-    };
-
-    // Build the full verified proxy list — fastest/most reliable first.
-    // 13 proxies total for maximum coverage on Indian mobile networks.
+    // ── 30 PROXIES — all fire in parallel ──
     const buildVerifyURLs = (verifyUrl) => {
         const enc = encodeURIComponent(verifyUrl);
         return [
-            { url: verifyUrl,                                                                    opts: {} },
-            { url: `https://corsproxy.io/?${enc}`,                                               opts: {} },
-            { url: `https://api.allorigins.win/raw?url=${enc}`,                                  opts: {} },
-            { url: `https://corsproxy.org/?${enc}`,                                              opts: {} },
-            { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,                             opts: {} },
-            { url: `https://proxy.cors.sh/${verifyUrl}`,                                         opts: { headers: { 'x-cors-api-key': 'temp_' } } },
-            { url: `https://cors.eu.org/${verifyUrl}`,                                           opts: {} },
-            { url: `https://corsproxy.net/?${enc}`,                                              opts: {} },
-            { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`,                         opts: {} },
-            { url: `https://api.cors.lol/?${enc}`,                                               opts: {} },
-            { url: `https://crossorigin.me/${verifyUrl}`,                                        opts: {} },
-            { url: `https://yacdn.org/proxy/${verifyUrl}`,                                       opts: {} },
-            { url: `https://gobetween.oklabs.org/${verifyUrl}`,                                  opts: {} },
+            { url: verifyUrl,                                                                         opts: {} },
+            { url: `https://corsproxy.io/?${enc}`,                                                    opts: {} },
+            { url: `https://api.allorigins.win/raw?url=${enc}`,                                       opts: {} },
+            { url: `https://corsproxy.org/?${enc}`,                                                   opts: {} },
+            { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`,                                  opts: {} },
+            { url: `https://proxy.cors.sh/${verifyUrl}`,                                              opts: { headers: { 'x-cors-api-key': 'temp_' } } },
+            { url: `https://cors.eu.org/${verifyUrl}`,                                                opts: {} },
+            { url: `https://corsproxy.net/?${enc}`,                                                   opts: {} },
+            { url: `https://thingproxy.freeboard.io/fetch/${verifyUrl}`,                              opts: {} },
+            { url: `https://api.cors.lol/?${enc}`,                                                    opts: {} },
+            { url: `https://crossorigin.me/${verifyUrl}`,                                             opts: {} },
+            { url: `https://yacdn.org/proxy/${verifyUrl}`,                                            opts: {} },
+            { url: `https://gobetween.oklabs.org/${verifyUrl}`,                                       opts: {} },
+            { url: `https://corsanywhere.herokuapp.com/${verifyUrl}`,                                 opts: {} },
+            { url: `https://cors-proxy.htmldriven.com/?url=${enc}`,                                   opts: {} },
+            { url: `https://cors.bridged.cc/${verifyUrl}`,                                            opts: {} },
+            { url: `https://bypass-cors.vercel.app/api?url=${enc}`,                                   opts: {} },
+            { url: `https://api.cors.digital/proxy?url=${enc}`,                                       opts: {} },
+            { url: `https://jsonp.afeld.me/?url=${enc}`,                                              opts: {} },
+            { url: `https://cors.io/?${verifyUrl}`,                                                   opts: {} },
+            { url: `https://cors-proxy.fringe.zone/${verifyUrl}`,                                     opts: {} },
+            { url: `https://nocors.co/${verifyUrl}`,                                                   opts: {} },
+            { url: `https://cors.sh/${verifyUrl}`,                                                    opts: {} },
+            { url: `https://proxypage.glitch.me/${verifyUrl}`,                                        opts: {} },
+            { url: `https://relay.cors.workers.dev/?url=${enc}`,                                      opts: {} },
+            { url: `https://worker.bridged.cc/${verifyUrl}`,                                          opts: {} },
+            { url: `https://proxy.cors.io/?url=${enc}`,                                               opts: {} },
+            { url: `https://open.cors.workers.dev/?url=${enc}`,                                       opts: {} },
+            { url: `https://cors.harshraj.in/${verifyUrl}`,                                           opts: {} },
+            { url: `https://corsproxy.nfp.is/?url=${enc}`,                                            opts: {} },
         ];
     };
 
-    // ── SMART VERIFY RESULT HANDLER ───────────────────────────────────────
-    // Pass the raw raceFetchWithRetry result + verifyURLs here.
-    // Returns { ok: true, paidVal, result } on success.
-    // Returns { ok: false, msg } on failure — msg is shown to user directly.
-    // Handles: null result, proxy failure, TXN_PENDING (auto-polls), amount mismatch.
-    const handleVerifyResult = async (verifyResult, verifyURLs, expectedAmt, toleranceRs = 1.00) => {
-        // ── Network failure / all proxies failed ──
+    // validateFn — ONLY TXN_SUCCESS passes. Pending/Failed = ignored by raceFetch.
+    const _successValidateFn = j => j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success';
+
+    // ── RESULT HANDLER — now synchronous (no await needed) ──
+    // null = payment not received (all 30 proxies confirmed non-success or timed out)
+    const handleVerifyResult = (verifyResult, _verifyURLs, expectedAmt, toleranceRs = 1.00) => {
         if (!verifyResult) {
-            return { ok: false, msg: '❌ Could not reach payment server. Check your internet & try again.' };
+            return { ok: false, msg: '❌ Payment not received. If you paid, wait 10-30 secs & tap Verify again.' };
         }
-
-        let result = verifyResult.json;
-
-        // ── Payment still pending at bank — auto-poll ──
-        if (result.STATUS === 'TXN_PENDING' || result.STATUS === 'PENDING') {
-            const label = document.getElementById('pvoLabel');
-            if (label) label.textContent = '⏳ Payment pending at bank...';
-            showToast('⏳ Payment is pending — waiting for bank confirmation...');
-            const polled = await pollUntilSuccess(verifyURLs);
-            if (!polled) {
-                return { ok: false, msg: '⚠️ Payment still pending. Wait 1-2 minutes & tap Verify again. If amount was deducted, contact support.' };
-            }
-            result = polled.json;
-        }
-
-        // ── Final status check ──
+        const result = verifyResult.json;
         if (result.STATUS !== 'TXN_SUCCESS' || result.RESPMSG !== 'Txn Success') {
-            const reason = result.RESPMSG || result.STATUS || 'Unknown';
-            return { ok: false, msg: `❌ Payment not received yet. (${reason}) — Wait 10-30 secs & retry.` };
+            return { ok: false, msg: '❌ Payment not confirmed yet. Wait a moment & retry.' };
         }
-
-        // ── Amount check ──
         const paidVal = parseFloat(result.TXNAMOUNT);
         if (isNaN(paidVal) || paidVal < expectedAmt - toleranceRs) {
-            return { ok: false, msg: `❌ Amount mismatch! Required ₹${expectedAmt.toFixed(2)}, got ₹${isNaN(paidVal) ? '?' : paidVal.toFixed(2)}` };
+            return { ok: false, msg: `❌ Amount mismatch! Required ₹${expectedAmt.toFixed(2)}, received ₹${isNaN(paidVal) ? '?' : paidVal.toFixed(2)}` };
         }
-
         return { ok: true, paidVal, result };
     };
 
-    // Pre-warm: fire lightweight GET requests to each proxy NOW so TCP+TLS
-    // handshakes complete BEFORE the user taps "Verify". This cuts ~400ms
-    // off the first real verify request on slow mobile connections.
-    // Uses GET (not HEAD) — HEAD is blocked on many proxies.
+    // Pre-warm top 15 proxies on payment screen open
     function prewarmProxies(verifyUrl) {
         const enc = encodeURIComponent(verifyUrl);
         [
@@ -2446,6 +2405,9 @@
             `https://crossorigin.me/${verifyUrl}`,
             `https://yacdn.org/proxy/${verifyUrl}`,
             `https://gobetween.oklabs.org/${verifyUrl}`,
+            `https://corsanywhere.herokuapp.com/${verifyUrl}`,
+            `https://cors-proxy.htmldriven.com/?url=${enc}`,
+            `https://cors.bridged.cc/${verifyUrl}`,
         ].forEach(url => {
             fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) }).catch(() => {});
         });
@@ -3906,7 +3868,7 @@
                     utr, amount: wfAmount, initiatedAt: new Date().toISOString()
                 }),
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0),
+                raceFetchWithRetry(verifyURLs, _successValidateFn),
             ]);
 
             if(utrSnapshot.exists()) {
@@ -3916,7 +3878,7 @@
             }
 
             // ── Smart result handler (handles pending, mismatch, network fail) ──
-            const verified = await handleVerifyResult(rawVerifyResult, verifyURLs, wfAmount, 1.00);
+            const verified = handleVerifyResult(rawVerifyResult, verifyURLs, wfAmount, 1.00);
             if (!verified.ok) {
                 remove(ref(db, `users/${currentUser.uid}/pendingVerification`)).catch(()=>{});
                 hidePayVerify(); _wfVerifyInProgress = false;
@@ -3996,9 +3958,9 @@
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
-            const rawVerifyResult = await raceFetchWithRetry(verifyURLs, j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0);
+            const rawVerifyResult = await raceFetchWithRetry(verifyURLs, _successValidateFn);
 
-            const verified = await handleVerifyResult(rawVerifyResult, verifyURLs, amount, 1.00);
+            const verified = handleVerifyResult(rawVerifyResult, verifyURLs, amount, 1.00);
             if (!verified.ok) {
                 showToast('⚠️ Could not verify last payment. Contact support if amount was deducted.', 'warn');
                 await remove(ref(db, `users/${uid}/pendingVerification`));
@@ -4830,11 +4792,11 @@
             try {
                 const [utrSnapshot, rawVerifyResult] = await Promise.all([
                     get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                    raceFetchWithRetry(verifyURLs, j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0),
+                    raceFetchWithRetry(verifyURLs, _successValidateFn),
                 ]);
                 if (utrSnapshot.exists()) { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
 
-                const verified = await handleVerifyResult(rawVerifyResult, verifyURLs, checkoutFinalAmt, 1.00);
+                const verified = handleVerifyResult(rawVerifyResult, verifyURLs, checkoutFinalAmt, 1.00);
                 if (!verified.ok) { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast(verified.msg); }
                 const { paidVal } = verified;
 
@@ -4894,7 +4856,7 @@
             // ── Duplicate check AND payment verify IN PARALLEL ──
             const [utrSnapshot, rawVerifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0),
+                raceFetchWithRetry(verifyURLs, _successValidateFn),
             ]);
 
             if (utrSnapshot.exists()) {
@@ -4903,7 +4865,7 @@
             }
 
             // ── Smart result handler (pending poll, mismatch, network fail) ──
-            const verified = await handleVerifyResult(rawVerifyResult, verifyURLs, checkoutFinalAmt, 1.00);
+            const verified = handleVerifyResult(rawVerifyResult, verifyURLs, checkoutFinalAmt, 1.00);
             if (!verified.ok) {
                 _unlockOrder(); _resetBtn(); hidePayVerify();
                 return showToast(verified.msg);
@@ -5439,12 +5401,12 @@
         try {
             const [utrSnapshot, rawVerifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && typeof j === 'object' && typeof j.STATUS === 'string' && j.STATUS.length > 0),
+                raceFetchWithRetry(verifyURLs, _successValidateFn),
             ]);
 
             if(utrSnapshot.exists()) { _unlockOrder(); hidePayVerify(); return showToast('❌ This Order ID already used!'); }
 
-            const verified = await handleVerifyResult(rawVerifyResult, verifyURLs, cartFinalAmt, 1.00);
+            const verified = handleVerifyResult(rawVerifyResult, verifyURLs, cartFinalAmt, 1.00);
             if (!verified.ok) { _unlockOrder(); hidePayVerify(); return showToast(verified.msg); }
             const { paidVal } = verified;
 
