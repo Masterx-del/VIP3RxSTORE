@@ -1349,7 +1349,7 @@
                         <div style="font-size:10px; margin-top:4px; color:var(--text-secondary);">* Do not change amount while paying</div>
                     </div>
                 </div>
-                <button class="btn" id="cartVerifyBtn" onclick="confirmCartPurchase()"><i class="fas fa-lock"></i> I Have Paid. Verify Now</button>
+                <button class="btn" onclick="confirmCartPurchase()"><i class="fas fa-lock"></i> I Have Paid. Verify Now</button>
                 <button class="btn" style="background:transparent; color:var(--text-secondary); box-shadow:none; border:1px solid var(--border-color); margin-top:10px; height: 45px;" onclick="backToCartStep1()"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
         </div>
@@ -1824,7 +1824,7 @@
             </div>
             <!-- Sticky bottom buttons — ALWAYS visible -->
             <div style="padding:12px 16px 16px; border-top:1px solid var(--border-color); background:var(--card-solid); flex-shrink:0;">
-                <button class="af-pay-btn" id="wfVerifyBtn" onclick="confirmWalletPayment()" style="margin-bottom:10px;">
+                <button class="af-pay-btn" onclick="confirmWalletPayment()" style="margin-bottom:10px;">
                     <i class="fas fa-lock"></i> I Have Paid. Verify Now
                 </button>
                 <button class="btn" style="background:transparent; color:var(--text-secondary); box-shadow:none; border:1px solid var(--border-color); margin-top:0; height:45px;" onclick="goBackWfStep1()">
@@ -2287,7 +2287,7 @@
 
     // Race all proxy URLs simultaneously.
     // Winner aborts all losers immediately to free connections.
-    // Hard ceiling: resolves null after 3s for instant verification.
+    // Hard ceiling: resolves null after 14s (extra time for 4th retry attempt).
     const raceFetch = (urls, validateFn) => new Promise(resolve => {
         let settled = false;
         let pending  = urls.length;
@@ -2295,7 +2295,7 @@
 
         const controllers = urls.map(() => new AbortController());
         const abortAll    = () => controllers.forEach(c => { try { c.abort(); } catch(_){} });
-        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 3000);
+        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 14000);
 
         urls.forEach(({ url, opts }, i) => {
             fetch(url, { ...opts, signal: controllers[i].signal, cache: 'no-store' })
@@ -2323,10 +2323,21 @@
         });
     });
 
-    // Single attempt — no auto-retry. All 13 proxies fire in parallel,
-    // first valid TXN_SUCCESS wins. Hard ceiling (3s) decides final result.
+    // 4-attempt cascade retry — exponential backoff with jitter.
+    // Attempts: immediate → ~600ms → ~1400ms → ~2800ms
     const raceFetchWithRetry = async (urls, validateFn) => {
-        return await raceFetch(urls, validateFn);
+        const baseDelays = [0, 600, 1400, 2800];
+        for (let i = 0; i < baseDelays.length; i++) {
+            if (baseDelays[i] > 0) {
+                // Add ±15% jitter to avoid thundering-herd on slow networks
+                const jitter = baseDelays[i] * (0.85 + Math.random() * 0.3);
+                await new Promise(r => setTimeout(r, jitter));
+            }
+            const result = await raceFetch(urls, validateFn);
+            if (result) return result;
+            if (i < baseDelays.length - 1) showToast('⚡ Retrying verification...');
+        }
+        return null;
     };
 
     // Build the full verified proxy list — fastest/most reliable first.
@@ -3817,48 +3828,49 @@
         const utr = wfOrderId;
         if(!utr) { _wfVerifyInProgress = false; return showToast('⚠️ Invalid Order ID'); }
 
-        // Button spinner — "Verifying..."
-        const wfBtn = document.getElementById('wfVerifyBtn');
-        if(wfBtn) { wfBtn.disabled = true; wfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...'; }
-        const _resetWfBtn = () => { if(wfBtn) { wfBtn.disabled = false; wfBtn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now'; } };
-
         // Fire prewarm NOW (button tap) — TCP connections get max warm-up time
         const MERCHANT_ID = "MdXwlu49903940058924";
         const verifyUrl   = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
         const verifyURLs  = buildVerifyURLs(verifyUrl);
         prewarmProxies(verifyUrl);
 
+        showPayVerify();
         try {
             // ── PHASE 1 + Verify IN PARALLEL ──
+            // pendingVerification write AND payment verify fire simultaneously
+            // (no sequential await — saves ~300ms on slow Firebase connections)
             const [, utrSnapshot, verifyResult] = await Promise.all([
                 set(ref(db, `users/${currentUser.uid}/pendingVerification`), {
                     utr, amount: wfAmount, initiatedAt: new Date().toISOString()
                 }),
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success'),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if(utrSnapshot.exists()) {
                 remove(ref(db, `users/${currentUser.uid}/pendingVerification`)).catch(()=>{});
-                _resetWfBtn(); _wfVerifyInProgress = false;
+                hidePayVerify(); _wfVerifyInProgress = false;
                 return showToast('❌ This Order ID has already been used!');
             }
             if(!verifyResult) {
                 remove(ref(db, `users/${currentUser.uid}/pendingVerification`)).catch(()=>{});
-                _resetWfBtn(); _wfVerifyInProgress = false;
-                return showToast("❌ Payment not received. Wait 10-30 secs & tap Verify again.");
+                hidePayVerify(); _wfVerifyInProgress = false;
+                return showToast("❌ Payment not verified. Check internet & try again.");
             }
 
             const result = verifyResult.json;
-            const paidVal = parseFloat(result.TXNAMOUNT);
-            if(isNaN(paidVal) || paidVal < wfAmount - 1.00) {
+            if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
                 remove(ref(db, `users/${currentUser.uid}/pendingVerification`)).catch(()=>{});
-                _resetWfBtn(); _wfVerifyInProgress = false;
-                return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, received ₹${isNaN(paidVal)?'?':paidVal}`);
+                hidePayVerify(); _wfVerifyInProgress = false;
+                return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Try again in a few seconds."));
             }
 
-            // ✅ Payment confirmed — now show overlay
-            showPayVerify();
+            const paidVal = parseFloat(result.TXNAMOUNT);
+            if(paidVal < wfAmount - 1.00) {
+                remove(ref(db, `users/${currentUser.uid}/pendingVerification`)).catch(()=>{});
+                hidePayVerify(); _wfVerifyInProgress = false;
+                return showToast(`❌ Amount mismatch! Required ₹${wfAmount}, paid ₹${paidVal}`);
+            }
 
             // ── Step 3: Wallet credit — all writes in parallel ──
             const newBal = walletBalance + paidVal;
@@ -3899,7 +3911,6 @@
             });
         } catch(e) {
             hidePayVerify();
-            _resetWfBtn();
             showToast('❌ Error: ' + e.message);
         } finally {
             _wfVerifyInProgress = false;
@@ -3932,7 +3943,7 @@
             const MERCHANT_ID = "MdXwlu49903940058924";
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
-            const verifyResult = await raceFetchWithRetry(verifyURLs, j => j && j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success');
+            const verifyResult = await raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined');
 
             if(!verifyResult) {
                 showToast('⚠️ Could not verify last payment. Please contact support if amount was deducted.', 'warn');
@@ -4772,18 +4783,18 @@
             const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
             const verifyURLs = buildVerifyURLs(verifyUrl);
             prewarmProxies(verifyUrl);
+            showPayVerify();
             try {
                 const [utrSnapshot, verifyResult] = await Promise.all([
                     get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                    raceFetchWithRetry(verifyURLs, j => j && j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success'),
+                    raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
                 ]);
-                if (utrSnapshot.exists()) { _unlockOrder(); _resetBtnEx(); return showToast('❌ This Order ID has already been used!'); }
-                if (!verifyResult) { _unlockOrder(); _resetBtnEx(); return showToast('❌ Payment not received. Wait 10-30 secs & tap Verify again.'); }
+                if (utrSnapshot.exists()) { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast('❌ This Order ID has already been used!'); }
+                if (!verifyResult) { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast('❌ Could not verify payment. Check internet & try again.'); }
                 const result = verifyResult.json;
+                if (result.STATUS !== 'TXN_SUCCESS' || result.RESPMSG !== 'Txn Success') { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast('❌ Payment not received yet. ' + (result.RESPMSG || 'Please wait 10 secs and retry.')); }
                 const paidVal = parseFloat(result.TXNAMOUNT);
-                if (isNaN(paidVal) || paidVal < checkoutFinalAmt - 1.00) { _unlockOrder(); _resetBtnEx(); return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${isNaN(paidVal)?'?':paidVal}`); }
-                // ✅ Payment confirmed — show overlay now
-                showPayVerify();
+                if (paidVal < checkoutFinalAmt - 1.00) { _unlockOrder(); _resetBtnEx(); hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`); }
 
                 const packOrderKey = await placeExclusivePackOrders(checkoutItem.id, reelLink, utr, checkoutFinalAmt.toFixed(2));
                 _unlockOrder(); _resetBtnEx(); closeCheckout(); playOrderSuccessSound();
@@ -4836,30 +4847,35 @@
         const verifyURLs  = buildVerifyURLs(verifyUrl);
         prewarmProxies(verifyUrl);
 
+        showPayVerify();
         try {
             // ── Duplicate check AND payment verify IN PARALLEL ──
             const [utrSnapshot, verifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success'),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
             if (utrSnapshot.exists()) {
-                _unlockOrder(); _resetBtn();
+                _unlockOrder(); _resetBtn(); hidePayVerify();
                 return showToast('❌ This Order ID has already been used!');
             }
             if (!verifyResult) {
-                _unlockOrder(); _resetBtn();
-                return showToast("❌ Payment not received. Wait 10-30 secs & tap Verify again.");
+                _unlockOrder(); _resetBtn(); hidePayVerify();
+                return showToast("❌ Could not verify payment. Check internet & try again.");
             }
 
             const result = verifyResult.json;
-            const paidVal = parseFloat(result.TXNAMOUNT);
-            if (isNaN(paidVal) || paidVal < checkoutFinalAmt - 1.00) {
-                _unlockOrder(); _resetBtn();
-                return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${isNaN(paidVal)?'?':paidVal}`);
+
+            if (result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
+                _unlockOrder(); _resetBtn(); hidePayVerify();
+                return showToast("❌ Payment not received yet. " + (result.RESPMSG || "Please wait 10 secs and retry."));
             }
-            // ✅ Payment confirmed — show overlay now
-            showPayVerify();
+
+            const paidVal = parseFloat(result.TXNAMOUNT);
+            if (paidVal < checkoutFinalAmt - 1.00) {
+                _unlockOrder(); _resetBtn(); hidePayVerify();
+                return showToast(`❌ Amount mismatch! Required ₹${checkoutFinalAmt}, paid ₹${paidVal}`);
+            }
 
             // ── Process Order ──
             const hasApiConfig = !!(
@@ -5380,31 +5396,30 @@
         const utr = cartOrderId;
         if(!utr) { _unlockOrder(); return showToast('❌ Invalid Order ID'); }
 
-        // Button spinner — "Verifying..."
-        const cartBtn = document.getElementById('cartVerifyBtn');
-        if(cartBtn) { cartBtn.disabled = true; cartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...'; }
-        const _resetCartBtn = () => { if(cartBtn) { cartBtn.disabled = false; cartBtn.innerHTML = '<i class="fas fa-lock"></i> I Have Paid. Verify Now'; } };
-
         // Fire prewarm NOW (button tap) for maximum connection warmth
         const MERCHANT_ID = "MdXwlu49903940058924";
         const verifyUrl = `https://verify.pikaapis.workers.dev/?trn=${utr}&id=${MERCHANT_ID}`;
         const verifyURLs = buildVerifyURLs(verifyUrl);
         prewarmProxies(verifyUrl);
 
+        showPayVerify();
         try {
             const [utrSnapshot, verifyResult] = await Promise.all([
                 get(query(ref(db, 'orders'), orderByChild('utrId'), equalTo(utr))),
-                raceFetchWithRetry(verifyURLs, j => j && j.STATUS === 'TXN_SUCCESS' && j.RESPMSG === 'Txn Success'),
+                raceFetchWithRetry(verifyURLs, j => j && typeof j.STATUS !== 'undefined'),
             ]);
 
-            if(utrSnapshot.exists()) { _unlockOrder(); _resetCartBtn(); return showToast('❌ This Order ID already used!'); }
-            if(!verifyResult)        { _unlockOrder(); _resetCartBtn(); return showToast("❌ Payment not received. Wait 10-30 secs & tap Verify again."); }
+            if(utrSnapshot.exists()) { _unlockOrder(); hidePayVerify(); return showToast('❌ This Order ID already used!'); }
+            if(!verifyResult)        { _unlockOrder(); hidePayVerify(); return showToast("❌ Could not verify payment. Check internet & retry."); }
 
             const result = verifyResult.json;
+            if(result.STATUS !== "TXN_SUCCESS" || result.RESPMSG !== "Txn Success") {
+                _unlockOrder(); hidePayVerify();
+                return showToast("❌ Payment not verified yet. " + (result.RESPMSG || "Wait a moment and try again."));
+            }
+
             const paidVal = parseFloat(result.TXNAMOUNT);
-            if(isNaN(paidVal) || paidVal < cartFinalAmt - 1.00) { _unlockOrder(); _resetCartBtn(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${isNaN(paidVal)?'?':paidVal}`); }
-            // ✅ Payment confirmed — show overlay now
-            showPayVerify();
+            if(paidVal < cartFinalAmt - 1.00) { _unlockOrder(); hidePayVerify(); return showToast(`❌ Amount mismatch! Required ₹${cartFinalAmt.toFixed(2)}, paid ₹${paidVal}`); }
 
             // Save ALL cart orders in parallel (much faster than sequential for multi-item carts)
             const orderRefs = await Promise.all(cart.map(item => {
@@ -5452,7 +5467,7 @@
                 isCart: true, itemCount: cartItemCount, status: 'pending',
                 notifyMsg: '✅ Payment Verified! All orders placed successfully!'
             });
-        } catch(e) { _unlockOrder(); _resetCartBtn(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
+        } catch(e) { _unlockOrder(); hidePayVerify(); showToast('❌ Error: ' + e.message); }
     };
 
     window.confirmCartWalletPurchase = async () => {
