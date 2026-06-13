@@ -2295,7 +2295,7 @@
 
         const controllers = urls.map(() => new AbortController());
         const abortAll    = () => controllers.forEach(c => { try { c.abort(); } catch(_){} });
-        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 5000);
+        const hardTimer   = setTimeout(() => { if (!settled) { settled = true; abortAll(); resolve(null); } }, 8000);
 
         urls.forEach(({ url, opts }, i) => {
             fetch(url, { ...opts, signal: controllers[i].signal, cache: 'no-store' })
