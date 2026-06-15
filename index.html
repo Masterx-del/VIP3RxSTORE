@@ -1670,28 +1670,6 @@
                     <div class="af-method-name">Crypto</div>
                     <div class="af-method-sub">100+ coins</div>
                 </div>
-                <div class="af-method-card" id="afMethodPaypal" onclick="afSelectMethod('paypal')">
-                    <div class="af-selected-dot"></div>
-                    <div class="af-method-icon" style="background:rgba(0,112,186,0.1);">
-                        <i class="fab fa-paypal" style="font-size:22px;color:#003087;"></i>
-                    </div>
-                    <div class="af-method-name">PayPal</div>
-                    <div class="af-method-sub">Worldwide</div>
-                </div>
-                <div class="af-method-card" id="afMethodBinance" onclick="afSelectMethod('binance')">
-                    <div class="af-selected-dot"></div>
-                    <div class="af-method-icon" style="background:rgba(243,186,47,0.12);">
-                        <svg width="22" height="22" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M38.73 53.2L63.3 28.64l24.59 24.58 14.3-14.3L63.3 0 24.43 38.9z" fill="#f3ba2f"/>
-                            <path d="M0 63.31l14.3-14.31 14.31 14.31-14.31 14.3z" fill="#f3ba2f"/>
-                            <path d="M38.73 73.41L63.3 97.97l24.59-24.58 14.31 14.29L63.3 126.61 24.43 87.7z" fill="#f3ba2f"/>
-                            <path d="M98 63.31l14.3-14.31 14.31 14.3-14.31 14.32z" fill="#f3ba2f"/>
-                            <path d="M77.83 63.3L63.3 48.78 52.59 59.5l-1.24 1.23-2.54 2.54 14.49 14.52 14.53-14.49z" fill="#f3ba2f"/>
-                        </svg>
-                    </div>
-                    <div class="af-method-name">Binance</div>
-                    <div class="af-method-sub">Crypto Exchange</div>
-                </div>
             </div>
 
             <!-- ── Crypto Section ── -->
@@ -1702,51 +1680,6 @@
                     <div class="af-crypto-text">Contact our support team on Telegram to deposit using Bitcoin, USDT, ETH and 100+ other cryptocurrencies. Fast and easy!</div>
                 </div>
                 <button class="af-tg-btn" id="afTelegramBtn" onclick="afOpenTelegram()">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
-            </div>
-
-            <!-- ── PayPal Section ── -->
-            <div class="af-section" id="afPaypalSection">
-                <div class="af-crypto-box" style="background:linear-gradient(135deg,rgba(0,48,135,0.04) 0%,rgba(0,156,222,0.06) 100%);border-color:rgba(0,112,186,0.25);">
-                    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
-                        <i class="fab fa-paypal" style="font-size:38px;color:#003087;"></i>
-                    </div>
-                    <div class="af-crypto-title" style="color:#003087;">PayPal Deposit</div>
-                    <div class="af-crypto-text">Send payment via PayPal to our verified account. Contact our support team on Telegram with the amount — they'll share the PayPal details and confirm your deposit.</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(0,112,186,0.06);border:1px solid rgba(0,112,186,0.18);border-radius:10px;padding:8px 12px;margin-bottom:12px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070ba" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span style="font-size:11px;font-weight:600;color:#0070ba;">Secure • Verified Team • Manual Confirmation</span>
-                </div>
-                <button class="af-tg-btn" id="afPaypalTgBtn" onclick="afOpenTelegramPaypal()" style="background:linear-gradient(135deg,#229ED9 0%,#0088cc 100%);">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
-            </div>
-
-            <!-- ── Binance Section ── -->
-            <div class="af-section" id="afBinanceSection">
-                <div class="af-crypto-box" style="background:linear-gradient(135deg,rgba(243,186,47,0.06) 0%,rgba(243,186,47,0.03) 100%);border-color:rgba(243,186,47,0.4);">
-                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
-                        <svg width="28" height="28" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M38.73 53.2L63.3 28.64l24.59 24.58 14.3-14.3L63.3 0 24.43 38.9z" fill="#f3ba2f"/>
-                            <path d="M0 63.31l14.3-14.31 14.31 14.31-14.31 14.3z" fill="#f3ba2f"/>
-                            <path d="M38.73 73.41L63.3 97.97l24.59-24.58 14.31 14.29L63.3 126.61 24.43 87.7z" fill="#f3ba2f"/>
-                            <path d="M98 63.31l14.3-14.31 14.31 14.3-14.31 14.32z" fill="#f3ba2f"/>
-                            <path d="M77.83 63.3L63.3 48.78 52.59 59.5l-1.24 1.23-2.54 2.54 14.49 14.52 14.53-14.49z" fill="#f3ba2f"/>
-                        </svg>
-                        <span style="font-size:20px;font-weight:900;color:#1a1a1a;letter-spacing:-0.5px;">Binance</span>
-                    </div>
-                    <div class="af-crypto-title" style="color:#1a1a1a;">Binance Pay / Transfer</div>
-                    <div class="af-crypto-text">Deposit via Binance Pay or direct wallet transfer. Contact our support team on Telegram — they'll share the Binance UID or Pay ID and confirm your deposit instantly.</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(243,186,47,0.08);border:1px solid rgba(243,186,47,0.35);border-radius:10px;padding:8px 12px;margin-bottom:12px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span style="font-size:11px;font-weight:600;color:#a07800;">Secure • Zero Fees • Instant Confirmation</span>
-                </div>
-                <button class="af-tg-btn" id="afBinanceTgBtn" onclick="afOpenTelegramBinance()" style="background:linear-gradient(135deg,#229ED9 0%,#0088cc 100%);">
                     <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
                     Contact on Telegram
                 </button>
@@ -3656,43 +3589,21 @@
 
     // Method toggle
     window.afSelectMethod = (method) => {
-        const upiCard     = document.getElementById('afMethodUPI');
-        const cryptoCard  = document.getElementById('afMethodCrypto');
-        const paypalCard  = document.getElementById('afMethodPaypal');
-        const binanceCard = document.getElementById('afMethodBinance');
-        const upiSec      = document.getElementById('afUPISection');
-        const cryptoSec   = document.getElementById('afCryptoSection');
-        const paypalSec   = document.getElementById('afPaypalSection');
-        const binanceSec  = document.getElementById('afBinanceSection');
-
-        // Deselect all
-        [upiCard, cryptoCard, paypalCard, binanceCard].forEach(c => c && c.classList.remove('selected'));
-        [upiSec, cryptoSec, paypalSec, binanceSec].forEach(s => s && s.classList.remove('visible'));
+        const upiCard    = document.getElementById('afMethodUPI');
+        const cryptoCard = document.getElementById('afMethodCrypto');
+        const upiSec     = document.getElementById('afUPISection');
+        const cryptoSec  = document.getElementById('afCryptoSection');
 
         if(method === 'upi') {
             upiCard.classList.add('selected');
+            cryptoCard.classList.remove('selected');
             upiSec.classList.add('visible');
-        } else if(method === 'paypal') {
-            paypalCard.classList.add('selected');
-            paypalSec.classList.add('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afPaypalTgBtn').dataset.tgLink = s.val().socialTelegram;
-                }
-            }).catch(()=>{});
-        } else if(method === 'binance') {
-            binanceCard.classList.add('selected');
-            binanceSec.classList.add('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afBinanceTgBtn').dataset.tgLink = s.val().socialTelegram;
-                }
-            }).catch(()=>{});
+            cryptoSec.classList.remove('visible');
         } else {
             cryptoCard.classList.add('selected');
+            upiCard.classList.remove('selected');
             cryptoSec.classList.add('visible');
+            upiSec.classList.remove('visible');
             // Load Telegram link from Firebase
             get(ref(db, 'meta/contact')).then(s => {
                 if(s.exists() && s.val().socialTelegram) {
@@ -3704,20 +3615,6 @@
 
     window.afOpenTelegram = () => {
         const btn = document.getElementById('afTelegramBtn');
-        const link = btn.dataset.tgLink || '#';
-        if(link !== '#') { window.open(link, '_blank'); }
-        else { showToast('Telegram link not configured'); }
-    };
-
-    window.afOpenTelegramPaypal = () => {
-        const btn = document.getElementById('afPaypalTgBtn');
-        const link = btn.dataset.tgLink || '#';
-        if(link !== '#') { window.open(link, '_blank'); }
-        else { showToast('Telegram link not configured'); }
-    };
-
-    window.afOpenTelegramBinance = () => {
-        const btn = document.getElementById('afBinanceTgBtn');
         const link = btn.dataset.tgLink || '#';
         if(link !== '#') { window.open(link, '_blank'); }
         else { showToast('Telegram link not configured'); }
@@ -4402,14 +4299,7 @@
                                 <div class="order-info">
                                     <div><span>Item:</span> <strong style="color:var(--text-primary);">${o.productSnapshot?.title || o.productSnapshot?.planName || 'Unknown'}</strong></div>
                                     ${o.targetLink ? `<div><span>Link:</span> <a href="${o.targetLink.startsWith('http') ? o.targetLink : 'https://'+o.targetLink}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink}</a></div>` : ''}
-                                    ${o.targetLink2 ? `<div><span>Link 2:</span> <a href="${o.targetLink2.startsWith('http') ? o.targetLink2 : 'https://'+o.targetLink2}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink2}</a></div>` : ''}
-                                    ${o.targetLink3 ? `<div><span>Link 3:</span> <a href="${o.targetLink3.startsWith('http') ? o.targetLink3 : 'https://'+o.targetLink3}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink3}</a></div>` : ''}
-                                    ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
-                                    ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
-                                    ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
-                                    <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
-                                    <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
-                                    <div><span>Ref ID:</span> <span style="font-family:monospace; color:var(--text-primary);">${o.utrId}</span></div>
+                                    <div><span>Amount:</span> <strong style="color:#10b981;">₹${parseFloat(o.finalAmount||0).toFixed(2)}</strong></div>
                                 </div>
                                 ${estTimeHtml}`;
                         list.appendChild(_cardDiv);
