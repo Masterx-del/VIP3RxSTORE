@@ -2417,47 +2417,50 @@
 
             const apiPayload = `key=${encodeURIComponent(apiKey)}&action=add&service=${encodeURIComponent(serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(quantity)}`;
 
-            // ── EXACTLY ONE REQUEST to the SMM panel — no fallback, no retry ──
-            // We learned the hard way that even "sequential fallback" is unsafe for this call:
-            // if Proxy A successfully forwards the order to the real SMM server but then fails to
-            // relay the RESPONSE back to us (free proxies do this often — timeout/crash/garbled body),
-            // our code can't tell that apart from Proxy A never reaching the server at all. Falling
-            // back to Proxy B in that case creates a SECOND real order on the panel — which is exactly
-            // what happened (two orders, ~1s apart, same link/qty).
-            // So now: only ONE proxy is tried, period. If it fails for any reason, we do NOT try another
-            // proxy — we mark the order apiStatus:'failed' and notify Telegram so it can be checked/
-            // retried manually. This guarantees this code can never put more than one real request on
-            // the wire to the SMM panel for a given order. This call already runs in the background
-            // (fire-and-forget) for every flow — cart, single order, exclusive pack, free order, wallet —
-            // so this has zero effect on payment verification speed or the success message shown to the user.
-            const SMM_PROXY_URL  = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-            const SMM_PROXY_OPTS = { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload };
+            // ── All proxies fired IN PARALLEL — first valid JSON wins ──
+            // Only POST proxies used (GET-only proxies like allorigins don't support POST APIs correctly)
+            const apiURLs = [
+                { url: apiUrl,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                { url: `https://corsproxy.org/?${encodeURIComponent(apiUrl)}`,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                { url: `https://proxy.cors.sh/${apiUrl}`,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','x-cors-api-key':'temp_'}, body: apiPayload } },
+                { url: `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+            ];
 
-            let raceResult = { ok: false, text: 'No response' };
-            {
-                const _ctrl = new AbortController();
-                const _tid = setTimeout(() => { try { _ctrl.abort(); } catch(_) {} }, 18000);
-                try {
-                    const r = await fetch(SMM_PROXY_URL, { ...SMM_PROXY_OPTS, signal: _ctrl.signal, cache: 'no-store' });
-                    const text = await r.text();
-                    let j = null;
-                    try { j = JSON.parse(text); } catch(e) { /* leave j as null */ }
-                    if (j && typeof j === 'object' && !Array.isArray(j)) {
-                        raceResult = { ok: true, j, text };
-                    } else {
-                        raceResult = { ok: false, text: (j === null ? 'Invalid JSON: ' : 'Non-object JSON: ') + text.substring(0,80) };
-                    }
-                } catch(e) {
-                    raceResult = { ok:false, text: (e && e.name === 'AbortError') ? 'timeout' : (e.message || 'network error') };
-                } finally {
-                    clearTimeout(_tid);
-                }
-            }
+            // Race all proxies — resolve with first response that is valid JSON object
+            const raceResult = await new Promise((resolve) => {
+                let settled = false;
+                let pending = apiURLs.length;
+                let lastErr = 'No response';
+
+                apiURLs.forEach(({ url, opts }) => {
+                    fetchWithTimeout(url, opts, 18000)
+                        .then(r => r.text())
+                        .then(text => {
+                            if (settled) return;
+                            let j;
+                            try { j = JSON.parse(text); } catch(e) { lastErr = 'Invalid JSON: ' + text.substring(0,80); return; }
+                            if (!j || typeof j !== 'object' || Array.isArray(j)) { lastErr = 'Non-object JSON'; return; }
+                            // Accept this response (success OR API-level error — both are valid responses)
+                            if (!settled) { settled = true; resolve({ ok: true, j, text }); }
+                        })
+                        .catch(e => { lastErr = e.message || 'timeout'; })
+                        .finally(() => {
+                            pending--;
+                            if (pending === 0 && !settled) resolve({ ok: false, text: lastErr });
+                        });
+                });
+            });
 
             if (!raceResult.ok) {
                 await update(ref(db, `orders/${orderKey}`), {
                     apiStatus:      'failed',
-                    apiRawResponse: 'Proxy request failed (no retry, to avoid duplicate orders): ' + raceResult.text,
+                    apiRawResponse: 'All proxies failed: ' + raceResult.text,
                     apiCalledAt:    new Date().toISOString(),
                 }).catch(() => {});
                 _apiCallInProgress.delete(orderKey);
