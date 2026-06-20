@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2340,6 +2339,7 @@
             { url: `https://corsproxy.io/?${enc}`,                                               opts: {} },
             { url: `https://proxy.corsfix.com/?${verifyUrl}`,                                    opts: {} },
             { url: `https://corsproxy.io/?url=${enc}`,                                            opts: {} },
+            { url: `https://bitter-mode-4fa8wholesale-proxy.demos-orx.workers.dev/?url=${enc}`,    opts: {} },
         ];
     };
 
@@ -2353,6 +2353,7 @@
             `https://corsproxy.io/?${enc}`,
             `https://proxy.corsfix.com/?${verifyUrl}`,
             `https://corsproxy.io/?url=${enc}`,
+            `https://bitter-mode-4fa8wholesale-proxy.demos-orx.workers.dev/?url=${enc}`,
         ].forEach(url => {
             fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) }).catch(() => {});
         });
