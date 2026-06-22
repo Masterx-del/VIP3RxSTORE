@@ -1696,15 +1696,126 @@
 
             <!-- ── Crypto Section ── -->
             <div class="af-section" id="afCryptoSection">
-                <div class="af-crypto-box">
-                    <div class="af-crypto-icon">₿</div>
-                    <div class="af-crypto-title">Crypto Deposit</div>
-                    <div class="af-crypto-text">Contact our support team on Telegram to deposit using Bitcoin, USDT, ETH and 100+ other cryptocurrencies. Fast and easy!</div>
+
+                <!-- ── STEP 1: Enter USDT amount ── -->
+                <div id="cryptoStep1">
+
+                    <!-- Trust badge -->
+                    <div style="display:flex;align-items:center;gap:8px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:8px 12px;margin-bottom:12px;">
+                        <i class="fas fa-shield-alt" style="color:#10b981;font-size:13px;"></i>
+                        <span style="font-size:11px;font-weight:600;color:#10b981;">Powered by Heleket · Secure · Instant</span>
+                        <span style="margin-left:auto;font-size:10px;color:var(--text-secondary);">Min: <b id="cryptoMinDisplay" style="color:var(--text-primary);">1 USDT</b></span>
+                    </div>
+
+                    <!-- Breakdown box -->
+                    <div class="af-deposit-box" style="border-color:rgba(99,102,241,0.25);background:linear-gradient(135deg,rgba(99,102,241,0.04) 0%,rgba(16,185,129,0.04) 100%);">
+                        <div class="af-deposit-row">
+                            <span>Deposit amount</span>
+                            <span id="cryptoDepositAmt" style="color:var(--text-primary);font-weight:700;">0 USDT</span>
+                        </div>
+                        <div class="af-deposit-row">
+                            <span>Network fee</span>
+                            <span style="color:#10b981;font-weight:700;">FREE ✓</span>
+                        </div>
+                        <div class="af-deposit-row total" style="border-top-color:rgba(99,102,241,0.2);">
+                            <span style="color:#6366f1;font-weight:700;">You Get</span>
+                            <span class="af-total-val" id="cryptoYouGet" style="color:#6366f1;">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick chips -->
+                    <div class="af-chips" id="cryptoChips"></div>
+
+                    <!-- USDT input -->
+                    <div class="af-custom-input-wrap">
+                        <span class="af-rupee-prefix" style="font-size:11px;font-weight:800;color:#6366f1;letter-spacing:0.5px;">USDT</span>
+                        <input type="number" class="af-custom-input" id="cryptoAmountInput"
+                            placeholder="Enter USDT amount" min="1" step="0.01"
+                            oninput="cryptoOnAmountInput(this.value)"
+                            style="padding-left:54px;border-color:rgba(99,102,241,0.3);">
+                    </div>
+
+                    <!-- Proceed button -->
+                    <button class="af-pay-btn" id="cryptoPayBtn" onclick="initCryptoPayment()"
+                        style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);box-shadow:0 4px 14px rgba(99,102,241,0.35);">
+                        <i class="fas fa-lock" style="font-size:14px;"></i>
+                        Proceed to Pay
+                    </button>
+
                 </div>
-                <button class="af-tg-btn" id="afTelegramBtn" onclick="afOpenTelegram()">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
+
+                <!-- ── STEP 2: Payment screen ── -->
+                <div id="cryptoStep2" style="display:none;">
+
+                    <div class="payment-box" style="border-color:rgba(99,102,241,0.25);background:linear-gradient(160deg,rgba(99,102,241,0.04) 0%,rgba(16,185,129,0.03) 100%);">
+
+                        <!-- Header badge -->
+                        <div class="secure-badge" style="background:rgba(99,102,241,0.1);color:#6366f1;border-color:rgba(99,102,241,0.25);margin-bottom:14px;">
+                            <i class="fas fa-shield-alt"></i>&nbsp; Secure USDT Payment · TRC-20
+                        </div>
+
+                        <!-- Amount -->
+                        <div style="text-align:center;margin-bottom:4px;">
+                            <div style="font-size:11px;color:var(--text-secondary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">Send Exactly</div>
+                            <div style="font-size:28px;font-weight:900;color:#6366f1;letter-spacing:0.5px;" id="cryptoSendAmt">0 USDT</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">
+                                ≈ <b id="cryptoReceiveInr" style="color:#10b981;">₹0.00</b> credited to your wallet
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div style="height:1px;background:rgba(99,102,241,0.12);margin:12px 0;"></div>
+
+                        <!-- QR Code -->
+                        <div class="qr-wrapper" style="margin-bottom:10px;border-color:rgba(99,102,241,0.2);">
+                            <div class="qr-corner qr-tl" style="border-color:#6366f1;"></div>
+                            <div class="qr-corner qr-tr" style="border-color:#6366f1;"></div>
+                            <div class="qr-corner qr-bl" style="border-color:#6366f1;"></div>
+                            <div class="qr-corner qr-br" style="border-color:#6366f1;"></div>
+                            <img id="cryptoQrImg" src="" alt="USDT Wallet QR" style="border-radius:6px;">
+                        </div>
+
+                        <!-- Wallet address -->
+                        <div style="font-size:10px;color:var(--text-secondary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px;">Wallet Address (TRC-20)</div>
+                        <div class="upi-text" id="cryptoWalletAddr"
+                            onclick="copyCryptoAddress()"
+                            style="font-size:11px;letter-spacing:0.5px;word-break:break-all;cursor:pointer;border-color:rgba(99,102,241,0.25);color:var(--text-primary);padding:8px 12px;border-radius:8px;border:1px solid rgba(99,102,241,0.2);background:rgba(99,102,241,0.04);">
+                            Loading…
+                        </div>
+                        <div style="font-size:10px;color:#6366f1;font-weight:600;margin-top:4px;margin-bottom:12px;text-align:center;">
+                            <i class="fas fa-copy"></i> Tap to copy address
+                        </div>
+
+                        <!-- Order ID + warning -->
+                        <div style="background:rgba(99,102,241,0.06);border:1px dashed rgba(99,102,241,0.25);border-radius:8px;padding:10px 12px;">
+                            <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Order Reference</div>
+                            <div id="cryptoOrderIdDisplay" style="font-family:monospace;font-size:13px;font-weight:800;color:#6366f1;letter-spacing:1px;"></div>
+                            <div style="font-size:10px;color:#ef4444;font-weight:600;margin-top:6px;">
+                                <i class="fas fa-exclamation-triangle"></i> Send EXACT amount — wrong amounts will not be credited
+                            </div>
+                        </div>
+
+                        <!-- Timer -->
+                        <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+                            <i class="fas fa-hourglass-half" style="color:#6366f1;"></i>
+                            Expires in <b id="cryptoTimerDisplay" style="color:#6366f1;font-size:13px;">15:00</b>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div style="margin-top:12px;">
+                        <button class="af-pay-btn" id="cryptoVerifyBtn" onclick="verifyCryptoPayment()"
+                            style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 4px 14px rgba(16,185,129,0.3);margin-bottom:10px;">
+                            <i class="fas fa-check-circle"></i> I've Paid — Verify Now
+                        </button>
+                        <button class="btn" onclick="cryptoGoBack()"
+                            style="background:transparent;color:var(--text-secondary);box-shadow:none;border:1px solid var(--border-color);margin-top:0;height:45px;width:100%;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+
+                </div>
+
             </div>
 
             <!-- ── PayPal Section ── -->
@@ -3694,12 +3805,12 @@
         } else {
             cryptoCard.classList.add('selected');
             cryptoSec.classList.add('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afTelegramBtn').dataset.tgLink = s.val().socialTelegram;
-                }
-            }).catch(()=>{});
+            // Reset to step 1 and load gateway config from Firebase
+            document.getElementById('cryptoStep1').style.display = 'block';
+            document.getElementById('cryptoStep2').style.display = 'none';
+            document.getElementById('cryptoAmountInput').value = '';
+            cryptoOnAmountInput(0);
+            loadCryptoGatewayForUser();
         }
     };
 
@@ -3723,6 +3834,243 @@
         if(link !== '#') { window.open(link, '_blank'); }
         else { showToast('Telegram link not configured'); }
     };
+
+    // ── CRYPTO (USDT / Heleket) GATEWAY ──────────────────────────────────
+    const HELEKET_WORKER = 'https://winter-art-2266heleket-api.demos-orx.workers.dev';
+
+    let _cryptoUsdInrRate  = 83;
+    let _cryptoMinDeposit  = 1;
+    let _cryptoChips       = [1, 3, 5, 10, 50];
+    let _cryptoAmount      = 0;
+    let _cryptoInrAmount   = 0;
+    let _cryptoOrderId     = '';
+    let _cryptoPaymentUUID = '';
+    let _cryptoWalletAddress = '';
+    let _cryptoTimerInterval = null;
+    let _cryptoVerifyInProgress = false;
+
+    // Call Heleket via Worker — sign computed server-side, API keys never in frontend
+    async function heleketCall(action, body) {
+        const resp = await fetch(HELEKET_WORKER + '/heleket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-heleket-action': action },
+            body: JSON.stringify(body)
+        });
+        return resp.json();
+    }
+
+    async function loadCryptoGatewayForUser() {
+        try {
+            const snap = await get(ref(db, 'meta/cryptoGateway'));
+            if (snap.exists()) {
+                const d = snap.val();
+                _cryptoUsdInrRate = parseFloat(d.usdInrRate || 83);
+                _cryptoMinDeposit = parseFloat(d.minDeposit || 1);
+                _cryptoChips = Array.isArray(d.chips) && d.chips.length ? d.chips : [1, 3, 5, 10, 50];
+                if (d.status === 'off') {
+                    document.getElementById('cryptoStep1').innerHTML = `
+                        <div style="text-align:center;padding:24px 16px;">
+                            <i class="fas fa-tools" style="font-size:32px;color:var(--text-secondary);margin-bottom:10px;display:block;"></i>
+                            <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">Crypto Deposit Unavailable</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Currently under maintenance. Please use UPI or contact support.</div>
+                        </div>`;
+                    return;
+                }
+            }
+        } catch(e) {}
+        document.getElementById('cryptoMinDisplay').textContent = _cryptoMinDeposit + ' USDT';
+        const chipsEl = document.getElementById('cryptoChips');
+        chipsEl.innerHTML = '';
+        _cryptoChips.forEach(v => {
+            const chip = document.createElement('div');
+            chip.className = 'af-chip';
+            chip.textContent = v + ' USDT';
+            chip.onclick = () => {
+                document.querySelectorAll('#cryptoChips .af-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                document.getElementById('cryptoAmountInput').value = v;
+                cryptoOnAmountInput(v);
+            };
+            chipsEl.appendChild(chip);
+        });
+        cryptoOnAmountInput(0);
+    }
+
+    window.cryptoOnAmountInput = (val) => {
+        const num = parseFloat(val) || 0;
+        document.querySelectorAll('#cryptoChips .af-chip').forEach(c => {
+            c.classList.toggle('active', parseFloat(c.textContent) === num);
+        });
+        _cryptoAmount    = num;
+        _cryptoInrAmount = parseFloat((num * _cryptoUsdInrRate).toFixed(2));
+        document.getElementById('cryptoDepositAmt').textContent = num ? num + ' USDT' : '0 USDT';
+        document.getElementById('cryptoYouGet').textContent = '\u20b9' + _cryptoInrAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+    };
+
+    window.initCryptoPayment = async () => {
+        const amt = parseFloat(document.getElementById('cryptoAmountInput').value);
+        const inp = document.getElementById('cryptoAmountInput');
+        if (!amt || amt < _cryptoMinDeposit) {
+            inp.style.borderColor = '#ef4444';
+            setTimeout(() => inp.style.borderColor = 'rgba(99,102,241,0.3)', 2000);
+            return showToast('\u26a0\ufe0f Minimum ' + _cryptoMinDeposit + ' USDT required');
+        }
+        inp.style.borderColor = 'rgba(99,102,241,0.3)';
+        _cryptoAmount    = amt;
+        _cryptoInrAmount = parseFloat((amt * _cryptoUsdInrRate).toFixed(2));
+        _cryptoOrderId   = 'CRY-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+
+        const btn = document.getElementById('cryptoPayBtn');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating invoice\u2026';
+
+        try {
+            const invoiceBody = {
+                amount:   _cryptoAmount.toString(),
+                currency: 'USDT',
+                order_id: _cryptoOrderId,
+                network:  'tron',
+                lifetime:  900,
+                is_payment_multiple: false,
+                accuracy_payment_percent: 1
+            };
+            const data = await heleketCall('payment', invoiceBody);
+            if (!data || data.state !== 0 || !data.result) {
+                btn.disabled = false; btn.innerHTML = orig;
+                const msg = (data && data.message) ? data.message : 'Invoice creation failed. Try again.';
+                return showToast('\u274c ' + msg);
+            }
+            const inv = data.result;
+            _cryptoWalletAddress = inv.address || '';
+            _cryptoPaymentUUID   = inv.uuid    || '';
+
+            await set(ref(db, 'users/' + currentUser.uid + '/pendingCryptoDeposit'), {
+                orderId: _cryptoOrderId,
+                uuid: _cryptoPaymentUUID,
+                usdtAmount: _cryptoAmount,
+                inrAmount: _cryptoInrAmount,
+                address: _cryptoWalletAddress,
+                createdAt: new Date().toISOString()
+            });
+
+            document.getElementById('cryptoSendAmt').textContent     = _cryptoAmount + ' USDT';
+            document.getElementById('cryptoReceiveInr').textContent  = '\u20b9' + _cryptoInrAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+            document.getElementById('cryptoWalletAddr').textContent  = _cryptoWalletAddress || 'Address unavailable';
+            document.getElementById('cryptoOrderIdDisplay').textContent = _cryptoOrderId;
+
+            if (inv.address_qr_code && inv.address_qr_code.startsWith('data:')) {
+                document.getElementById('cryptoQrImg').src = inv.address_qr_code;
+            } else {
+                document.getElementById('cryptoQrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(_cryptoWalletAddress);
+            }
+
+            btn.disabled = false; btn.innerHTML = orig;
+            document.getElementById('cryptoStep1').style.display = 'none';
+            document.getElementById('cryptoStep2').style.display = 'block';
+            _startCryptoTimer(900);
+
+        } catch(err) {
+            btn.disabled = false; btn.innerHTML = orig;
+            showToast('\u274c ' + (err.message || 'Network error. Try again.'));
+        }
+    };
+
+    window.copyCryptoAddress = () => {
+        const addr = document.getElementById('cryptoWalletAddr').textContent.trim();
+        if (!addr || addr === 'Loading\u2026' || addr === 'Address unavailable') return;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(addr).then(() => showToast('\u2705 Address copied!')).catch(() => _fallbackCopy(addr));
+        } else { _fallbackCopy(addr); }
+    };
+    function _fallbackCopy(text) {
+        const t = document.createElement('textarea');
+        t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+        document.body.appendChild(t); t.focus(); t.select();
+        try { document.execCommand('copy'); showToast('\u2705 Address copied!'); } catch(e) {}
+        document.body.removeChild(t);
+    }
+
+    function _startCryptoTimer(seconds) {
+        clearInterval(_cryptoTimerInterval);
+        let rem = seconds;
+        const el = document.getElementById('cryptoTimerDisplay');
+        _cryptoTimerInterval = setInterval(() => {
+            if (rem <= 0) { clearInterval(_cryptoTimerInterval); if(el) el.textContent = 'Expired'; return; }
+            rem--;
+            if(el) el.textContent = String(Math.floor(rem/60)).padStart(2,'0') + ':' + String(rem%60).padStart(2,'0');
+        }, 1000);
+    }
+
+    window.cryptoGoBack = () => {
+        clearInterval(_cryptoTimerInterval);
+        document.getElementById('cryptoStep2').style.display = 'none';
+        document.getElementById('cryptoStep1').style.display = 'block';
+    };
+
+    window.verifyCryptoPayment = async () => {
+        if (_cryptoVerifyInProgress) return showToast('\u23f3 Already verifying...');
+        if (!_cryptoPaymentUUID) return showToast('\u274c No active invoice. Please start again.');
+        _cryptoVerifyInProgress = true;
+        const btn = document.getElementById('cryptoVerifyBtn');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying\u2026';
+        try {
+            const data = await heleketCall('payment/info', { uuid: _cryptoPaymentUUID });
+            if (!data || data.state !== 0 || !data.result) {
+                btn.disabled = false; btn.innerHTML = orig; _cryptoVerifyInProgress = false;
+                return showToast('\u23f3 Payment not confirmed yet. Try again shortly.');
+            }
+            const status = data.result.payment_status;
+            const isPaid = status === 'paid' || status === 'paid_over';
+            if (!isPaid) {
+                btn.disabled = false; btn.innerHTML = orig; _cryptoVerifyInProgress = false;
+                const msgs = {process:'\u23f3 Payment is processing. Wait and try again.',confirm_check:'\u23f3 Confirming on blockchain. Try shortly.',wrong_amount:'\u274c Wrong amount sent. Contact support.',fail:'\u274c Payment failed.',cancel:'\u274c Payment cancelled.'};
+                return showToast(msgs[status] || ('\u23f3 Status: ' + status + '. Try again.'));
+            }
+            const newBal = walletBalance + _cryptoInrAmount;
+            await Promise.all([
+                update(ref(db, 'users/' + currentUser.uid + '/profile'), { walletBalance: newBal }),
+                push(ref(db, 'users/' + currentUser.uid + '/walletHistory'), {
+                    type: 'credit', amount: _cryptoInrAmount,
+                    note: 'Crypto Deposit \u00b7 ' + _cryptoAmount + ' USDT (TRC-20)',
+                    utrId: _cryptoOrderId, createdAt: new Date().toISOString()
+                }),
+                push(ref(db, 'orders'), {
+                    userId: currentUser.uid, userEmail: currentUser.email,
+                    utrId: _cryptoOrderId, heleketUuid: _cryptoPaymentUUID,
+                    usdtAmount: _cryptoAmount, finalAmount: _cryptoInrAmount.toFixed(2),
+                    type: 'crypto_topup', status: 'completed', createdAt: new Date().toISOString()
+                }),
+                remove(ref(db, 'users/' + currentUser.uid + '/pendingCryptoDeposit'))
+            ]);
+            (async () => { try {
+                const botSnap = await get(ref(db, 'meta/telegramBot'));
+                if (botSnap.exists()) {
+                    const {token, topUpChatId} = botSnap.val();
+                    if (token && topUpChatId) {
+                        const msg = '\ud83d\udcb8 <b>Crypto Top-Up!</b>\n\ud83d\udc64 <b>User:</b> ' + currentUser.email + '\n\ud83d\udcb5 <b>USDT:</b> ' + _cryptoAmount + ' USDT\n\u20b9 <b>INR:</b> \u20b9' + _cryptoInrAmount.toFixed(2) + '\n\ud83d\udd11 <b>Order:</b> ' + _cryptoOrderId + '\n\ud83d\udd50 ' + new Date().toLocaleString('en-IN');
+                        fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({chat_id: topUpChatId, text: msg, parse_mode:'HTML'})
+                        }).catch(()=>{});
+                    }
+                }
+            } catch(_){} })();
+            clearInterval(_cryptoTimerInterval);
+            closeWalletFund();
+            showPayVerifySuccess({
+                amount: _cryptoInrAmount.toFixed(2), isWalletTopup: true,
+                utr: _cryptoOrderId, method: 'Crypto (USDT \u00b7 TRC-20)',
+                notifyMsg: '\u2705 \u20b9' + _cryptoInrAmount.toFixed(2) + ' added to your wallet!'
+            });
+        } catch(err) {
+            btn.disabled = false; btn.innerHTML = orig;
+            showToast('\u274c ' + (err.message || 'Network error. Try again.'));
+        } finally { _cryptoVerifyInProgress = false; }
+    };
+    // ── END CRYPTO GATEWAY ────────────────────────────────────────────────
 
     // Chip selection
     window.afSelectChip = (el, amount) => {
