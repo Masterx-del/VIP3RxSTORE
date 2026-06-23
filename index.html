@@ -3700,6 +3700,20 @@
     // ── Add Funds Modal helpers ──────────────────────────────────
     window.openWalletAddFund = () => {
         if(!currentUser) return showToast('Please login first');
+        // Always restore method cards first (may be hidden after crypto gateway)
+        const _afM = document.querySelector('.af-methods');
+        if (_afM) _afM.style.display = '';
+        // Reset crypto views
+        const clv = document.getElementById('cryptoLaunchView');
+        const civ = document.getElementById('cryptoIframeView');
+        const cls = document.getElementById('cryptoLoadingState');
+        const ces = document.getElementById('cryptoErrorState');
+        if (clv) clv.style.display = 'block';
+        if (civ) civ.style.display = 'none';
+        if (cls) cls.style.display = 'none';
+        if (ces) ces.style.display = 'none';
+        const gf = document.getElementById('cryptoGatewayFrame');
+        if (gf) gf.src = '';
         // Reset to step 1 / UPI
         document.getElementById('afStep1').style.display = 'block';
         document.getElementById('wfStep2').style.display = 'none';
