@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3922,18 +3923,34 @@
                 return;
             }
 
-            await set(ref(db, 'users/' + currentUser.uid + '/pendingCryptoDeposit'), {
-                orderId:  _cryptoOrderId,
-                uuid:     data.result.uuid || '',
-                inrAmount: _cryptoInrAmt,
-                usdAmount: _cryptoUsdAmt,
-                createdAt: new Date().toISOString()
-            });
+            await Promise.all([
+                set(ref(db, 'users/' + currentUser.uid + '/pendingCryptoDeposit'), {
+                    orderId:  _cryptoOrderId,
+                    uuid:     data.result.uuid || '',
+                    inrAmount: _cryptoInrAmt,
+                    usdAmount: _cryptoUsdAmt,
+                    createdAt: new Date().toISOString()
+                }),
+                // orderId-keyed record — Heleket webhook (server-side, no auth) only gets order_id,
+                // so it needs this to know which user/amount to credit. Required for auto wallet update.
+                set(ref(db, 'cryptoPendingOrders/' + _cryptoOrderId), {
+                    userId: currentUser.uid,
+                    uuid:   data.result.uuid || '',
+                    inrAmount: _cryptoInrAmt,
+                    usdAmount: _cryptoUsdAmt,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                })
+            ]);
 
             document.getElementById('cryptoGatewayFrame').src = data.result.url;
             document.getElementById('cryptoLoadingState').style.display = 'none';
             document.getElementById('cryptoIframeView').style.display   = 'block';
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock" style="font-size:14px;"></i> Proceed to Pay'; }
+
+            // Live-watch this order — when the worker's webhook flips status to 'completed',
+            // wallet balance/history are already updated server-side; this just drives the success UI.
+            _watchCryptoOrderStatus(_cryptoOrderId);
 
         } catch(err) {
             document.getElementById('cryptoLoadingState').style.display = 'none';
@@ -3944,7 +3961,30 @@
         }
     };
 
+    // Watches cryptoPendingOrders/{orderId}/status in realtime. The worker's webhook
+    // flips this to 'completed' (after crediting wallet server-side) or 'failed'.
+    let _cryptoStatusUnsub = null;
+    function _watchCryptoOrderStatus(orderId) {
+        if (_cryptoStatusUnsub) { try { _cryptoStatusUnsub(); } catch(_){} _cryptoStatusUnsub = null; }
+        _cryptoStatusUnsub = onValue(ref(db, 'cryptoPendingOrders/' + orderId + '/status'), snap => {
+            const status = snap.val();
+            if (status === 'completed') {
+                _cryptoStatusUnsub(); _cryptoStatusUnsub = null;
+                closeWalletFund();
+                showPayVerifySuccess({
+                    amount: _cryptoInrAmt.toFixed(2), isWalletTopup: true,
+                    utr: orderId, method: 'Crypto',
+                    notifyMsg: '✅ ₹' + _cryptoInrAmt.toFixed(2) + ' added to your wallet!'
+                });
+            } else if (status === 'failed') {
+                _cryptoStatusUnsub(); _cryptoStatusUnsub = null;
+                showToast('❌ Crypto payment failed or expired.', 'warn');
+            }
+        });
+    }
+
     window.cryptoGoBack = () => {
+        if (_cryptoStatusUnsub) { try { _cryptoStatusUnsub(); } catch(_){} _cryptoStatusUnsub = null; }
         document.getElementById('cryptoGatewayFrame').src = '';
         cryptoShowLaunchBtn(); // already calls _cryptoShowMethods
     };
