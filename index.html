@@ -182,6 +182,36 @@
             border: 1px solid var(--border-color);
         }
 
+        /* Specifications chips — shown above service list when a category has specifications */
+        .spec-section { margin-bottom: 18px; }
+        .spec-section-label { 
+            font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; 
+            letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; 
+        }
+        .spec-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .spec-chip { 
+            background: var(--card-solid); border: 1px solid var(--border-color); color: var(--text-primary); 
+            font-size: 12px; font-weight: 600; padding: 10px 10px; border-radius: 10px; cursor: pointer; 
+            transition: var(--transition); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center;
+        }
+        .spec-chip:hover { border-color: var(--accent-cyan); }
+        .spec-chip.active { background: var(--accent-cyan); border-color: var(--accent-cyan); color: #fff; }
+        .spec-chip i, .spec-chip-icon { font-size: 13px; line-height: 1; flex-shrink: 0; }
+        .spec-chip-icon { font-size: 16px; }
+        .spec-chip-count { 
+            display: inline-block; font-size: 10px; font-weight: 700; 
+            background: rgba(0,0,0,0.08); padding: 1px 7px; border-radius: 10px; flex-shrink: 0; 
+        }
+        .spec-chip.active .spec-chip-count { background: rgba(255,255,255,0.25); }
+        .spec-chip-default { border-style: dashed; }
+        .spec-chip-badge { 
+            font-size: 9px; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 0.4px; color: var(--accent-cyan); flex-shrink: 0; 
+        }
+        .spec-chip-default.active .spec-chip-badge { color: rgba(255,255,255,0.85); }
+        @media (max-width: 480px) { .spec-chips { gap: 6px; } .spec-chip { padding: 9px 6px; font-size: 11px; } }
+
         .product-list-card { 
             background: var(--card-solid); border: 1px solid var(--border-color); 
             border-radius: var(--border-radius); padding: 20px; margin-bottom: 14px; 
@@ -2858,20 +2888,103 @@
         else { Object.keys(subCatsMap).forEach(sub => { list.innerHTML += `<div class="subcategory-card" onclick="openSubCategory('${catName}', '${sub}')"><div class="subcategory-name">${sub}</div><div class="subcategory-count">${subCatsMap[sub]} <span style="font-weight:400;">Services</span> <i class="fas fa-chevron-right" style="font-size:10px;"></i></div></div>`; }); }
     };
 
-    window.openSubCategory = (catName, subCatName) => { 
+    // Realistic India flag (inline SVG) — used instead of the emoji flag so it renders
+    // consistently as a proper tricolor with Ashoka Chakra on every device/font, not just "IN" text.
+    window._indiaFlagSVG = (() => {
+        let spokes = '';
+        for (let i = 0; i < 24; i++) {
+            const angle = (i * 15) * Math.PI / 180;
+            const x2 = (450 + 78 * Math.cos(angle)).toFixed(1);
+            const y2 = (300 + 78 * Math.sin(angle)).toFixed(1);
+            spokes += `<line x1="450" y1="300" x2="${x2}" y2="${y2}" stroke="#0a0a8c" stroke-width="4"/>`;
+        }
+        return `<svg width="20" height="14" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;border-radius:2px;display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,0.12);">
+            <rect width="900" height="200" y="0" fill="#FF9933"/>
+            <rect width="900" height="200" y="200" fill="#FFFFFF"/>
+            <rect width="900" height="200" y="400" fill="#138808"/>
+            <circle cx="450" cy="300" r="80" fill="none" stroke="#0a0a8c" stroke-width="6"/>
+            ${spokes}
+            <circle cx="450" cy="300" r="9" fill="#0a0a8c"/>
+        </svg>`;
+    })();
+
+    // Realistic Premium crown (inline SVG, gold gradient + gems) — replaces the plain FontAwesome crown icon
+    window._premiumCrownSVG = `<svg width="18" height="14" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;display:inline-block;">
+        <defs>
+            <linearGradient id="crownGold" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#FFE16A"/>
+                <stop offset="50%" stop-color="#F5B82E"/>
+                <stop offset="100%" stop-color="#C4860B"/>
+            </linearGradient>
+        </defs>
+        <path d="M10 78 L10 38 L32 56 L60 18 L88 56 L110 38 L110 78 Z" fill="url(#crownGold)" stroke="#8a5a06" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="8" y="76" width="104" height="10" rx="2" fill="url(#crownGold)" stroke="#8a5a06" stroke-width="3"/>
+        <circle cx="10" cy="38" r="7" fill="url(#crownGold)" stroke="#8a5a06" stroke-width="2"/>
+        <circle cx="60" cy="18" r="7" fill="url(#crownGold)" stroke="#8a5a06" stroke-width="2"/>
+        <circle cx="110" cy="38" r="7" fill="url(#crownGold)" stroke="#8a5a06" stroke-width="2"/>
+        <circle cx="60" cy="58" r="7" fill="#D7263D" stroke="#8a1822" stroke-width="1.5"/>
+        <circle cx="38" cy="68" r="5" fill="#2563EB" stroke="#1a3f99" stroke-width="1.5"/>
+        <circle cx="82" cy="68" r="5" fill="#16A34A" stroke="#0d6b2c" stroke-width="1.5"/>
+    </svg>`;
+
+    // Picks a relevant icon (HTML snippet) for a specification label based on common keywords
+    window._specIcon = (label) => {
+        const l = (label || '').toLowerCase();
+        if (l.includes('india')) return window._indiaFlagSVG;
+        if (l.includes('premium') || l.includes('vip')) return window._premiumCrownSVG;
+        if (l.includes('non-drop') || l.includes('non drop') || l.includes('nondrop') || l.includes('no drop')) return '<i class="fas fa-shield-alt"></i>';
+        if (l.includes('refill') || l.includes('guarantee')) return '<i class="fas fa-sync-alt"></i>';
+        if (l.includes('fast') || l.includes('instant')) return '<i class="fas fa-bolt"></i>';
+        if (l.includes('real') || l.includes('active')) return '<i class="fas fa-user-check"></i>';
+        if (l.includes('cheap') || l.includes('budget') || l.includes('low')) return '<i class="fas fa-tag"></i>';
+        if (l.includes('global') || l.includes('world')) return '<i class="fas fa-globe"></i>';
+        return '<i class="fas fa-certificate"></i>';
+    };
+
+    window.openSubCategory = (catName, subCatName, keepSpecFilter) => { 
         currentCatView = { level: 2, cat: catName, subCat: subCatName };
+        if(!keepSpecFilter) window._activeSpec = '';
         const catTitle = document.getElementById('catTitle'); catTitle.innerHTML = `<button class="back-btn-cat" onclick="openCategory('${catName}')"><i class="fas fa-arrow-left"></i></button><div style="line-height:1.2;"><div style="font-size:12px; font-weight:600; color:var(--text-secondary);">${catName}</div><div style="font-size:18px;">${subCatName}</div></div>`;
         const list = document.getElementById('catProductsList'); list.innerHTML = ''; let hasItems = false;
 
-        // Split free and paid services
-        let freeItems = [], paidItems = [];
+        // Gather all services in this subcategory
+        let subItems = [];
         Object.entries(productsData).forEach(([id, p]) => {
             const pCat = p.category || 'Other'; const pSub = p.subCategory || 'General';
-            if(pCat === catName && pSub === subCatName && p.isActive !== false) {
-                hasItems = true;
-                if(parseFloat(p.discountedPrice) === 0) freeItems.push([id, p]);
-                else paidItems.push([id, p]);
-            }
+            if(pCat === catName && pSub === subCatName && p.isActive !== false) subItems.push([id, p]);
+        });
+
+        // Specifications chips — only shown when admin has set a specification on at least one service here
+        const specSet = [...new Set(subItems.map(([,p]) => (p.specification||'').trim()).filter(s => s.length > 0))];
+        if(specSet.length > 0) {
+            const activeSpec = window._activeSpec || '';
+            const defaultCount = subItems.filter(([,p]) => (p.specification||'').trim() === '').length;
+            const totalChips = specSet.length + 1;
+            const gridCols = Math.min(totalChips, 3);
+            list.innerHTML += `<div class="spec-section">
+              <div class="spec-section-label"><i class="fas fa-sliders-h"></i> Specifications</div>
+              <div class="spec-chips" style="grid-template-columns: repeat(${gridCols}, 1fr);">
+                <button class="spec-chip spec-chip-default ${activeSpec===''?'active':''}" onclick="window._activeSpec='';openSubCategory('${catName}','${subCatName}',true)"><i class="fas fa-layer-group"></i>${subCatName}<span class="spec-chip-badge">Default</span><span class="spec-chip-count">${defaultCount}</span></button>
+                ${specSet.map(s => { const cnt = subItems.filter(([,p]) => (p.specification||'').trim() === s).length; return `<button class="spec-chip ${activeSpec===s?'active':''}" onclick="window._activeSpec=(window._activeSpec==='${s.replace(/'/g,"\\'")}')?'':'${s.replace(/'/g,"\\'")}';openSubCategory('${catName}','${subCatName}',true)"><span class="spec-chip-icon">${window._specIcon(s)}</span>${s}<span class="spec-chip-count">${cnt}</span></button>`; }).join('')}
+              </div>
+            </div>`;
+        } else {
+            window._activeSpec = '';
+        }
+
+        // When specifications exist, default view shows only services WITHOUT a specification set.
+        // Services tagged with a specification only appear once their chip is selected.
+        const activeSpecFilter = window._activeSpec || '';
+        const visibleItems = activeSpecFilter
+            ? subItems.filter(([,p]) => (p.specification||'').trim() === activeSpecFilter)
+            : subItems.filter(([,p]) => (p.specification||'').trim() === '');
+
+        // Split free and paid services
+        let freeItems = [], paidItems = [];
+        visibleItems.forEach(([id, p]) => {
+            hasItems = true;
+            if(parseFloat(p.discountedPrice) === 0) freeItems.push([id, p]);
+            else paidItems.push([id, p]);
         });
 
         function _renderCard(id, p) {
@@ -2914,7 +3027,7 @@
         }
         paidItems.forEach(([id,p]) => { list.innerHTML += _renderCard(id,p); });
 
-        if(!hasItems) { list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
+        if(!hasItems) { list.innerHTML += '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
 
         // Check daily usage + total limit for free services
         if(freeItems.length > 0 && currentUser) {
