@@ -3571,14 +3571,14 @@
                 if(document.getElementById('refTotalEarned')) document.getElementById('refTotalEarned').textContent = '₹' + refEarned.toFixed(0);
                 if(document.getElementById('walletRefAmount')) document.getElementById('walletRefAmount').textContent = '₹' + refEarned.toFixed(2);
             }, { onlyOnce: false });
-            get(query(ref(db, 'orders'), orderByChild('userId'), equalTo(user.uid))).then(snap => {
+            get(ref(db, 'orders')).then(snap => {
                 if(!snap.exists()) return;
                 let cnt = 0;
-                snap.forEach(s => { cnt++; });
+                snap.forEach(s => { if(s.val().userId === user.uid) cnt++; });
                 if(document.getElementById('profileStatOrders')) document.getElementById('profileStatOrders').textContent = cnt;
             }).catch(()=>{});
-            // Referral count + referred users list (real-time) — scoped to only users referred by this user (was: full 'users' node)
-            onValue(query(ref(db, 'users'), orderByChild('profile/referredBy'), equalTo(user.uid)), async snap => {
+            // Referral count + referred users list (real-time)
+            onValue(ref(db, 'users'), async snap => {
                 if(!snap.exists()) return;
                 let cnt = 0;
                 const referredList = [];
@@ -6381,7 +6381,7 @@
       async function runAutoComplete(){
         if(!currentUser)return;
         try{
-          const snap=await get(query(ref(db,'orders'), orderByChild('status'), equalTo('progress')));
+          const snap=await get(ref(db,'orders'));
           if(!snap.exists())return;
           const now=Date.now();
           const updates={};
