@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3033,12 +3032,12 @@
         if(freeItems.length > 0 && currentUser) {
             const today = new Date().toISOString().slice(0,10);
             const yesterday = new Date(Date.now() - 24*60*60*1000).toISOString().slice(0,10);
+            // Fetch the full freeServiceUsed node ONCE for this render pass instead of once per free item
+            // (previously each item re-downloaded the entire history — N items = N redundant full downloads)
+            get(ref(db, `users/${currentUser.uid}/freeServiceUsed`)).then(allSnap => {
             freeItems.forEach(([id]) => {
-                Promise.all([
-                    get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${today}/${id}`)),
-                    get(ref(db, `users/${currentUser.uid}/freeServiceUsed/${yesterday}/${id}`)),
-                    get(ref(db, `users/${currentUser.uid}/freeServiceUsed`))
-                ]).then(([todaySnap, yestSnap, allSnap]) => {
+                    const todaySnap = allSnap.child(`${today}/${id}`);
+                    const yestSnap = allSnap.child(`${yesterday}/${id}`);
                     const snap = todaySnap.exists() ? todaySnap : (yestSnap.exists() ? yestSnap : null);
                     const infoEl = document.getElementById(`freeInfo_${id}`);
                     const cardEl = document.getElementById(`plc_${id}`);
@@ -3086,8 +3085,8 @@
                             }
                         }
                     }
-                }).catch(()=>{});
             });
+            }).catch(()=>{});
         }
 
         setTimeout(() => { const contentArea = document.querySelector('.content-area'); const pane = document.getElementById('categoryPane'); const targetPos = Math.max(0, pane.offsetTop - 40); contentArea.scrollTo({ top: targetPos, behavior: 'smooth' }); }, 50);
@@ -3571,21 +3570,22 @@
                 if(document.getElementById('refTotalEarned')) document.getElementById('refTotalEarned').textContent = '₹' + refEarned.toFixed(0);
                 if(document.getElementById('walletRefAmount')) document.getElementById('walletRefAmount').textContent = '₹' + refEarned.toFixed(2);
             }, { onlyOnce: false });
-            get(ref(db, 'orders')).then(snap => {
-                if(!snap.exists()) return;
-                let cnt = 0;
-                snap.forEach(s => { if(s.val().userId === user.uid) cnt++; });
-                if(document.getElementById('profileStatOrders')) document.getElementById('profileStatOrders').textContent = cnt;
-            }).catch(()=>{});
-            // Referral count + referred users list (real-time)
-            onValue(ref(db, 'users'), async snap => {
-                if(!snap.exists()) return;
+            // profileStatOrders count is now populated from the already-fetched indexed userOrdersQuery listener below (see bindRealTimeNotifications/orders query), avoiding a duplicate full 'orders' download.
+            // Referral count + referred users list (real-time) — targeted indexed query instead of full users-tree scan
+            const referralQuery = query(ref(db, 'users'), orderByChild('profile/referredBy'), equalTo(user.uid));
+            onValue(referralQuery, async snap => {
+                if(!snap.exists()) {
+                    if(document.getElementById('refTotalJoined')) document.getElementById('refTotalJoined').textContent = 0;
+                    const _listWrap = document.getElementById('refUserListWrap');
+                    if(_listWrap) _listWrap.style.display = 'none';
+                    return;
+                }
                 let cnt = 0;
                 const referredList = [];
                 snap.forEach(s => {
                     const p = s.val().profile;
                     // Count only verified users (signupRewardProcessed = true means email verified / Google signup done)
-                    if(p?.referredBy === user.uid && p?.signupRewardProcessed === true) {
+                    if(p?.signupRewardProcessed === true) {
                         cnt++;
                         referredList.push({ uid: s.key, name: p.name || 'Unknown', email: p.email || '', joinedAt: p.createdAt || '', totalSpent: parseFloat(p.totalSpent || 0) });
                     }
@@ -3865,21 +3865,33 @@
         } else if(method === 'paypal') {
             paypalCard.classList.add('selected');
             paypalSec.classList.add('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afPaypalTgBtn').dataset.tgLink = s.val().socialTelegram;
+            // Load Telegram link — reuse cached value from the live meta/contact listener instead of a fresh download
+            if(window._cachedContactMeta !== undefined) {
+                if(window._cachedContactMeta && window._cachedContactMeta.socialTelegram) {
+                    document.getElementById('afPaypalTgBtn').dataset.tgLink = window._cachedContactMeta.socialTelegram;
                 }
-            }).catch(()=>{});
+            } else {
+                get(ref(db, 'meta/contact')).then(s => {
+                    if(s.exists() && s.val().socialTelegram) {
+                        document.getElementById('afPaypalTgBtn').dataset.tgLink = s.val().socialTelegram;
+                    }
+                }).catch(()=>{});
+            }
         } else if(method === 'binance') {
             binanceCard.classList.add('selected');
             binanceSec.classList.add('visible');
-            // Load Telegram link from Firebase
-            get(ref(db, 'meta/contact')).then(s => {
-                if(s.exists() && s.val().socialTelegram) {
-                    document.getElementById('afBinanceTgBtn').dataset.tgLink = s.val().socialTelegram;
+            // Load Telegram link — reuse cached value from the live meta/contact listener instead of a fresh download
+            if(window._cachedContactMeta !== undefined) {
+                if(window._cachedContactMeta && window._cachedContactMeta.socialTelegram) {
+                    document.getElementById('afBinanceTgBtn').dataset.tgLink = window._cachedContactMeta.socialTelegram;
                 }
-            }).catch(()=>{});
+            } else {
+                get(ref(db, 'meta/contact')).then(s => {
+                    if(s.exists() && s.val().socialTelegram) {
+                        document.getElementById('afBinanceTgBtn').dataset.tgLink = s.val().socialTelegram;
+                    }
+                }).catch(()=>{});
+            }
         } else {
             cryptoCard.classList.add('selected');
             cryptoSec.classList.add('visible');
@@ -4610,7 +4622,7 @@
     function loadPublicData() { 
         onValue(ref(db, 'meta/brand'), s => { if(s.exists()){ const d = s.val(); document.getElementById('brandName').textContent = d.name || 'Store'; if(d.logoUrl) { document.getElementById('brandLogo').src = d.logoUrl; document.getElementById('brandLogo').style.display = 'block'; const ol = document.getElementById('offerCircleLogo'); const of_ = document.getElementById('offerCircleFallback'); if(ol){ ol.src = d.logoUrl; ol.style.display = 'block'; if(of_) of_.style.display = 'none'; ol.style.position='absolute'; ol.style.inset='0'; ol.style.width='100%'; ol.style.height='100%'; } } } });
         onValue(ref(db, 'meta/offers'), s => { if(s.exists()){ const d = s.val(); const banner = document.getElementById('offerBanner'); if(d.name) { banner.classList.add('visible'); document.getElementById('offerTitle').textContent = d.name; document.getElementById('offerDesc').textContent = d.description || 'Limited time offer — don\'t miss out!'; document.getElementById('offerPrice').textContent = `₹${d.newRate || 0}`; document.getElementById('offerOldPrice').textContent = `₹${d.oldRate || 0}`; const tgLink = document.getElementById('offerTgLink'); if(tgLink) tgLink.href = d.channelLink || (d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'); document.getElementById('contactLink').href = d.contactUsername ? (d.contactUsername.startsWith('http') ? d.contactUsername : `https://t.me/${d.contactUsername.replace('@','')}`) : '#'; document.getElementById('updatesLink').href = d.channelLink || '#'; } else { banner.classList.remove('visible'); } } });
-        onValue(ref(db, 'meta/contact'), s => { if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
+        onValue(ref(db, 'meta/contact'), s => { window._cachedContactMeta = s.exists() ? s.val() : null; if(s.exists() && s.val().socialTelegram){ if(document.getElementById('contactLink').getAttribute('href') === '#') { document.getElementById('contactLink').href = s.val().socialTelegram; } } });
         onValue(ref(db, 'meta/linkMgmt'), s => { linkMgmtRules = s.exists() ? s.val() : {}; });
         let _firstProductLoad = true;
         onValue(ref(db, 'products'), s => {
@@ -4711,6 +4723,7 @@
             // Hide skeleton, show list
             if (skeleton) skeleton.style.display = 'none';
             if (list) list.style.display = 'block';
+            if(document.getElementById('profileStatOrders')) document.getElementById('profileStatOrders').textContent = s.exists() ? s.size : 0;
             if(!s.exists()) {
                 list.innerHTML = `<div class="empty-state-enhanced"><div class="empty-state-icon-wrap"><i class="fas fa-box-open"></i></div><h3>No Orders Yet</h3><p>Browse services and place your first order.</p><button class="empty-cta" onclick="switchTab('homeTab')"><i class="fas fa-store"></i> Browse Services</button></div>`;
                 renderSubscriptions(); return;
@@ -6381,7 +6394,8 @@
       async function runAutoComplete(){
         if(!currentUser)return;
         try{
-          const snap=await get(ref(db,'orders'));
+          const progressQuery = query(ref(db,'orders'), orderByChild('status'), equalTo('progress'));
+          const snap = await get(progressQuery);
           if(!snap.exists())return;
           const now=Date.now();
           const updates={};
@@ -6419,3 +6433,4 @@
 
 </body>
 </html>
+
