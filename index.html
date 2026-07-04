@@ -1679,7 +1679,7 @@
         <div class="af-body" id="afStep1" style="flex:1; display:flex; flex-direction:column;">
 
             <!-- Payment Method Toggle -->
-            <div class="af-methods">
+            <div class="af-methods" id="afMethodsGrid">
                 <div class="af-method-card selected" id="afMethodUPI" onclick="afSelectMethod('upi')">
                     <div class="af-selected-dot"></div>
                     <div class="af-method-icon" style="background:rgba(37,99,235,0.1);">
@@ -1800,47 +1800,244 @@
 
             <!-- ── PayPal Section ── -->
             <div class="af-section" id="afPaypalSection">
-                <div class="af-crypto-box" style="background:linear-gradient(135deg,rgba(0,48,135,0.04) 0%,rgba(0,156,222,0.06) 100%);border-color:rgba(0,112,186,0.25);">
-                    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
-                        <i class="fab fa-paypal" style="font-size:38px;color:#003087;"></i>
+
+                <!-- Pending confirmation state -->
+                <div id="paypalPendingState" style="display:none;text-align:center;padding:32px 16px;">
+                    <i class="fas fa-clock" style="font-size:36px;color:#f59e0b;margin-bottom:12px;display:block;"></i>
+                    <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">Request Submitted!</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Your deposit request is pending admin verification. Wallet will be credited once approved.</div>
+                    <button class="btn" onclick="goToWalletHistory()" style="max-width:220px;margin:0 auto;"><i class="fas fa-history"></i> View Wallet History</button>
+                </div>
+
+                <div id="paypalFormView">
+
+                <!-- ── Amount entry view ── -->
+                <div id="paypalAmountView">
+
+                    <!-- Trust badge -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,112,186,0.07);border:1px solid rgba(0,112,186,0.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <i class="fab fa-paypal" style="color:#003087;font-size:13px;"></i>
+                            <span style="font-size:11px;font-weight:600;color:#003087;">PayPal · Manual Verification</span>
+                        </div>
+                        <button onclick="paypalShowHistory()" style="background:none;border:none;color:#0070ba;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:2px;">
+                            <i class="fas fa-history"></i> History
+                        </button>
                     </div>
-                    <div class="af-crypto-title" style="color:#003087;">PayPal Deposit</div>
-                    <div class="af-crypto-text">Send payment via PayPal to our verified account. Contact our support team on Telegram with the amount — they'll share the PayPal details and confirm your deposit.</div>
+
+                    <!-- Quick chips -->
+                    <div class="af-chips" id="paypalInrChips" style="margin-bottom:12px;">
+                        <div class="af-chip" onclick="paypalSelectChip(this,55)">₹55</div>
+                        <div class="af-chip" onclick="paypalSelectChip(this,100)">₹100</div>
+                        <div class="af-chip" onclick="paypalSelectChip(this,300)">₹300</div>
+                        <div class="af-chip" onclick="paypalSelectChip(this,500)">₹500</div>
+                        <div class="af-chip" onclick="paypalSelectChip(this,1000)">₹1000</div>
+                    </div>
+
+                    <!-- INR input -->
+                    <div class="af-custom-input-wrap" style="margin-bottom:10px;">
+                        <span class="af-rupee-prefix" style="color:#0070ba;">₹</span>
+                        <input type="number" class="af-custom-input" id="paypalInrInput"
+                            placeholder="Enter amount in ₹" min="55" step="1"
+                            oninput="paypalOnInrInput(this.value)"
+                            style="padding-left:38px;border-color:rgba(0,112,186,0.3);">
+                    </div>
+
+                    <!-- Conversion preview -->
+                    <div id="paypalConvPreview" style="display:none;background:linear-gradient(135deg,rgba(0,112,186,0.06) 0%,rgba(0,156,222,0.04) 100%);border:1px solid rgba(0,112,186,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
+                        <span id="paypalConvText" style="font-weight:600;"></span>
+                        <span style="float:right;font-size:11px;color:#0070ba;font-weight:700;" id="paypalUsdPreview"></span>
+                    </div>
+
+                    <!-- Proceed button -->
+                    <button class="af-pay-btn" id="paypalProceedBtn" onclick="paypalProceedToQr()"
+                        style="background:linear-gradient(135deg,#0070ba 0%,#003087 100%);box-shadow:0 4px 14px rgba(0,112,186,0.35);">
+                        <i class="fas fa-lock" style="font-size:14px;"></i>
+                        Proceed to Pay
+                    </button>
+
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(0,112,186,0.06);border:1px solid rgba(0,112,186,0.18);border-radius:10px;padding:8px 12px;margin-bottom:12px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070ba" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span style="font-size:11px;font-weight:600;color:#0070ba;">Secure • Verified Team • Manual Confirmation</span>
+
+                <!-- ── QR / payment view ── -->
+                <div id="paypalQrView" style="display:none;">
+
+                    <div style="display:flex; justify-content:center; margin-bottom:14px;">
+                        <div class="secure-badge" style="position:static; transform:none;"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
+                    </div>
+
+                    <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:4px; text-align:center;">
+                        Pay exactly <span id="paypalPayAmtDisplay" style="color:#0070ba;font-size:20px;font-weight:800;"></span>
+                    </div>
+
+                    <div id="paypalQrWrap" style="display:none; text-align:center; margin:14px 0;">
+                        <div class="qr-wrapper">
+                            <div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div>
+                            <div class="qr-corner qr-bl"></div><div class="qr-corner qr-br"></div>
+                            <img id="paypalQrImg" src="" alt="Scan to Pay via PayPal">
+                        </div>
+                        <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin:10px 0 4px; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan with PayPal App</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Or send payment to:</div>
+                        <div class="upi-text" id="paypalHandleDisplay" title="Click to copy" style="font-size:14px;">—</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">Tap to copy PayPal handle</div>
+                    </div>
+
+                    <!-- Transaction ID input -->
+                    <div class="af-custom-input-wrap" style="margin-bottom:14px;">
+                        <input type="text" class="af-custom-input" id="paypalTxnInput"
+                            placeholder="Enter PayPal Transaction ID"
+                            style="padding-left:14px;border-color:rgba(0,112,186,0.3);">
+                    </div>
+
+                    <button class="af-pay-btn" id="paypalSubmitBtn" onclick="submitPaypalDeposit()"
+                        style="background:linear-gradient(135deg,#0070ba 0%,#003087 100%);box-shadow:0 4px 14px rgba(0,112,186,0.35);margin-bottom:10px;">
+                        <i class="fas fa-paper-plane" style="font-size:14px;"></i>
+                        Submit Deposit Request
+                    </button>
+                    <button class="btn" onclick="paypalGoBack()"
+                        style="background:transparent;color:var(--text-secondary);box-shadow:none;border:1px solid var(--border-color);margin-top:0;height:45px;width:100%;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+
                 </div>
-                <button class="af-tg-btn" id="afPaypalTgBtn" onclick="afOpenTelegramPaypal()" style="background:linear-gradient(135deg,#229ED9 0%,#0088cc 100%);">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
+
+                <!-- ── History view ── -->
+                <div id="paypalHistoryView" style="display:none;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <span style="font-size:13px;font-weight:700;color:var(--text-primary);"><i class="fas fa-history" style="color:#0070ba;margin-right:6px;"></i>PayPal Deposit History</span>
+                        <button onclick="paypalHistoryBack()" style="background:none;border:none;color:var(--text-secondary);font-size:11px;font-weight:700;cursor:pointer;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                    <div id="paypalHistoryList"><div style="text-align:center;padding:30px 0;color:var(--text-secondary);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading…</div></div>
+                </div>
+
+                </div>
             </div>
 
             <!-- ── Binance Section ── -->
             <div class="af-section" id="afBinanceSection">
-                <div class="af-crypto-box" style="background:linear-gradient(135deg,rgba(243,186,47,0.06) 0%,rgba(243,186,47,0.03) 100%);border-color:rgba(243,186,47,0.4);">
-                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
-                        <svg width="28" height="28" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M38.73 53.2L63.3 28.64l24.59 24.58 14.3-14.3L63.3 0 24.43 38.9z" fill="#f3ba2f"/>
-                            <path d="M0 63.31l14.3-14.31 14.31 14.31-14.31 14.3z" fill="#f3ba2f"/>
-                            <path d="M38.73 73.41L63.3 97.97l24.59-24.58 14.31 14.29L63.3 126.61 24.43 87.7z" fill="#f3ba2f"/>
-                            <path d="M98 63.31l14.3-14.31 14.31 14.3-14.31 14.32z" fill="#f3ba2f"/>
-                            <path d="M77.83 63.3L63.3 48.78 52.59 59.5l-1.24 1.23-2.54 2.54 14.49 14.52 14.53-14.49z" fill="#f3ba2f"/>
-                        </svg>
-                        <span style="font-size:20px;font-weight:900;color:#1a1a1a;letter-spacing:-0.5px;">Binance</span>
+
+                <!-- Pending confirmation state -->
+                <div id="binancePendingState" style="display:none;text-align:center;padding:32px 16px;">
+                    <i class="fas fa-clock" style="font-size:36px;color:#f59e0b;margin-bottom:12px;display:block;"></i>
+                    <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">Request Submitted!</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Your deposit request is pending admin verification. Wallet will be credited once approved.</div>
+                    <button class="btn" onclick="goToWalletHistory()" style="max-width:220px;margin:0 auto;"><i class="fas fa-history"></i> View Wallet History</button>
+                </div>
+
+                <div id="binanceFormView">
+
+                <!-- ── Amount entry view ── -->
+                <div id="binanceAmountView">
+
+                    <!-- Trust badge -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(243,186,47,0.09);border:1px solid rgba(243,186,47,0.35);border-radius:10px;padding:10px 12px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <i class="fas fa-coins" style="color:#a07800;font-size:13px;"></i>
+                            <span style="font-size:11px;font-weight:600;color:#a07800;">Binance · Manual Verification · 1 USD ≈ ₹90</span>
+                        </div>
+                        <button onclick="binanceShowHistory()" style="background:none;border:none;color:#a07800;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;padding:2px;">
+                            <i class="fas fa-history"></i> History
+                        </button>
                     </div>
-                    <div class="af-crypto-title" style="color:#1a1a1a;">Binance Pay / Transfer</div>
-                    <div class="af-crypto-text">Deposit via Binance Pay or direct wallet transfer. Contact our support team on Telegram — they'll share the Binance UID or Pay ID and confirm your deposit instantly.</div>
+
+                    <!-- Quick chips -->
+                    <div class="af-chips" id="binanceInrChips" style="margin-bottom:12px;">
+                        <div class="af-chip" onclick="binanceSelectChip(this,90)">₹90</div>
+                        <div class="af-chip" onclick="binanceSelectChip(this,450)">₹450</div>
+                        <div class="af-chip" onclick="binanceSelectChip(this,900)">₹900</div>
+                        <div class="af-chip" onclick="binanceSelectChip(this,1800)">₹1800</div>
+                        <div class="af-chip" onclick="binanceSelectChip(this,4500)">₹4500</div>
+                    </div>
+
+                    <!-- INR input -->
+                    <div class="af-custom-input-wrap" style="margin-bottom:10px;">
+                        <span class="af-rupee-prefix" style="color:#a07800;">₹</span>
+                        <input type="number" class="af-custom-input" id="binanceInrInput"
+                            placeholder="Enter amount in ₹ (multiple of 90)" min="90" step="1"
+                            oninput="binanceOnInrInput(this.value)"
+                            style="padding-left:38px;border-color:rgba(243,186,47,0.4);">
+                    </div>
+
+                    <!-- Conversion preview -->
+                    <div id="binanceConvPreview" style="display:none;background:linear-gradient(135deg,rgba(243,186,47,0.08) 0%,rgba(243,186,47,0.03) 100%);border:1px solid rgba(243,186,47,0.35);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
+                        <span id="binanceConvText" style="font-weight:600;"></span>
+                        <span style="float:right;font-size:11px;color:#a07800;font-weight:700;" id="binanceUsdPreview"></span>
+                    </div>
+
+                    <!-- Proceed button -->
+                    <button class="af-pay-btn" id="binanceProceedBtn" onclick="binanceProceedToQr()"
+                        style="background:linear-gradient(135deg,#f3ba2f 0%,#d9a520 100%);box-shadow:0 4px 14px rgba(243,186,47,0.35);color:#1a1a1a;">
+                        <i class="fas fa-lock" style="font-size:14px;"></i>
+                        Proceed to Pay
+                    </button>
+
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(243,186,47,0.08);border:1px solid rgba(243,186,47,0.35);border-radius:10px;padding:8px 12px;margin-bottom:12px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span style="font-size:11px;font-weight:600;color:#a07800;">Secure • Zero Fees • Instant Confirmation</span>
+
+                <!-- ── QR / payment view ── -->
+                <div id="binanceQrView" style="display:none;">
+
+                    <div style="display:flex; justify-content:center; margin-bottom:14px;">
+                        <div class="secure-badge" style="position:static; transform:none;"><i class="fas fa-shield-check"></i> 100% Safe & Secure</div>
+                    </div>
+
+                    <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:4px; text-align:center;">
+                        Pay exactly <span id="binancePayAmtDisplay" style="color:#a07800;font-size:20px;font-weight:800;"></span>
+                    </div>
+
+                    <div id="binanceQrWrap" style="display:none; text-align:center; margin:14px 0;">
+                        <div class="qr-wrapper">
+                            <div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div>
+                            <div class="qr-corner qr-bl"></div><div class="qr-corner qr-br"></div>
+                            <img id="binanceQrImg" src="" alt="Scan to Pay via Binance">
+                        </div>
+                        <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin:10px 0 4px; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            <i class="fas fa-qrcode" style="font-size:16px;"></i><span>Scan with Binance App</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Or send payment to:</div>
+                        <div class="upi-text" id="binanceIdDisplay" title="Click to copy" style="font-size:14px;">—</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">Tap to copy Binance ID</div>
+                    </div>
+
+                    <!-- Order ID input -->
+                    <div class="af-custom-input-wrap" style="margin-bottom:14px;">
+                        <input type="text" class="af-custom-input" id="binanceOrderInput"
+                            placeholder="Enter Binance Order ID"
+                            style="padding-left:14px;border-color:rgba(243,186,47,0.4);">
+                    </div>
+
+                    <button class="af-pay-btn" id="binanceSubmitBtn" onclick="submitBinanceDeposit()"
+                        style="background:linear-gradient(135deg,#f3ba2f 0%,#d9a520 100%);box-shadow:0 4px 14px rgba(243,186,47,0.35);color:#1a1a1a;margin-bottom:10px;">
+                        <i class="fas fa-paper-plane" style="font-size:14px;"></i>
+                        Submit Deposit Request
+                    </button>
+                    <button class="btn" onclick="binanceGoBack()"
+                        style="background:transparent;color:var(--text-secondary);box-shadow:none;border:1px solid var(--border-color);margin-top:0;height:45px;width:100%;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+
                 </div>
-                <button class="af-tg-btn" id="afBinanceTgBtn" onclick="afOpenTelegramBinance()" style="background:linear-gradient(135deg,#229ED9 0%,#0088cc 100%);">
-                    <i class="fab fa-telegram-plane" style="font-size:18px;"></i>
-                    Contact on Telegram
-                </button>
+
+                <!-- ── History view ── -->
+                <div id="binanceHistoryView" style="display:none;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <span style="font-size:13px;font-weight:700;color:var(--text-primary);"><i class="fas fa-history" style="color:#a07800;margin-right:6px;"></i>Binance Deposit History</span>
+                        <button onclick="binanceHistoryBack()" style="background:none;border:none;color:var(--text-secondary);font-size:11px;font-weight:700;cursor:pointer;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                    <div id="binanceHistoryList"><div style="text-align:center;padding:30px 0;color:var(--text-secondary);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading…</div></div>
+                </div>
+
+                </div>
             </div>
 
             <!-- ── UPI Section ── -->
@@ -3689,9 +3886,15 @@
     function _isCreditTx(tx) {
         return ['credit','wallet_add','referral','admin_credit','wallet_topup'].includes(tx.type);
     }
+    function _isPendingTx(tx) {
+        return tx.type === 'pending_deposit';
+    }
+    function _isRejectedTx(tx) {
+        return tx.type === 'rejected_deposit';
+    }
     function _isOrderTx(tx) {
         const note = (tx.note||'').toLowerCase();
-        return !_isCreditTx(tx) && (
+        return !_isCreditTx(tx) && !_isPendingTx(tx) && !_isRejectedTx(tx) && (
             note.includes('paid for') || note.includes('purchased') || note.includes('cart') || tx.type === 'order'
         );
     }
@@ -3707,6 +3910,8 @@
     }
 
     function _getTxIcon(tx) {
+        if(_isPendingTx(tx)) return 'fa-clock';
+        if(_isRejectedTx(tx)) return 'fa-times-circle';
         if(tx.type === 'referral') return 'fa-gift';
         if(_isCreditTx(tx)) return 'fa-plus-circle';
         if(_isOrderTx(tx)) return 'fa-shopping-bag';
@@ -3718,7 +3923,7 @@
         if(!contentEl) return;
         let txns = [..._allWalletTxns];
         if(_walletFilter === 'credit')  txns = txns.filter(tx => _isCreditTx(tx));
-        else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx));
+        else if(_walletFilter === 'debit') txns = txns.filter(tx => !_isCreditTx(tx) && !_isPendingTx(tx) && !_isRejectedTx(tx));
         else if(_walletFilter === 'orders') txns = txns.filter(tx => _isOrderTx(tx));
 
         if(txns.length === 0) {
@@ -3733,18 +3938,24 @@
             return;
         }
         contentEl.innerHTML = txns.map((tx, i) => {
+            const isPending = _isPendingTx(tx);
+            const isRejected = _isRejectedTx(tx);
             const isCredit = _isCreditTx(tx);
-            const color  = isCredit ? '#10b981' : '#ef4444';
-            const sign   = isCredit ? '+' : '-';
+            const color  = isPending ? '#f59e0b' : (isRejected ? '#ef4444' : (isCredit ? '#10b981' : '#ef4444'));
+            const sign   = (isPending || isRejected) ? '' : (isCredit ? '+' : '-');
             const icon   = _getTxIcon(tx);
             const label  = _getTxLabel(tx);
             const dateStr= _formatDate(tx.createdAt);
             const amt    = parseFloat(tx.amount||0).toFixed(2);
             const utrHtml= tx.utrId ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Ref: <span style="font-family:monospace;">${tx.utrId}</span></div>` : '';
-            const badge  = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};color:${color};border:1px solid ${isCredit?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)'};">${isCredit?'CREDIT':'DEBIT'}</span>`;
+            const badge  = isPending
+                ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">PENDING</span>`
+                : isRejected
+                ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">REJECTED</span>`
+                : `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};color:${color};border:1px solid ${isCredit?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)'};">${isCredit?'CREDIT':'DEBIT'}</span>`;
             return `<div class="order-card wallet-item-enter" style="padding:14px 16px;margin-bottom:10px;animation-delay:${i*40}ms;">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:50%;background:${isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:36px;height:36px;border-radius:50%;background:${isPending?'rgba(245,158,11,0.1)':(isRejected?'rgba(239,68,68,0.1)':(isCredit?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)'))};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i class="fas ${icon}" style="color:${color};font-size:14px;"></i>
                     </div>
                     <div style="flex:1;min-width:0;">
@@ -3828,6 +4039,9 @@
         if (ces) ces.style.display = 'none';
         const gf = document.getElementById('cryptoGatewayFrame');
         if (gf) gf.src = '';
+        // Reset PayPal / Binance manual deposit forms
+        if (window.resetPaypalForm) window.resetPaypalForm();
+        if (window.resetBinanceForm) window.resetBinanceForm();
         // Reset to step 1 / UPI
         document.getElementById('afStep1').style.display = 'block';
         document.getElementById('wfStep2').style.display = 'none';
@@ -3843,6 +4057,14 @@
     };
 
     window.closeWalletFund = () => document.getElementById('walletFundModal').classList.remove('active');
+
+    // Close the deposit modal and jump straight to the Payment History tab
+    window.goToWalletHistory = () => {
+        document.getElementById('walletFundModal').classList.remove('active');
+        switchTab('walletTab');
+        const historyEl = document.getElementById('walletHistory');
+        if (historyEl) historyEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     // Method toggle
     window.afSelectMethod = (method) => {
@@ -3865,33 +4087,13 @@
         } else if(method === 'paypal') {
             paypalCard.classList.add('selected');
             paypalSec.classList.add('visible');
-            // Load Telegram link — reuse cached value from the live meta/contact listener instead of a fresh download
-            if(window._cachedContactMeta !== undefined) {
-                if(window._cachedContactMeta && window._cachedContactMeta.socialTelegram) {
-                    document.getElementById('afPaypalTgBtn').dataset.tgLink = window._cachedContactMeta.socialTelegram;
-                }
-            } else {
-                get(ref(db, 'meta/contact')).then(s => {
-                    if(s.exists() && s.val().socialTelegram) {
-                        document.getElementById('afPaypalTgBtn').dataset.tgLink = s.val().socialTelegram;
-                    }
-                }).catch(()=>{});
-            }
+            resetPaypalForm();
+            loadPaymentGatewayDetails();
         } else if(method === 'binance') {
             binanceCard.classList.add('selected');
             binanceSec.classList.add('visible');
-            // Load Telegram link — reuse cached value from the live meta/contact listener instead of a fresh download
-            if(window._cachedContactMeta !== undefined) {
-                if(window._cachedContactMeta && window._cachedContactMeta.socialTelegram) {
-                    document.getElementById('afBinanceTgBtn').dataset.tgLink = window._cachedContactMeta.socialTelegram;
-                }
-            } else {
-                get(ref(db, 'meta/contact')).then(s => {
-                    if(s.exists() && s.val().socialTelegram) {
-                        document.getElementById('afBinanceTgBtn').dataset.tgLink = s.val().socialTelegram;
-                    }
-                }).catch(()=>{});
-            }
+            resetBinanceForm();
+            loadPaymentGatewayDetails();
         } else {
             cryptoCard.classList.add('selected');
             cryptoSec.classList.add('visible');
@@ -4114,6 +4316,482 @@
         cryptoShowLaunchBtn(); // already calls _cryptoShowMethods
     };
     // ── END CRYPTO GATEWAY ────────────────────────────────────────────────
+
+    // ── PAYPAL & BINANCE MANUAL DEPOSIT ─────────────────────────────────
+    // Fixed pricing table for PayPal (non-linear, admin-defined anchor points)
+    const PAYPAL_TIERS = [
+        { inr: 55,   usd: 1,    eur: 0.98  },
+        { inr: 100,  usd: 1.5,  eur: 1.45  },
+        { inr: 300,  usd: 4,    eur: 3.90  },
+        { inr: 500,  usd: 6.5,  eur: 6.35  },
+        { inr: 1000, usd: 12.5, eur: 12.30 }
+    ];
+    const BINANCE_RATE = 90; // ₹90 = 1 USD
+
+    function paypalConvert(inr) {
+        if (!inr || inr <= 0) return { usd: 0, eur: 0 };
+        const tiers = PAYPAL_TIERS;
+        // Below first tier: extrapolate using first segment's rate
+        if (inr <= tiers[0].inr) {
+            const usdPerInr = tiers[0].usd / tiers[0].inr;
+            const eurPerInr = tiers[0].eur / tiers[0].inr;
+            return { usd: parseFloat((inr * usdPerInr).toFixed(4)), eur: parseFloat((inr * eurPerInr).toFixed(4)) };
+        }
+        // Above last tier: extrapolate using last segment's rate
+        if (inr >= tiers[tiers.length - 1].inr) {
+            const a = tiers[tiers.length - 2], b = tiers[tiers.length - 1];
+            const usdSlope = (b.usd - a.usd) / (b.inr - a.inr);
+            const eurSlope = (b.eur - a.eur) / (b.inr - a.inr);
+            const usd = b.usd + usdSlope * (inr - b.inr);
+            const eur = b.eur + eurSlope * (inr - b.inr);
+            return { usd: parseFloat(usd.toFixed(4)), eur: parseFloat(eur.toFixed(4)) };
+        }
+        // In-between: piecewise linear interpolation
+        for (let i = 0; i < tiers.length - 1; i++) {
+            const a = tiers[i], b = tiers[i + 1];
+            if (inr >= a.inr && inr <= b.inr) {
+                const frac = (inr - a.inr) / (b.inr - a.inr);
+                const usd = a.usd + frac * (b.usd - a.usd);
+                const eur = a.eur + frac * (b.eur - a.eur);
+                return { usd: parseFloat(usd.toFixed(4)), eur: parseFloat(eur.toFixed(4)) };
+            }
+        }
+        return { usd: 0, eur: 0 };
+    }
+
+    function binanceConvert(inr) {
+        if (!inr || inr <= 0) return 0;
+        return parseFloat((inr / BINANCE_RATE).toFixed(4));
+    }
+
+    let _paypalInrAmt = 0, _paypalUsdAmt = 0, _paypalEurAmt = 0;
+    let _binanceInrAmt = 0, _binanceUsdAmt = 0;
+    let _pgCache = null;
+
+    async function loadPaymentGatewayDetails() {
+        try {
+            if (_pgCache === null) {
+                const snap = await get(ref(db, 'meta/paymentGateway'));
+                _pgCache = snap.exists() ? snap.val() : {};
+            }
+            const pp = _pgCache.paypal || {};
+            const bn = _pgCache.binance || {};
+            const ppHandleEl = document.getElementById('paypalHandleDisplay');
+            if (ppHandleEl) ppHandleEl.textContent = pp.handle || 'Not configured';
+            const ppQrWrap = document.getElementById('paypalQrWrap');
+            const ppQrImg  = document.getElementById('paypalQrImg');
+            if (pp.qrUrl && ppQrImg) { ppQrImg.src = pp.qrUrl; ppQrWrap.style.display = 'block'; }
+            else if (ppQrWrap) { ppQrWrap.style.display = 'none'; } // no QR configured — handle text still shows on the QR screen
+
+            const bnIdEl = document.getElementById('binanceIdDisplay');
+            if (bnIdEl) bnIdEl.textContent = bn.binanceId || 'Not configured';
+            const bnQrWrap = document.getElementById('binanceQrWrap');
+            const bnQrImg  = document.getElementById('binanceQrImg');
+            if (bn.qrUrl && bnQrImg) { bnQrImg.src = bn.qrUrl; bnQrWrap.style.display = 'block'; }
+            else if (bnQrWrap) { bnQrWrap.style.display = 'none'; }
+        } catch (e) {}
+    }
+
+    // Copy-to-clipboard for handle/ID displays
+    document.getElementById('paypalHandleDisplay').addEventListener('click', () => {
+        const t = document.getElementById('paypalHandleDisplay').textContent;
+        if (t && t !== '—' && t !== 'Not configured') {
+            navigator.clipboard.writeText(t).then(() => showToast('PayPal handle copied!')).catch(() => showToast('Copied!'));
+        }
+    });
+    document.getElementById('binanceIdDisplay').addEventListener('click', () => {
+        const t = document.getElementById('binanceIdDisplay').textContent;
+        if (t && t !== '—' && t !== 'Not configured') {
+            navigator.clipboard.writeText(t).then(() => showToast('Binance ID copied!')).catch(() => showToast('Copied!'));
+        }
+    });
+
+    window.resetPaypalForm = () => {
+        document.getElementById('paypalPendingState').style.display = 'none';
+        document.getElementById('paypalFormView').style.display = 'block';
+        document.getElementById('paypalQrView').style.display = 'none';
+        document.getElementById('paypalHistoryView').style.display = 'none';
+        document.getElementById('paypalAmountView').style.display = 'block';
+        document.getElementById('paypalInrInput').value = '';
+        document.getElementById('paypalTxnInput').value = '';
+        document.querySelectorAll('#paypalInrChips .af-chip').forEach(c => c.classList.remove('active'));
+        document.getElementById('paypalConvPreview').style.display = 'none';
+        _paypalInrAmt = 0; _paypalUsdAmt = 0; _paypalEurAmt = 0;
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    // Move from amount entry to the dedicated QR/payment screen
+    window.paypalProceedToQr = () => {
+        const inr = parseFloat(document.getElementById('paypalInrInput').value) || 0;
+        if (!inr || inr < 55) return showToast('⚠️ Minimum ₹55 required');
+        const conv = paypalConvert(inr);
+        const amtEl = document.getElementById('paypalPayAmtDisplay');
+        if (amtEl) amtEl.textContent = conv.usd + ' USD / ' + conv.eur + ' EUR';
+        document.getElementById('paypalAmountView').style.display = 'none';
+        document.getElementById('paypalQrView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'none';
+    };
+
+    // Go back from the QR/payment screen to amount entry
+    window.paypalGoBack = () => {
+        document.getElementById('paypalQrView').style.display = 'none';
+        document.getElementById('paypalAmountView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    // ── PayPal History ──
+    function _depositStatusBadge(status) {
+        const s = (status || 'pending').toLowerCase();
+        const map = {
+            pending:  { label: 'Pending',  color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.3)'  },
+            approved: { label: 'Approved', color: '#10b981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.3)'  },
+            rejected: { label: 'Rejected', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)'   }
+        };
+        const c = map[s] || map.pending;
+        return `<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.border};white-space:nowrap;">${c.label.toUpperCase()}</span>`;
+    }
+
+    function _renderDepositHistoryList(containerId, items, emptyMsg) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        if (!items.length) {
+            el.innerHTML = `<div style="text-align:center;padding:30px 10px;color:var(--text-secondary);">
+                <i class="fas fa-receipt" style="font-size:26px;opacity:0.4;margin-bottom:8px;display:block;"></i>
+                <div style="font-size:12px;">${emptyMsg}</div>
+            </div>`;
+            return;
+        }
+        items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        el.innerHTML = items.map(item => {
+            const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+            const amtStr = '₹' + parseFloat(item.inrAmount || 0).toFixed(2);
+            return `<div class="order-card" style="padding:12px 14px;margin-bottom:9px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+                    <span style="font-weight:700;font-size:14px;color:var(--text-primary);">${amtStr}</span>
+                    ${_depositStatusBadge(item.status)}
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px;">${dateStr}</div>
+                <div style="font-size:11px;color:var(--text-secondary);">Ref ID: <span style="font-family:monospace;">${item.txnId || '—'}</span></div>
+            </div>`;
+        }).join('');
+    }
+
+    window.paypalShowHistory = async () => {
+        document.getElementById('paypalAmountView').style.display = 'none';
+        document.getElementById('paypalQrView').style.display = 'none';
+        document.getElementById('paypalHistoryView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'none';
+        document.getElementById('paypalHistoryList').innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--text-secondary);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>';
+        try {
+            if (!currentUser) return;
+            const q = query(ref(db, 'depositRequests'), orderByChild('userId'), equalTo(currentUser.uid));
+            const snap = await get(q);
+            const items = [];
+            snap.forEach(child => { const v = child.val(); if (v.method === 'paypal') items.push(v); });
+            _renderDepositHistoryList('paypalHistoryList', items, 'No PayPal deposit requests yet.');
+        } catch (e) {
+            document.getElementById('paypalHistoryList').innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444;font-size:12px;">Failed to load history.</div>`;
+        }
+    };
+
+    window.paypalHistoryBack = () => {
+        document.getElementById('paypalHistoryView').style.display = 'none';
+        document.getElementById('paypalAmountView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    window.resetBinanceForm = () => {
+        document.getElementById('binancePendingState').style.display = 'none';
+        document.getElementById('binanceFormView').style.display = 'block';
+        document.getElementById('binanceQrView').style.display = 'none';
+        document.getElementById('binanceHistoryView').style.display = 'none';
+        document.getElementById('binanceAmountView').style.display = 'block';
+        document.getElementById('binanceInrInput').value = '';
+        document.getElementById('binanceOrderInput').value = '';
+        document.querySelectorAll('#binanceInrChips .af-chip').forEach(c => c.classList.remove('active'));
+        document.getElementById('binanceConvPreview').style.display = 'none';
+        _binanceInrAmt = 0; _binanceUsdAmt = 0;
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    // Move from amount entry to the dedicated QR/payment screen
+    window.binanceProceedToQr = () => {
+        const inr = parseFloat(document.getElementById('binanceInrInput').value) || 0;
+        if (!inr || inr < 90) return showToast('⚠️ Minimum ₹90 required');
+        const usd = binanceConvert(inr);
+        const amtEl = document.getElementById('binancePayAmtDisplay');
+        if (amtEl) amtEl.textContent = usd + ' USDT';
+        document.getElementById('binanceAmountView').style.display = 'none';
+        document.getElementById('binanceQrView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'none';
+    };
+
+    // Go back from the QR/payment screen to amount entry
+    window.binanceGoBack = () => {
+        document.getElementById('binanceQrView').style.display = 'none';
+        document.getElementById('binanceAmountView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    // ── Binance History ──
+    window.binanceShowHistory = async () => {
+        document.getElementById('binanceAmountView').style.display = 'none';
+        document.getElementById('binanceQrView').style.display = 'none';
+        document.getElementById('binanceHistoryView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'none';
+        document.getElementById('binanceHistoryList').innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--text-secondary);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>';
+        try {
+            if (!currentUser) return;
+            const q = query(ref(db, 'depositRequests'), orderByChild('userId'), equalTo(currentUser.uid));
+            const snap = await get(q);
+            const items = [];
+            snap.forEach(child => { const v = child.val(); if (v.method === 'binance') items.push(v); });
+            _renderDepositHistoryList('binanceHistoryList', items, 'No Binance deposit requests yet.');
+        } catch (e) {
+            document.getElementById('binanceHistoryList').innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444;font-size:12px;">Failed to load history.</div>`;
+        }
+    };
+
+    window.binanceHistoryBack = () => {
+        document.getElementById('binanceHistoryView').style.display = 'none';
+        document.getElementById('binanceAmountView').style.display = 'block';
+        const methodsGrid = document.getElementById('afMethodsGrid');
+        if (methodsGrid) methodsGrid.style.display = 'grid';
+    };
+
+    window.paypalSelectChip = (el, inr) => {
+        document.querySelectorAll('#paypalInrChips .af-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('paypalInrInput').value = inr;
+        paypalOnInrInput(inr);
+    };
+
+    window.paypalOnInrInput = (val) => {
+        const inr = parseFloat(val) || 0;
+        document.querySelectorAll('#paypalInrChips .af-chip').forEach(c => {
+            c.classList.toggle('active', parseFloat(c.textContent.replace('₹', '')) === inr);
+        });
+        _paypalInrAmt = inr;
+        const conv = paypalConvert(inr);
+        _paypalUsdAmt = conv.usd; _paypalEurAmt = conv.eur;
+        const prev = document.getElementById('paypalConvPreview');
+        if (inr > 0) {
+            prev.style.display = 'block';
+            document.getElementById('paypalConvText').textContent = '₹' + inr.toLocaleString('en-IN') + ' → you pay';
+            document.getElementById('paypalUsdPreview').textContent = _paypalUsdAmt + ' USD / ' + _paypalEurAmt + ' EUR';
+        } else {
+            prev.style.display = 'none';
+        }
+    };
+
+    window.binanceSelectChip = (el, inr) => {
+        document.querySelectorAll('#binanceInrChips .af-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('binanceInrInput').value = inr;
+        binanceOnInrInput(inr);
+    };
+
+    window.binanceOnInrInput = (val) => {
+        const inr = parseFloat(val) || 0;
+        document.querySelectorAll('#binanceInrChips .af-chip').forEach(c => {
+            c.classList.toggle('active', parseFloat(c.textContent.replace('₹', '')) === inr);
+        });
+        _binanceInrAmt = inr;
+        _binanceUsdAmt = binanceConvert(inr);
+        const prev = document.getElementById('binanceConvPreview');
+        if (inr > 0) {
+            prev.style.display = 'block';
+            document.getElementById('binanceConvText').textContent = '₹' + inr.toLocaleString('en-IN') + ' → you pay';
+            document.getElementById('binanceUsdPreview').textContent = _binanceUsdAmt + ' USDT';
+        } else {
+            prev.style.display = 'none';
+        }
+    };
+
+    let _paypalSubmitInProgress = false;
+    // Prevent the same Transaction/Order ID being used twice for a given method
+    async function _isDuplicateDepositTxnId(txnId, method) {
+        const q = query(ref(db, 'depositRequests'), orderByChild('txnId'), equalTo(txnId));
+        const snap = await get(q);
+        let dup = false;
+        snap.forEach(child => { if (child.val().method === method) dup = true; });
+        return dup;
+    }
+
+    // Throttle repeated submit attempts per method (blocks rapid-fire guessing of IDs)
+    const _depositAttempts = { paypal: [], binance: [] };
+    const _DEPOSIT_MAX_ATTEMPTS  = 4;             // max attempts allowed in the longer window
+    const _DEPOSIT_WINDOW_MS     = 3 * 60 * 1000; // longer rolling window
+    const _DEPOSIT_BURST_LIMIT   = 2;             // attempts allowed freely...
+    const _DEPOSIT_BURST_WINDOW_MS = 15 * 1000;   // ...within this short window
+    function _checkDepositRateLimit(method) {
+        const now = Date.now();
+        const arr = _depositAttempts[method];
+        // drop attempts outside the longer rolling window
+        while (arr.length && now - arr[0] > _DEPOSIT_WINDOW_MS) arr.shift();
+
+        // allow up to _DEPOSIT_BURST_LIMIT attempts freely within the short burst window
+        const recentBurst = arr.filter(t => now - t < _DEPOSIT_BURST_WINDOW_MS);
+        if (recentBurst.length >= _DEPOSIT_BURST_LIMIT) {
+            const waitSec = Math.ceil((_DEPOSIT_BURST_WINDOW_MS - (now - recentBurst[0])) / 1000);
+            return `⏳ Please wait ${waitSec}s before trying again`;
+        }
+        if (arr.length >= _DEPOSIT_MAX_ATTEMPTS) {
+            return '⚠️ Too many attempts. Please wait a few minutes and try again';
+        }
+        arr.push(now);
+        return null;
+    }
+
+    window.submitPaypalDeposit = async () => {
+        if (_paypalSubmitInProgress) return showToast('⏳ Please wait...');
+        const inr = parseFloat(document.getElementById('paypalInrInput').value) || 0;
+        const txnId = document.getElementById('paypalTxnInput').value.trim();
+        if (!inr || inr < 55) return showToast('⚠️ Minimum ₹55 required');
+        if (!txnId) return showToast('⚠️ Enter your PayPal Transaction ID');
+        if (!currentUser) return showToast('Please login first');
+        const rateLimitMsg = _checkDepositRateLimit('paypal');
+        if (rateLimitMsg) return showToast(rateLimitMsg);
+
+        _paypalSubmitInProgress = true;
+        const btn = document.getElementById('paypalSubmitBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
+
+        try {
+            if (await _isDuplicateDepositTxnId(txnId, 'paypal')) {
+                showToast('⚠️ This Transaction ID has already been submitted');
+                return;
+            }
+            const conv = paypalConvert(inr);
+            await push(ref(db, 'depositRequests'), {
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                userName: (currentUser.displayName || currentUser.email || 'User'),
+                method: 'paypal',
+                inrAmount: inr,
+                usdAmount: conv.usd,
+                eurAmount: conv.eur,
+                txnId,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+
+            // Also reflect this request in the user's Payment History as a pending entry
+            push(ref(db, `users/${currentUser.uid}/walletHistory`), {
+                type: 'pending_deposit',
+                method: 'paypal',
+                amount: inr,
+                note: 'PayPal Deposit Request',
+                utrId: txnId,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            }).catch(() => {});
+
+            // Telegram notification (non-blocking)
+            (async () => { try {
+                const botSnap = await get(ref(db, 'meta/telegramBot'));
+                if (botSnap.exists()) {
+                    const { token, topUpChatId } = botSnap.val();
+                    if (token && topUpChatId) {
+                        const msg = `💳 <b>New PayPal Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${conv.usd} USD / ${conv.eur} EUR)\n📝 <b>Transaction ID:</b> ${txnId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
+                        fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: topUpChatId, text: msg, parse_mode: 'HTML' })
+                        }).catch(() => {});
+                    }
+                }
+            } catch (_) {} })();
+
+            document.getElementById('paypalFormView').style.display = 'none';
+            document.getElementById('paypalPendingState').style.display = 'block';
+            showToast('✅ Deposit request submitted!');
+        } catch (e) {
+            showToast('❌ ' + e.message);
+        } finally {
+            _paypalSubmitInProgress = false;
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="font-size:14px;"></i> Submit Deposit Request'; }
+        }
+    };
+
+    let _binanceSubmitInProgress = false;
+    window.submitBinanceDeposit = async () => {
+        if (_binanceSubmitInProgress) return showToast('⏳ Please wait...');
+        const inr = parseFloat(document.getElementById('binanceInrInput').value) || 0;
+        const orderId = document.getElementById('binanceOrderInput').value.trim();
+        if (!inr || inr < 90) return showToast('⚠️ Minimum ₹90 required');
+        if (!orderId) return showToast('⚠️ Enter your Binance Order ID');
+        if (!currentUser) return showToast('Please login first');
+        const rateLimitMsg = _checkDepositRateLimit('binance');
+        if (rateLimitMsg) return showToast(rateLimitMsg);
+
+        _binanceSubmitInProgress = true;
+        const btn = document.getElementById('binanceSubmitBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
+
+        try {
+            if (await _isDuplicateDepositTxnId(orderId, 'binance')) {
+                showToast('⚠️ This Order ID has already been submitted');
+                return;
+            }
+            const usd = binanceConvert(inr);
+            await push(ref(db, 'depositRequests'), {
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                userName: (currentUser.displayName || currentUser.email || 'User'),
+                method: 'binance',
+                inrAmount: inr,
+                usdAmount: usd,
+                txnId: orderId,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+
+            // Also reflect this request in the user's Payment History as a pending entry
+            push(ref(db, `users/${currentUser.uid}/walletHistory`), {
+                type: 'pending_deposit',
+                method: 'binance',
+                amount: inr,
+                note: 'Binance Deposit Request',
+                utrId: orderId,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            }).catch(() => {});
+
+            // Telegram notification (non-blocking)
+            (async () => { try {
+                const botSnap = await get(ref(db, 'meta/telegramBot'));
+                if (botSnap.exists()) {
+                    const { token, topUpChatId } = botSnap.val();
+                    if (token && topUpChatId) {
+                        const msg = `💳 <b>New Binance Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${usd} USDT)\n📝 <b>Order ID:</b> ${orderId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
+                        fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: topUpChatId, text: msg, parse_mode: 'HTML' })
+                        }).catch(() => {});
+                    }
+                }
+            } catch (_) {} })();
+
+            document.getElementById('binanceFormView').style.display = 'none';
+            document.getElementById('binancePendingState').style.display = 'block';
+            showToast('✅ Deposit request submitted!');
+        } catch (e) {
+            showToast('❌ ' + e.message);
+        } finally {
+            _binanceSubmitInProgress = false;
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="font-size:14px;"></i> Submit Deposit Request'; }
+        }
+    };
+    // ── END PAYPAL & BINANCE MANUAL DEPOSIT ─────────────────────────────
 
     // Chip selection
     window.afSelectChip = (el, amount) => {
@@ -4411,7 +5089,7 @@
             const reward = parseFloat(((spentAmount * spendPercent) / 100).toFixed(2));
             if(reward <= 0) return;
 
-            const noteDesc = `💰 Spend Reward — ${spendPercent}% of ₹${spentAmount.toFixed(2)} order`;
+            const noteDesc = `💳 Spend Reward — ${spendPercent}% of ₹${spentAmount.toFixed(2)} order`;
             await _applyReferralReward(referredBy, reward, noteDesc, 'spend', userId);
         } catch(e) {}
     }
@@ -5997,7 +6675,7 @@
         const burst = document.getElementById('giftCoinBurst');
         if(!burst) return;
         burst.innerHTML = '';
-        const emojis = ['💰','🪙','✨','💎','⭐'];
+        const emojis = ['💳','🪙','✨','💎','⭐'];
         for(let i=0;i<10;i++) {
             const coin = document.createElement('span');
             coin.className = 'gift-coin';
