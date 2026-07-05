@@ -2718,6 +2718,8 @@
                   opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','x-cors-api-key':'temp_'}, body: apiPayload } },
                 { url: `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
                   opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
+                { url: `https://bitter-mode-4fa8wholesale-proxy.demos-orx.workers.dev/?url=${encodeURIComponent(apiUrl)}`,
+                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
             ];
 
             // Race all proxies — resolve with first response that is valid JSON object
