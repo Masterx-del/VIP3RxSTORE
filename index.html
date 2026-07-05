@@ -182,10 +182,10 @@
         }
 
         /* Specifications chips — shown above service list when a category has specifications */
-        .spec-section { margin-bottom: 18px; }
+        .spec-section { margin-bottom: 14px; }
         .spec-section-label { 
             font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; 
-            letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; 
+            letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; 
         }
         .spec-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .spec-chip { 
@@ -210,6 +210,27 @@
         }
         .spec-chip-default.active .spec-chip-badge { color: rgba(255,255,255,0.85); }
         @media (max-width: 480px) { .spec-chips { gap: 6px; } .spec-chip { padding: 9px 6px; font-size: 11px; } }
+
+        /* Additive fix: label wrapper so long spec names shrink/ellipsize instead of overlapping icon/count */
+        .spec-chip-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .spec-chip-top { display: contents; }
+        /* Additive fix: when 3+ chips share a row, use a compact stacked layout — icon+badge on top,
+           count as a small corner badge, name in one ellipsized line — so height stays minimal and nothing overlaps */
+        .spec-chip.spec-chip-col { 
+            flex-direction: column; justify-content: flex-start; position: relative; 
+            padding: 6px 16px 5px 4px; gap: 1px; min-height: 0; overflow: visible; 
+        }
+        .spec-chip.spec-chip-col .spec-chip-top { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap; width: 100%; }
+        .spec-chip.spec-chip-col .spec-chip-count { 
+            position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 9px; padding: 1px 6px; 
+        }
+        .spec-chip.spec-chip-col .spec-chip-badge { font-size: 8px; flex-shrink: 0; }
+        .spec-chip.spec-chip-col .spec-chip-label { 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; 
+            max-width: 100%; margin-top: 1px;
+        }
+        .spec-chip.spec-chip-col i, .spec-chip.spec-chip-col .spec-chip-icon { font-size: 12px; flex-shrink: 0; }
+        @media (max-width: 480px) { .spec-chip.spec-chip-col { padding: 5px 14px 4px 3px; } }
 
         .product-list-card { 
             background: var(--card-solid); border: 1px solid var(--border-color); 
@@ -3151,11 +3172,14 @@
             const defaultCount = subItems.filter(([,p]) => (p.specification||'').trim() === '').length;
             const totalChips = specSet.length + 1;
             const gridCols = Math.min(totalChips, 3);
+            // Additive fix: stack chip contents vertically when 3+ share a row, and auto-shrink font by name length
+            const colClass = gridCols >= 3 ? 'spec-chip-col' : '';
+            const chipFont = (t) => { const len = (t||'').length; if(len > 18) return 8; if(len > 14) return 9; if(len > 10) return 11; return 12; };
             list.innerHTML += `<div class="spec-section">
               <div class="spec-section-label"><i class="fas fa-sliders-h"></i> Specifications</div>
               <div class="spec-chips" style="grid-template-columns: repeat(${gridCols}, 1fr);">
-                <button class="spec-chip spec-chip-default ${activeSpec===''?'active':''}" onclick="window._activeSpec='';openSubCategory('${catName}','${subCatName}',true)"><i class="fas fa-layer-group"></i>${subCatName}<span class="spec-chip-badge">Default</span><span class="spec-chip-count">${defaultCount}</span></button>
-                ${specSet.map(s => { const cnt = subItems.filter(([,p]) => (p.specification||'').trim() === s).length; return `<button class="spec-chip ${activeSpec===s?'active':''}" onclick="window._activeSpec=(window._activeSpec==='${s.replace(/'/g,"\\'")}')?'':'${s.replace(/'/g,"\\'")}';openSubCategory('${catName}','${subCatName}',true)"><span class="spec-chip-icon">${window._specIcon(s)}</span>${s}<span class="spec-chip-count">${cnt}</span></button>`; }).join('')}
+                <button class="spec-chip spec-chip-default ${colClass} ${activeSpec===''?'active':''}" onclick="window._activeSpec='';openSubCategory('${catName}','${subCatName}',true)"><span class="spec-chip-top"><i class="fas fa-layer-group"></i><span class="spec-chip-badge">Default</span><span class="spec-chip-label" style="font-size:${chipFont(subCatName)}px;">${subCatName}</span></span><span class="spec-chip-count">${defaultCount}</span></button>
+                ${specSet.map(s => { const cnt = subItems.filter(([,p]) => (p.specification||'').trim() === s).length; return `<button class="spec-chip ${colClass} ${activeSpec===s?'active':''}" onclick="window._activeSpec=(window._activeSpec==='${s.replace(/'/g,"\\'")}')?'':'${s.replace(/'/g,"\\'")}';openSubCategory('${catName}','${subCatName}',true)"><span class="spec-chip-top"><span class="spec-chip-icon">${window._specIcon(s)}</span><span class="spec-chip-label" style="font-size:${chipFont(s)}px;">${s}</span></span><span class="spec-chip-count">${cnt}</span></button>`; }).join('')}
               </div>
             </div>`;
         } else {
