@@ -188,10 +188,16 @@
             letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; 
         }
         .spec-chips { 
-            display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overflow-y: hidden; 
+            display: flex; flex-wrap: nowrap; gap: 8px; overflow-y: hidden; 
             -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 4px; 
             scroll-behavior: smooth; scroll-snap-type: x proximity; 
         }
+        /* Exactly 2 chips: equal width, distributed left to right, no scroll */
+        .spec-chips.spec-chips-fit { overflow-x: visible; }
+        .spec-chips.spec-chips-fit .spec-chip { flex: 1 1 0; min-width: 0; }
+        /* 3 or more chips: natural width, horizontal scroll */
+        .spec-chips.spec-chips-scroll { overflow-x: auto; }
+        .spec-chips.spec-chips-scroll .spec-chip { flex: 0 0 auto; }
         .spec-chips::-webkit-scrollbar { height: 4px; }
         .spec-chips::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
         .spec-chips::-webkit-scrollbar-track { background: transparent; }
@@ -3160,10 +3166,10 @@
             const activeSpec = window._activeSpec || '';
             const defaultCount = subItems.filter(([,p]) => (p.specification||'').trim() === '').length;
             const totalChips = specSet.length + 1;
-            const gridCols = Math.min(totalChips, 3);
+            const layoutClass = totalChips <= 2 ? 'spec-chips-fit' : 'spec-chips-scroll';
             list.innerHTML += `<div class="spec-section">
               <div class="spec-section-label"><i class="fas fa-sliders-h"></i> Specifications</div>
-              <div class="spec-chips" style="grid-template-columns: repeat(${gridCols}, 1fr);">
+              <div class="spec-chips ${layoutClass}">
                 <button class="spec-chip spec-chip-default ${activeSpec===''?'active':''}" onclick="window._activeSpec='';openSubCategory('${catName}','${subCatName}',true)"><i class="fas fa-layer-group"></i>${subCatName}<span class="spec-chip-badge">Default</span><span class="spec-chip-count">${defaultCount}</span></button>
                 ${specSet.map(s => { const cnt = subItems.filter(([,p]) => (p.specification||'').trim() === s).length; return `<button class="spec-chip ${activeSpec===s?'active':''}" onclick="window._activeSpec=(window._activeSpec==='${s.replace(/'/g,"\\'")}')?'':'${s.replace(/'/g,"\\'")}';openSubCategory('${catName}','${subCatName}',true)"><span class="spec-chip-icon">${window._specIcon(s)}</span>${s}<span class="spec-chip-count">${cnt}</span></button>`; }).join('')}
               </div>
