@@ -190,6 +190,7 @@
         .spec-chips { 
             display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overflow-y: hidden; 
             -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 4px; 
+            scroll-behavior: smooth; scroll-snap-type: x proximity; 
         }
         .spec-chips::-webkit-scrollbar { height: 4px; }
         .spec-chips::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
@@ -199,7 +200,7 @@
             font-size: 12px; font-weight: 600; padding: 10px 14px; border-radius: 10px; cursor: pointer; 
             transition: var(--transition); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
             font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center;
-            flex: 0 0 auto;
+            flex: 0 0 auto; scroll-snap-align: start;
         }
         .spec-chip:hover { border-color: var(--accent-cyan); }
         .spec-chip.active { background: var(--accent-cyan); border-color: var(--accent-cyan); color: #fff; }
@@ -210,6 +211,8 @@
             background: rgba(0,0,0,0.08); padding: 1px 7px; border-radius: 10px; flex-shrink: 0; 
         }
         .spec-chip.active .spec-chip-count { background: rgba(255,255,255,0.25); }
+        @keyframes specListFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .spec-fade-in { animation: specListFadeIn 0.32s ease; }
         .spec-chip-default { border-style: dashed; }
         .spec-chip-badge { 
             font-size: 9px; font-weight: 700; text-transform: uppercase; 
@@ -3225,6 +3228,11 @@
         paidItems.forEach(([id,p]) => { list.innerHTML += _renderCard(id,p); });
 
         if(!hasItems) { list.innerHTML += '<div class="empty-state"><i class="fas fa-box-open"></i><p>No services found.</p></div>'; }
+
+        // Smooth transition when switching specification tabs / reloading list
+        list.classList.remove('spec-fade-in');
+        void list.offsetWidth; // force reflow so animation restarts every time
+        list.classList.add('spec-fade-in');
 
         // Check daily usage + total limit for free services
         if(freeItems.length > 0 && currentUser) {
