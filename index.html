@@ -2624,9 +2624,7 @@
         const enc = encodeURIComponent(verifyUrl);
         return [
             { url: verifyUrl,                                                                    opts: {} },
-            { url: `https://corsproxy.io/?${enc}`,                                               opts: {} },
             { url: `https://proxy.corsfix.com/?${verifyUrl}`,                                    opts: {} },
-            { url: `https://corsproxy.io/?url=${enc}`,                                            opts: {} },
             { url: `https://bitter-mode-4fa8wholesale-proxy.demos-orx.workers.dev/?url=${enc}`,    opts: {} },
         ];
     };
@@ -2638,9 +2636,7 @@
     function prewarmProxies(verifyUrl) {
         const enc = encodeURIComponent(verifyUrl);
         [
-            `https://corsproxy.io/?${enc}`,
             `https://proxy.corsfix.com/?${verifyUrl}`,
-            `https://corsproxy.io/?url=${enc}`,
             `https://bitter-mode-4fa8wholesale-proxy.demos-orx.workers.dev/?url=${enc}`,
         ].forEach(url => {
             fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) }).catch(() => {});
@@ -2709,8 +2705,6 @@
             // Only POST proxies used (GET-only proxies like allorigins don't support POST APIs correctly)
             const apiURLs = [
                 { url: apiUrl,
-                  opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
-                { url: `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
                   opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
                 { url: `https://corsproxy.org/?${encodeURIComponent(apiUrl)}`,
                   opts: { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: apiPayload } },
@@ -5270,7 +5264,7 @@
                         const payload = `key=${encodeURIComponent(svcApiKey)}&action=add&service=${encodeURIComponent(svcId)}&link=${encodeURIComponent(reelLink)}&quantity=${encodeURIComponent(svcQty)}`;
                         const proxies = [
                             { url: svcApiUrl, method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: payload },
-                            { url: `https://corsproxy.io/?${encodeURIComponent(svcApiUrl)}`, method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: payload },
+                            { url: `https://corsproxy.org/?${encodeURIComponent(svcApiUrl)}`, method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: payload },
                         ];
                         let apiJson = null;
                         for (const req of proxies) {
@@ -7111,4 +7105,3 @@
 
 </body>
 </html>
-
