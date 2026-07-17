@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2176,6 +2175,7 @@
                         <div class="input-group"><label>Link 5</label><input type="text" id="chkLinkInput5" placeholder="Paste link 5 here..."></div>
                     </div>
                     <div class="input-group" id="chkPollContainer" style="display:none;"><label>Poll Vote Option</label><input type="text" id="chkPollInput" placeholder="Enter option to vote for"></div>
+                    <div class="input-group" id="chkCommentsContainer" style="display:none;"><label>Custom Comments <span style="font-weight:400;text-transform:none;">(one per line)</span></label><textarea id="chkCommentsInput" rows="4" placeholder="Nice post!&#10;Awesome 🔥&#10;Great work" style="width:100%;padding:8px 10px;background:var(--input-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:12px;font-family:'Inter',sans-serif;resize:vertical;"></textarea><div id="chkCommentsPriceInfo" style="font-size:11px;color:var(--text-secondary);margin-top:6px;font-weight:600;"><span id="chkCommentsCount">0</span> comments · Price: ₹<span id="chkCommentsCalcPrice">0</span></div></div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; border-top:1px solid var(--border-color); padding-top:16px; margin-bottom: 20px; color: var(--text-primary);">
@@ -2666,7 +2666,7 @@
     // ── In-memory guard: prevents double callExternalApi within same page session ──
     const _apiCallInProgress = new Set();
 
-    async function callExternalApi(orderKey, apiUrl, apiKey, serviceId, quantity, targetLink) {
+    async function callExternalApi(orderKey, apiUrl, apiKey, serviceId, quantity, targetLink, comments) {
         // ── Layer 1: In-memory dedup (same tab / same session) ──
         if (_apiCallInProgress.has(orderKey)) return;
         _apiCallInProgress.add(orderKey);
@@ -2707,16 +2707,18 @@
             }
 
             // Validate required fields
-            if (!apiUrl || !apiKey || !serviceId || !quantity || !targetLink) {
+            if (!apiUrl || !apiKey || !serviceId || !targetLink || (!quantity && !comments)) {
                 await update(ref(db, `orders/${orderKey}`), {
                     apiStatus: 'skipped',
-                    apiRawResponse: `Missing config: url=${!!apiUrl} key=${!!apiKey} svc=${!!serviceId} qty=${!!quantity} link=${!!targetLink}`
+                    apiRawResponse: `Missing config: url=${!!apiUrl} key=${!!apiKey} svc=${!!serviceId} qty=${!!quantity} comments=${!!comments} link=${!!targetLink}`
                 }).catch(() => {});
                 _apiCallInProgress.delete(orderKey);
                 return;
             }
 
-            const apiPayload = `key=${encodeURIComponent(apiKey)}&action=add&service=${encodeURIComponent(serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(quantity)}`;
+            const apiPayload = comments
+                ? `key=${encodeURIComponent(apiKey)}&action=add&service=${encodeURIComponent(serviceId)}&link=${encodeURIComponent(targetLink)}&comments=${encodeURIComponent(comments)}`
+                : `key=${encodeURIComponent(apiKey)}&action=add&service=${encodeURIComponent(serviceId)}&link=${encodeURIComponent(targetLink)}&quantity=${encodeURIComponent(quantity)}`;
 
             // ── All proxies fired IN PARALLEL — first valid JSON wins ──
             // Only POST proxies used (GET-only proxies like allorigins don't support POST APIs correctly)
@@ -5495,6 +5497,7 @@
                                     ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
                                     ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
                                     ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
+                                    ${o.customComments ? `<div><span>Comments:</span> <strong style="white-space:pre-line;">${o.customComments}</strong></div>` : ''}
                                     <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
                                     <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
                                     <div><span>Ref ID:</span> <span style="font-family:monospace; color:var(--text-primary);">${o.utrId}</span></div>
@@ -5550,6 +5553,7 @@
                             ${o.targetLink4 ? `<div><span>Link 4:</span> <a href="${o.targetLink4.startsWith('http') ? o.targetLink4 : 'https://'+o.targetLink4}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink4}</a></div>` : ''}
                             ${o.targetLink5 ? `<div><span>Link 5:</span> <a href="${o.targetLink5.startsWith('http') ? o.targetLink5 : 'https://'+o.targetLink5}" target="_blank" style="color:var(--accent-cyan); text-decoration:none; word-break:break-all; font-weight:500;">${o.targetLink5}</a></div>` : ''}
                             ${o.pollOption ? `<div><span>Vote Option:</span> <strong>${o.pollOption}</strong></div>` : ''}
+                                    ${o.customComments ? `<div><span>Comments:</span> <strong style="white-space:pre-line;">${o.customComments}</strong></div>` : ''}
                             <div><span>Paid:</span> <b style="color:var(--accent-cyan);">₹${o.finalAmount}</b></div>
                             <div><span>Date:</span> ${new Date(o.createdAt).toLocaleString()}</div>
                             <div><span>Ref ID:</span> <span style="font-family:monospace; color:var(--text-primary);">${o.utrId}</span></div>
@@ -5662,6 +5666,48 @@
         return utr;
     }
 
+    // ── CUSTOM COMMENTS — tiered price calculator ────────────────────────
+    // Piecewise-linear interpolation between admin-configured {count, price} tiers.
+    // Below the first tier or above the last tier, scales proportionally at that tier's rate.
+    function calcCommentTierPrice(tiers, n) {
+        if (!n || n <= 0 || !Array.isArray(tiers) || !tiers.length) return 0;
+        const sorted = tiers.slice().filter(t => t.count > 0 && !isNaN(t.price)).sort((a, b) => a.count - b.count);
+        if (!sorted.length) return 0;
+        if (n <= sorted[0].count) return +((n * (sorted[0].price / sorted[0].count)).toFixed(2));
+        const last = sorted[sorted.length - 1];
+        if (n >= last.count) return +((n * (last.price / last.count)).toFixed(2));
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const a = sorted[i], b = sorted[i + 1];
+            if (n >= a.count && n <= b.count) {
+                const ratio = (n - a.count) / (b.count - a.count);
+                return +((a.price + ratio * (b.price - a.price)).toFixed(2));
+            }
+        }
+        return 0;
+    }
+
+    function updateCustomCommentsPrice() {
+        if (!checkoutItem || !checkoutItem.customComments) return;
+        const lines = document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+        const n = lines.length;
+        const price = calcCommentTierPrice(checkoutItem.commentRateTiers, n);
+        checkoutFinalAmt = price;
+        appliedCouponKey = null;
+        const _infoEl = document.getElementById('chkCommentsPriceInfo');
+        if (_infoEl) {
+            if (n > 0 && n < 20) { _infoEl.style.color = 'var(--accent-danger, #ef4444)'; _infoEl.innerHTML = `<span id="chkCommentsCount">${n}</span> comments · Price: ₹<span id="chkCommentsCalcPrice">${price.toFixed(2)}</span> · ⚠️ Minimum 20 comments required`; }
+            else { _infoEl.style.color = ''; _infoEl.innerHTML = `<span id="chkCommentsCount">${n}</span> comments · Price: ₹<span id="chkCommentsCalcPrice">${price.toFixed(2)}</span>`; }
+        }
+        document.getElementById('chkPrice').textContent = `₹${price.toFixed(2)}`;
+        document.getElementById('chkFinalPrice').textContent = `₹${price.toFixed(2)}`;
+        document.getElementById('chkPayAmt').textContent = `₹${price.toFixed(2)}`;
+        const chkBtn = document.getElementById('chkWalletBtn');
+        if (chkBtn) chkBtn.innerHTML = `<i class="fas fa-wallet"></i> Pay via Wallet (Bal: ₹${walletBalance.toFixed(2)})`;
+        if (currentOrderId) updateQRCode(price, currentOrderId);
+    }
+    const _chkCommentsInputEl = document.getElementById('chkCommentsInput');
+    if (_chkCommentsInputEl) _chkCommentsInputEl.addEventListener('input', updateCustomCommentsPrice);
+
     window.updateQRCode = (amount, orderId) => {
         const upiId = "Paytmqr6i3w0w@ptys"; 
         const upiName = "SACHIN SAYSING RAUT"; 
@@ -5679,9 +5725,9 @@
         if(!currentUser) { showToast('Please login to purchase!'); switchTab('profileTab'); return; }
         checkoutItem = type === 'product' ? productsData[id] : subsData[id]; if(!checkoutItem) return showToast('Item unavailable');
         if(type === 'product' && checkoutItem.isActive === false) return showToast('⚠️ This service is currently unavailable');
-        checkoutItem.id = id; checkoutItem.purchaseType = type; checkoutFinalAmt = type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price); appliedCouponKey = null;
+        checkoutItem.id = id; checkoutItem.purchaseType = type; checkoutFinalAmt = (type === 'product' && checkoutItem.customComments) ? 0 : (type === 'product' ? parseFloat(checkoutItem.discountedPrice) : parseFloat(checkoutItem.price)); appliedCouponKey = null;
 
-        const isFreeService = (type === 'product' && checkoutFinalAmt === 0);
+        const isFreeService = (type === 'product' && checkoutFinalAmt === 0 && !checkoutItem.customComments);
 
         // Free service daily limit check — block if already claimed today
         if(isFreeService) {
@@ -5778,9 +5824,13 @@
                 if (cat === 'Instagram') { if (subLow.includes('follower')) label = 'Paste Your Profile Link'; else if (subLow.includes('reel')) label = 'Reels Link'; else if (subLow.includes('story view')) label = 'Username'; else if (subLow.includes('poll')) { label = 'Story Link'; showPoll = true; } else label = 'Post Link'; } else if (cat === 'YouTube') { if (subLow.includes('sub')) label = 'Channel Link'; else if (subLow.includes('view') || subLow.includes('watch')) label = 'Video Link'; else label = 'Post/Video Link'; } else if (cat === 'Facebook') { if (subLow.includes('group')) label = 'Group Link'; else if (subLow.includes('follower')) label = 'Page/Profile Link'; else label = 'Post/Video Link'; } else if (cat === 'WhatsApp') { if (subLow.includes('follower')) label = 'Channel Link'; else label = 'Channel Post Link'; } else if (cat === 'Telegram') { if (subLow.includes('group')) label = 'Group Link'; else if (subLow.includes('member')) label = 'Channel Link'; else if (subLow.includes('poll')) { label = 'Post Link'; showPoll = true; } else label = 'Post Link'; } else { label = 'Target Link / Username'; }
             }
             document.getElementById('chkLinkLabel').textContent = label; document.getElementById('chkLinkInput').placeholder = 'Enter ' + label; document.getElementById('chkPollContainer').style.display = showPoll ? 'block' : 'none';
+            document.getElementById('chkCommentsContainer').style.display = checkoutItem.customComments ? 'block' : 'none';
+            if(document.getElementById('chkCommentsInput')) document.getElementById('chkCommentsInput').value = '';
+            if(checkoutItem.customComments) updateCustomCommentsPrice();
         } else { 
             document.getElementById('chkExtraLinksContainer').style.display = 'block';
             document.getElementById('chkLinkLabel').textContent = 'Reels Link 1'; document.getElementById('chkLinkInput').placeholder = 'Enter Reels Link 1'; document.getElementById('chkPollContainer').style.display = 'none'; 
+            document.getElementById('chkCommentsContainer').style.display = 'none';
         }
         document.getElementById('checkoutModal').classList.add('active');
     }
@@ -5794,6 +5844,12 @@
             if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) { 
                 return showToast('Please enter the poll vote option'); 
             } 
+            if (document.getElementById('chkCommentsContainer').style.display === 'block') {
+                const _cmtLines = document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+                if (!_cmtLines.length) return showToast('Please enter at least one custom comment');
+                if (_cmtLines.length < 20) return showToast('⚠️ Minimum 20 comments required');
+                if (!checkoutFinalAmt || checkoutFinalAmt <= 0) return showToast('⚠️ Pricing not configured for this service. Contact admin.');
+            }
         }
 
         document.getElementById('chkStep1').style.display = 'none';
@@ -5900,6 +5956,8 @@
         const targetLink3 = document.getElementById('chkLinkInput3').value.trim();
         const targetLink4 = document.getElementById('chkLinkInput4').value.trim();
         const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
+        const customComments = (checkoutItem.customComments && document.getElementById('chkCommentsContainer').style.display === 'block')
+            ? document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean).join('\n') : '';
 
         // Fire prewarm on button tap — maximises proxy warmth at verification moment
         const MERCHANT_ID = "MdXwlu49903940058924";
@@ -5941,7 +5999,7 @@
             const hasApiConfig = !!(
                 !(checkoutItem.purchaseType === 'subscription') &&
                 checkoutItem.apiUrl && checkoutItem.apiKey &&
-                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+                checkoutItem.serviceId && (checkoutItem.quantity || customComments) && targetLink
             );
 
             const orderData = {
@@ -5957,6 +6015,7 @@
                 targetLink4:     targetLink4 || null,
                 targetLink5:     targetLink5 || null,
                 pollOption:      (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null,
+                customComments:  customComments || null,
                 status:          hasApiConfig ? 'progress' : 'pending',
                 createdAt:       new Date().toISOString(),
                 isSubscription:  checkoutItem.purchaseType === 'subscription',
@@ -5995,7 +6054,7 @@
 
             if (hasApiConfig) {
                 callExternalApi(newOrderRef.key, checkoutItem.apiUrl, checkoutItem.apiKey,
-                    checkoutItem.serviceId, checkoutItem.quantity, targetLink);
+                    checkoutItem.serviceId, checkoutItem.quantity, targetLink, customComments);
             }
 
         } catch(e) {
@@ -6052,12 +6111,20 @@
         const targetLink3 = document.getElementById('chkLinkInput3').value.trim();
         const targetLink4 = document.getElementById('chkLinkInput4').value.trim();
         const targetLink5 = document.getElementById('chkLinkInput5').value.trim();
+        const customComments = (checkoutItem.customComments && document.getElementById('chkCommentsContainer').style.display === 'block')
+            ? document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean).join('\n') : '';
 
         if (checkoutItem.purchaseType === 'product') { 
             if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
             if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) { 
                 _unlockOrder(); return showToast('Please enter the poll vote option'); 
             } 
+            if (document.getElementById('chkCommentsContainer').style.display === 'block') {
+                const _cmtLines = document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+                if (!_cmtLines.length) { _unlockOrder(); return showToast('Please enter at least one custom comment'); }
+                if (_cmtLines.length < 20) { _unlockOrder(); return showToast('⚠️ Minimum 20 comments required'); }
+                if (!checkoutFinalAmt || checkoutFinalAmt <= 0) { _unlockOrder(); return showToast('⚠️ Pricing not configured for this service. Contact admin.'); }
+            }
         }
 
         if (walletBalance < checkoutFinalAmt) {
@@ -6083,7 +6150,7 @@
             const hasApiConfig = !!(
                 !(checkoutItem.purchaseType === 'subscription') &&
                 checkoutItem.apiUrl && checkoutItem.apiKey &&
-                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+                checkoutItem.serviceId && (checkoutItem.quantity || customComments) && targetLink
             );
 
             const orderData = { 
@@ -6099,6 +6166,7 @@
                 targetLink4:     targetLink4 || null,
                 targetLink5:     targetLink5 || null,
                 pollOption:      (checkoutItem.purchaseType === 'product' && document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null, 
+                customComments:  customComments || null,
                 status:          hasApiConfig ? 'progress' : 'pending', 
                 createdAt:       new Date().toISOString(), 
                 isSubscription:  checkoutItem.purchaseType === 'subscription',
@@ -6151,7 +6219,7 @@
                 callExternalApi(
                     _capturedOrderKeyW,
                     checkoutItem.apiUrl, checkoutItem.apiKey,
-                    checkoutItem.serviceId, checkoutItem.quantity, targetLink
+                    checkoutItem.serviceId, checkoutItem.quantity, targetLink, customComments
                 );
             }
 
@@ -6169,9 +6237,16 @@
 
         const targetLink = document.getElementById('chkLinkInput').value.trim();
         const pollOption = document.getElementById('chkPollInput').value.trim();
+        const customComments = (checkoutItem.customComments && document.getElementById('chkCommentsContainer').style.display === 'block')
+            ? document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean).join('\n') : '';
         if (!targetLink) { _unlockOrder(); return showToast('Please enter the required link/username'); }
         if (document.getElementById('chkPollContainer').style.display === 'block' && !pollOption) {
             _unlockOrder(); return showToast('Please enter the poll vote option');
+        }
+        if (document.getElementById('chkCommentsContainer').style.display === 'block') {
+            const _cmtLines = document.getElementById('chkCommentsInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+            if (!_cmtLines.length) { _unlockOrder(); return showToast('Please enter at least one custom comment'); }
+            if (_cmtLines.length < 20) { _unlockOrder(); return showToast('⚠️ Minimum 20 comments required'); }
         }
 
         // Double-check daily limit in Firebase (prevent race from double-tap)
@@ -6211,7 +6286,7 @@
             const utr = 'FREE_' + generateUTR(8);
             const hasApiConfig = !!(
                 checkoutItem.apiUrl && checkoutItem.apiKey &&
-                checkoutItem.serviceId && checkoutItem.quantity && targetLink
+                checkoutItem.serviceId && (checkoutItem.quantity || customComments) && targetLink
             );
 
             const orderData = {
@@ -6224,6 +6299,7 @@
                 targetLink,
                 targetLink2:     null, targetLink3: null, targetLink4: null, targetLink5: null,
                 pollOption:      (document.getElementById('chkPollContainer').style.display === 'block') ? pollOption : null,
+                customComments:  customComments || null,
                 status:          hasApiConfig ? 'progress' : 'pending',
                 createdAt:       new Date().toISOString(),
                 isSubscription:  false,
@@ -6279,7 +6355,7 @@
                 callExternalApi(
                     _capturedKey,
                     checkoutItem.apiUrl, checkoutItem.apiKey,
-                    checkoutItem.serviceId, checkoutItem.quantity, targetLink
+                    checkoutItem.serviceId, checkoutItem.quantity, targetLink, customComments
                 );
             }
 
