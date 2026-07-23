@@ -575,50 +575,6 @@
         .input-hint.hint-error { color: #ef4444; }
         .input-hint.hint-success { color: #10b981; }
 
-        /* ── PREMIUM 4-DIGIT PIN INPUT ─────────────────────────────────── */
-        .un-auth-icon { width:64px; height:64px; border-radius:18px; background:linear-gradient(135deg,var(--accent-cyan,#2563eb),#4f46e5); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.25); position:relative; z-index:1; }
-        .un-auth-icon i { color:#fff; font-size:24px; }
-
-        /* ── Premium / Trusted Login ── */
-        .premium-auth-card { position:relative; overflow:hidden; }
-        .premium-auth-card::before { content:''; position:absolute; top:-70%; left:50%; transform:translateX(-50%); width:240px; height:240px; background:radial-gradient(circle, rgba(37,99,235,0.16) 0%, rgba(37,99,235,0) 72%); pointer-events:none; }
-        .premium-auth-icon-wrap { position:relative; width:64px; height:64px; margin:0 auto 18px; display:flex; align-items:center; justify-content:center; }
-        .premium-auth-icon-wrap::before, .premium-auth-icon-wrap::after { content:''; position:absolute; inset:-7px; border-radius:20px; border:1.5px solid rgba(37,99,235,0.35); animation: trustPulse 2.8s ease-out infinite; }
-        .premium-auth-icon-wrap::after { animation-delay: 1.4s; }
-        @keyframes trustPulse { 0% { transform:scale(0.94); opacity:.6; } 100% { transform:scale(1.22); opacity:0; } }
-        .premium-input-icon { position:relative; }
-        .premium-input-icon i { position:absolute; left:15px; top:24px; transform:translateY(-50%); color:var(--text-secondary); font-size:13px; pointer-events:none; transition:var(--transition); }
-        .premium-input-icon input { padding-left:40px !important; }
-        .premium-input-icon input:focus ~ i, .premium-input-icon input:focus + i { color:var(--accent-cyan); }
-        .premium-submit-btn { position:relative; overflow:hidden; }
-        .premium-submit-btn::after { content:''; position:absolute; top:0; left:-120%; width:55%; height:100%; background:linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent); transform:skewX(-20deg); }
-        .premium-submit-btn:hover::after { animation: shineSweep 0.85s ease; }
-        @keyframes shineSweep { from { left:-120%; } to { left:130%; } }
-        .secure-footnote { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:20px; font-size:11px; color:var(--text-secondary); }
-        .secure-footnote i { color:#10b981; font-size:11px; }
-        .un-login-error { display:flex; align-items:center; gap:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.35); color:#ef4444; font-size:12.5px; font-weight:600; padding:10px 12px; border-radius:10px; margin-bottom:16px; }
-        .un-login-error i { font-size:13px; flex-shrink:0; }
-        #unUsernameSuggestions { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
-        #unUsernameSuggestions .un-suggest-label { width:100%; font-size:10.5px; color:var(--text-secondary); font-weight:600; margin-bottom:1px; }
-        .un-suggest-chip { font-size:11.5px; font-weight:700; color:var(--accent-cyan); background:var(--input-bg); border:1px solid var(--border-color); padding:5px 11px; border-radius:20px; cursor:pointer; transition:var(--transition); }
-        .un-suggest-chip:hover { border-color:var(--accent-cyan); background:rgba(37,99,235,0.08); }
-        @keyframes shakeCard { 10%,90% { transform:translateX(-1px); } 20%,80% { transform:translateX(2px); } 30%,50%,70% { transform:translateX(-4px); } 40%,60% { transform:translateX(4px); } }
-        .shake-anim { animation: shakeCard 0.45s cubic-bezier(.36,.07,.19,.97) both; }
-        @media (prefers-reduced-motion: reduce) { .shake-anim { animation:none; } }
-        @media (prefers-reduced-motion: reduce) { .premium-auth-icon-wrap::before, .premium-auth-icon-wrap::after { animation:none; opacity:.5; } .premium-submit-btn:hover::after { animation:none; } }
-        .pin-box-group { display:flex; gap:10px; justify-content:center; }
-        .pin-box {
-            width: 100%; max-width: 58px; aspect-ratio: 1/1; text-align: center;
-            font-size: 22px; font-weight: 700; letter-spacing: 0;
-            background: var(--input-bg); border: 1.5px solid var(--border-color);
-            border-radius: 12px; color: var(--text-primary); transition: var(--transition);
-            -webkit-appearance: none; caret-color: var(--accent-cyan);
-        }
-        .pin-box:focus { outline: none; border-color: var(--accent-cyan); background: var(--card-bg); box-shadow: 0 0 0 4px rgba(37,99,235,0.14); transform: translateY(-1px); }
-        .pin-box.filled { border-color: var(--accent-cyan); background: rgba(37,99,235,0.05); }
-        .pin-box.input-error { border-color: #ef4444 !important; background: rgba(239,68,68,0.06) !important; animation: shake 0.4s ease; }
-        .pin-box.input-success { border-color: #10b981 !important; background: rgba(16,185,129,0.05) !important; }
-
         /* ── ENHANCED BUTTON STATES ──────────────────────────────────────── */
         .btn-loading { position: relative; pointer-events: none; }
         .btn-loading::after {
@@ -1179,56 +1135,38 @@
 
         <div id="profileTab" class="tab-content">
             <div id="authView" style="display:none;">
-                <div class="card premium-auth-card">
-                    <div class="premium-auth-icon-wrap">
-                        <div class="un-auth-icon"><i class="fas fa-shield-halved"></i></div>
-                    </div>
-                    <h2 class="section-title" id="unAuthTitle" style="text-align:center; justify-content:center;">Welcome Back</h2>
-                    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:24px; text-align:center;">Login with your Username &amp; 4-digit PIN.</p>
+                <div class="card">
+                    <h2 class="section-title" id="authTitle">Welcome Back</h2>
+                    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:24px;">Securely login to access your dashboard.</p>
 
+                    <div id="signupNameGroup" class="input-group" style="display:none;">
+                        <label>Full Name</label><input type="text" id="authName" placeholder="John Doe">
+                    </div>
+                    <div class="input-group"><label>Email Address</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
                     <div class="input-group">
-                        <label>Username</label>
-                        <div class="premium-input-icon">
-                            <input type="text" id="unUsername" placeholder="e.g. rahul_99" autocomplete="username" autocapitalize="off">
-                            <i class="fas fa-user"></i>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <label style="margin-bottom:0;">Password</label>
+                            <a href="#" id="forgotPasswordLink" style="font-size:12px; color:var(--accent-cyan); font-weight:600; text-decoration:none; display:none;" onclick="openForgotPassword(); return false;">Forgot Password?</a>
                         </div>
-                        <div id="unUsernameSuggestions" style="display:none;"></div>
-                    </div>
-                    <div class="input-group">
-                        <label id="unPinLabel">4-Digit PIN</label>
-                        <div class="pin-box-group" id="unPinBoxes">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                        </div>
-                    </div>
-                    <div id="unPinConfirmWrap" class="input-group" style="display:none;">
-                        <label>Confirm PIN</label>
-                        <div class="pin-box-group" id="unPinConfirmBoxes">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                            <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                        </div>
+                        <input type="password" id="authPassword" placeholder="••••••••">
                     </div>
 
-                    <div id="unLoginErrorBox" class="un-login-error" style="display:none;">
-                        <i class="fas fa-circle-exclamation"></i>
-                        <span id="unLoginErrorText"></span>
-                    </div>
+                    <button id="authSubmitBtn" class="btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login Securely</button>
 
-                    <button id="unSubmitBtn" class="btn premium-submit-btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login</button>
+                    <div style="display:flex; align-items:center; gap:10px; margin:18px 0 4px;">
+                        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+                        <span style="font-size:12px; color:var(--text-secondary); font-weight:500; white-space:nowrap;">or continue with</span>
+                        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+                    </div>
+                    <button id="googleSignInBtn" type="button" style="width:100%; padding:13px 16px; background:var(--card-bg); border:1.5px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:var(--transition); margin-top:12px; font-family:inherit;">
+                        <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+                        Continue with Google
+                    </button>
 
                     <div style="text-align:center; margin-top:18px; font-size:13px;">
-                        <span id="unToggleText" style="color:var(--text-secondary);">Don't have an account?</span>
-                        <a href="#" id="unToggleBtn" style="color:var(--accent-cyan); font-weight:600; text-decoration:none;">Sign Up</a>
+                        <span id="authToggleText" style="color:var(--text-secondary);">Don't have an account?</span>
+                        <a href="#" id="authToggleBtn" style="color:var(--accent-cyan); font-weight:600; text-decoration:none;">Sign Up</a>
                     </div>
-                    <div style="text-align:center; margin-top:14px; font-size:12px;">
-                        <a href="#" onclick="openRecoverModal(); return false;" style="color:var(--text-secondary); text-decoration:underline;">Had an old Email/Google account? Recover it here</a>
-                    </div>
-
-                    <div class="secure-footnote"><i class="fas fa-shield-halved"></i>Your data is encrypted &amp; stored securely</div>
                 </div>
             </div>
 
@@ -2454,84 +2392,6 @@
     </div>
 </div>
 
-<!-- ── RECOVER OLD ACCOUNT MODAL (Email/Google) — used once by legacy users to migrate to Username+PIN ── -->
-<div class="modal-overlay" id="recoverModal" style="position:fixed !important;">
-    <div class="bottom-sheet" style="max-height:90vh; overflow-y:auto;">
-        <div class="sheet-header">
-            <div>
-                <div class="sheet-title">Recover Old Account</div>
-                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Login with your old email/Google account once to set up your Username &amp; PIN.</div>
-            </div>
-            <button onclick="closeRecoverModal()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;">×</button>
-        </div>
-
-        <!-- Step A: old-style login (kept intact so all existing logic keeps working) -->
-        <div id="recoverStepOld">
-            <h3 id="authTitle" style="font-size:14px;font-weight:700;margin-bottom:14px;">Login to Old Account</h3>
-            <div id="signupNameGroup" class="input-group" style="display:none;">
-                <label>Full Name</label><input type="text" id="authName" placeholder="John Doe">
-            </div>
-            <div class="input-group"><label>Email Address</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
-            <div class="input-group">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <label style="margin-bottom:0;">Password</label>
-                    <a href="#" id="forgotPasswordLink" style="font-size:12px; color:var(--accent-cyan); font-weight:600; text-decoration:none; display:none;" onclick="openForgotPassword(); return false;">Forgot Password?</a>
-                </div>
-                <input type="password" id="authPassword" placeholder="••••••••">
-            </div>
-
-            <button id="authSubmitBtn" class="btn"><i class="fas fa-lock" style="font-size:12px;"></i> Login Securely</button>
-
-            <div style="display:flex; align-items:center; gap:10px; margin:18px 0 4px;">
-                <div style="flex:1; height:1px; background:var(--border-color);"></div>
-                <span style="font-size:12px; color:var(--text-secondary); font-weight:500; white-space:nowrap;">or continue with</span>
-                <div style="flex:1; height:1px; background:var(--border-color);"></div>
-            </div>
-            <button id="googleSignInBtn" type="button" style="width:100%; padding:13px 16px; background:var(--card-bg); border:1.5px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:var(--transition); margin-top:12px; font-family:inherit;">
-                <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-                Continue with Google
-            </button>
-
-            <div style="text-align:center; margin-top:18px; font-size:13px;">
-                <span id="authToggleText" style="color:var(--text-secondary);">Don't have an account?</span>
-                <a href="#" id="authToggleBtn" style="color:var(--accent-cyan); font-weight:600; text-decoration:none;">Sign Up</a>
-            </div>
-        </div>
-
-        <!-- Step B: choose Username + PIN to finish migrating this (already-authenticated) old account -->
-        <div id="recoverStepSetUsername" style="display:none;">
-            <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:12px 14px;margin-bottom:18px;display:flex;align-items:flex-start;gap:9px;">
-                <i class="fas fa-check-circle" style="color:#10b981;margin-top:1px;flex-shrink:0;"></i>
-                <span style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;">Old account verified! Your data &amp; wallet balance are safe. Now choose a Username &amp; PIN — you'll use these to login from next time.</span>
-            </div>
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" id="migUsername" placeholder="e.g. rahul_99" autocapitalize="off">
-            </div>
-            <div class="input-group">
-                <label>4-Digit PIN</label>
-                <div class="pin-box-group" id="migPinBoxes">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>Confirm PIN</label>
-                <div class="pin-box-group" id="migPinConfirmBoxes">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                    <input type="tel" class="pin-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                </div>
-            </div>
-            <div id="migMsg" style="margin-bottom:12px;min-height:20px;"></div>
-            <button id="migSaveBtn" class="btn" onclick="saveMigratedUsername()"><i class="fas fa-user-check"></i> Save &amp; Continue</button>
-        </div>
-    </div>
-</div>
-
 <!-- EMAIL VERIFICATION MODAL -->
 <div id="emailVerifyModal" style="display:none;position:fixed;inset:0;z-index:2500;background:rgba(15,23,42,0.7);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;">
     <div style="background:var(--card-solid,#fff);border-radius:22px;overflow:hidden;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.35);animation:giftModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;">
@@ -2681,7 +2541,7 @@
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail, sendPasswordResetEmail, sendEmailVerification, updateEmail, updatePassword, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, linkWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
     import { getDatabase, ref, get, set, push, onValue, query, orderByChild, equalTo, update, onChildChanged, runTransaction, remove } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
     const firebaseConfig = {
@@ -2694,27 +2554,6 @@
         appId: "1:633734276998:web:b486015bd345028a406e07"
     };
     const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getDatabase(app);
-    // 🔒 Force LOCAL persistence explicitly — login stays saved across tab/browser close, device restart, etc.
-    // until the user explicitly clicks Logout. (This is Firebase's default too, but setting it explicitly
-    // guarantees it can never silently fall back to session-only persistence.)
-    setPersistence(auth, browserLocalPersistence).catch(err => console.warn('Persistence set failed:', err));
-
-    // ═══════════════════════════════════════════════════════════════════
-    // 👤 USERNAME + PIN LOGIN SYSTEM
-    // Internally still uses real Firebase Auth (email/password provider) so
-    // every existing security rule / uid-based data path keeps working
-    // exactly as before. A username is mapped to a deterministic, fake
-    // "@app.local" email, and the 4-digit PIN is combined with a fixed
-    // suffix to satisfy Firebase's 6-character minimum password length.
-    // ═══════════════════════════════════════════════════════════════════
-    const UN_FAKE_DOMAIN = '@selll-d5149.app.local';
-    const UN_PIN_SALT = 'Xp7Qz9';
-    function unNormalize(u) { return (u || '').trim().toLowerCase(); }
-    function unIsValidUsername(u) { return /^[a-z0-9_]{3,20}$/.test(u); }
-    function unIsValidPin(p) { return /^[0-9]{4}$/.test(p); }
-    function unToEmail(u) { return unNormalize(u) + UN_FAKE_DOMAIN; }
-    function unToPassword(pin) { return pin + UN_PIN_SALT; }
-    function unIsSyntheticEmail(email) { return !!email && email.toLowerCase().endsWith(UN_FAKE_DOMAIN); }
 
     // ═══════════════════════════════════════════════════════════════════
     // ⚡ ULTRA-FAST BULLETPROOF PAYMENT ENGINE — v3
@@ -2951,7 +2790,7 @@
         }
     }
 
-    let currentUser = null; let currentUserContact = null; let _authReady = false; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
+    let currentUser = null; let _authReady = false; let productsData = {}; let subsData = {}; let activeSubscriptions = {}; 
     let couponsData = {}; let checkoutItem = null; let checkoutFinalAmt = 0; let appliedCouponKey = null; let notificationsBound = false;
     let currentCatView = { level: 0, cat: '', subCat: '' };
     let walletBalance = 0; let wfAmount = 0; let wfOrderId = '';
@@ -3733,301 +3572,6 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    // ═══════════════════════════════════════════════════════════════════
-    // 👤 USERNAME + PIN — primary login/signup UI handlers
-    // ═══════════════════════════════════════════════════════════════════
-
-    // ── Premium 4-box PIN input helpers ──
-    function setupPinBoxes(containerId) {
-        const container = document.getElementById(containerId);
-        if(!container || container._pinWired) return;
-        container._pinWired = true;
-        const boxes = Array.from(container.querySelectorAll('.pin-box'));
-        boxes.forEach((box, i) => {
-            box.addEventListener('input', () => {
-                box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
-                box.classList.toggle('filled', !!box.value);
-                if(box.value && i < boxes.length - 1) boxes[i + 1].focus();
-            });
-            box.addEventListener('keydown', (e) => {
-                if(e.key === 'Backspace' && !box.value && i > 0) { boxes[i - 1].focus(); boxes[i - 1].select(); }
-            });
-            box.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const digits = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '').split('');
-                boxes.forEach((b, j) => { b.value = digits[j] || ''; b.classList.toggle('filled', !!b.value); });
-                (boxes.find(b => !b.value) || boxes[boxes.length - 1]).focus();
-            });
-            box.addEventListener('focus', () => box.select());
-        });
-    }
-    function getPinBoxesValue(containerId) {
-        return Array.from(document.querySelectorAll(`#${containerId} .pin-box`)).map(b => b.value).join('');
-    }
-    function clearPinBoxes(containerId) {
-        const boxes = Array.from(document.querySelectorAll(`#${containerId} .pin-box`));
-        boxes.forEach(b => { b.value = ''; b.classList.remove('filled', 'input-error', 'input-success'); });
-    }
-    function markPinBoxes(containerId, ok) {
-        const boxes = Array.from(document.querySelectorAll(`#${containerId} .pin-box`));
-        boxes.forEach(b => { b.classList.toggle('input-error', !ok); b.classList.toggle('input-success', ok); });
-    }
-    setupPinBoxes('unPinBoxes');
-    setupPinBoxes('unPinConfirmBoxes');
-    setupPinBoxes('migPinBoxes');
-    setupPinBoxes('migPinConfirmBoxes');
-
-    let unSignupMode = false;
-    let unLoginAttemptsLeft = 2;
-    const UN_LOGIN_MAX_ATTEMPTS = 2;
-    function setUnMode(isSignup) {
-        unSignupMode = isSignup;
-        document.getElementById('unAuthTitle').textContent = unSignupMode ? 'Create Account' : 'Welcome Back';
-        document.getElementById('unSubmitBtn').innerHTML = unSignupMode ? '<i class="fas fa-user-plus" style="font-size:12px;"></i> Sign Up' : '<i class="fas fa-lock" style="font-size:12px;"></i> Login';
-        document.getElementById('unToggleText').textContent = unSignupMode ? 'Already have an account?' : "Don't have an account?";
-        document.getElementById('unToggleBtn').textContent = unSignupMode ? 'Login' : 'Sign Up';
-        document.getElementById('unPinConfirmWrap').style.display = unSignupMode ? 'block' : 'none';
-    }
-    document.getElementById('unToggleBtn').addEventListener('click', (e) => {
-        e.preventDefault();
-        unLoginAttemptsLeft = UN_LOGIN_MAX_ATTEMPTS;
-        unHideLoginError();
-        setUnMode(!unSignupMode);
-        document.getElementById('unUsername').dispatchEvent(new Event('input'));
-    });
-
-    function unShowLoginError(text) {
-        const box = document.getElementById('unLoginErrorBox');
-        const txt = document.getElementById('unLoginErrorText');
-        if(!box || !txt) return;
-        txt.textContent = text;
-        box.style.display = 'flex';
-        const card = document.querySelector('#authView .card');
-        if(card) { card.classList.remove('shake-anim'); void card.offsetWidth; card.classList.add('shake-anim'); }
-    }
-    function unHideLoginError() {
-        const box = document.getElementById('unLoginErrorBox');
-        if(box) box.style.display = 'none';
-    }
-
-    // ── Username availability is now only checked on submit (no live spinner) ──
-    function unClearUsernameHint(el) {
-        const prevHint = el.parentElement.querySelector('.input-hint');
-        if(prevHint) prevHint.remove();
-        el.classList.remove('input-error', 'input-success');
-        const sugg = document.getElementById('unUsernameSuggestions');
-        if(sugg) { sugg.style.display = 'none'; sugg.innerHTML = ''; }
-    }
-    async function unIsUsernameTaken(uname) {
-        // Authoritative check against Firebase Auth itself (this is what actually blocks
-        // signup), instead of the usernames/ DB node which can be stale for accounts that
-        // never wrote that lookup entry (e.g. older/migrated accounts).
-        const methods = await fetchSignInMethodsForEmail(auth, unToEmail(uname));
-        return methods.length > 0;
-    }
-    async function unGenerateSuggestions(base) {
-        const clean = base.replace(/[^a-z0-9_]/g, '').slice(0, 15) || 'user';
-        const candidates = [
-            clean + Math.floor(10 + Math.random() * 90),
-            clean + '_' + Math.floor(1 + Math.random() * 9),
-            clean + Math.floor(100 + Math.random() * 900),
-            clean + '_pro',
-            clean + new Date().getFullYear()
-        ].filter(c => unIsValidUsername(c));
-        const results = await Promise.all(candidates.map(async c => {
-            try { return (await unIsUsernameTaken(c)) ? null : c; } catch(err) { console.error('Suggestion availability check failed:', err); return null; }
-        }));
-        return results.filter(Boolean).slice(0, 3);
-    }
-    function unRenderSuggestions(list) {
-        const sugg = document.getElementById('unUsernameSuggestions');
-        if(!sugg) return;
-        if(!list.length) { sugg.style.display = 'none'; sugg.innerHTML = ''; return; }
-        sugg.innerHTML = '<div class="un-suggest-label">Try one of these instead:</div>' +
-            list.map(u => `<span class="un-suggest-chip">${u}</span>`).join('');
-        sugg.style.display = 'flex';
-        sugg.querySelectorAll('.un-suggest-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                const el = document.getElementById('unUsername');
-                el.value = chip.textContent;
-                el.dispatchEvent(new Event('input'));
-                el.focus();
-            });
-        });
-    }
-    document.getElementById('unUsername').addEventListener('input', (e) => {
-        const el = e.target;
-        unClearUsernameHint(el);
-    });
-
-
-
-    function _unMark(el, ok, hint) {
-        el.classList.toggle('input-error', !ok);
-        el.classList.toggle('input-success', ok);
-        const prev = el.parentElement.querySelector('.input-hint');
-        if(prev) prev.remove();
-        if(!ok && hint) {
-            const h = document.createElement('div');
-            h.className = 'input-hint hint-error';
-            h.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${hint}`;
-            el.parentElement.appendChild(h);
-        }
-    }
-
-    document.getElementById('unSubmitBtn').addEventListener('click', async () => {
-        const userInput = document.getElementById('unUsername');
-        const usernameRaw = userInput.value.trim();
-        const username = unNormalize(usernameRaw);
-        const pin = getPinBoxesValue('unPinBoxes');
-        const pinConfirm = getPinBoxesValue('unPinConfirmBoxes');
-
-        let hasError = false;
-        if(!username) { _unMark(userInput, false, 'Username is required'); hasError = true; }
-        else if(!unIsValidUsername(username)) { _unMark(userInput, false, '3-20 chars: letters, numbers, underscore only'); hasError = true; }
-        else { _unMark(userInput, true); }
-        if(!unIsValidPin(pin)) { markPinBoxes('unPinBoxes', false); hasError = true; } else { markPinBoxes('unPinBoxes', true); }
-        if(unSignupMode) {
-            if(!pinConfirm || pinConfirm.length < 4) { markPinBoxes('unPinConfirmBoxes', false); hasError = true; }
-            else if(pinConfirm !== pin) { markPinBoxes('unPinConfirmBoxes', false); showToast('❌ PINs do not match', 'error'); hasError = true; }
-            else { markPinBoxes('unPinConfirmBoxes', true); }
-        }
-        if(hasError) return;
-
-        const btn = document.getElementById('unSubmitBtn');
-        btn.classList.add('btn-loading'); btn.disabled = true; showLoader();
-        const syntheticEmail = unToEmail(username);
-        const syntheticPassword = unToPassword(pin);
-        try {
-            if(unSignupMode) {
-                const cred = await createUserWithEmailAndPassword(auth, syntheticEmail, syntheticPassword);
-                await updateProfile(cred.user, { displayName: usernameRaw });
-                await set(ref(db, `users/${cred.user.uid}/profile`), { name: usernameRaw, username: usernameRaw, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0, signupRewardProcessed: false });
-                try { await set(ref(db, `usernames/${username}`), cred.user.uid); } catch(_) {}
-                _unMark(userInput, true); markPinBoxes('unPinBoxes', true); markPinBoxes('unPinConfirmBoxes', true);
-                showToast('✅ Account created! Logging you in...', 'success');
-            } else {
-                await signInWithEmailAndPassword(auth, syntheticEmail, syntheticPassword);
-                _unMark(userInput, true); markPinBoxes('unPinBoxes', true);
-                unLoginAttemptsLeft = UN_LOGIN_MAX_ATTEMPTS;
-                unHideLoginError();
-                showToast('Logged In Successfully ✓', 'success');
-            }
-        } catch(e) {
-            hideLoader(); btn.classList.remove('btn-loading'); btn.disabled = false;
-            if(unSignupMode && e.code === 'auth/email-already-in-use') {
-                // Username is taken — verify whether THIS username+PIN combo belongs to an
-                // already-registered account before redirecting. If the PIN doesn't match too,
-                // this is just a taken username (someone else's account), not "you already exist".
-                try {
-                    await signInWithEmailAndPassword(auth, syntheticEmail, syntheticPassword);
-                    // ── Username + PIN both match a real existing account → this really is the same user ──
-                    _unMark(userInput, false, 'This username is already registered. Please login.');
-                    markPinBoxes('unPinBoxes', false); markPinBoxes('unPinConfirmBoxes', false);
-                    clearPinBoxes('unPinBoxes'); clearPinBoxes('unPinConfirmBoxes');
-                    showToast('⚠️ User already exists. Switching to Login...', 'warn');
-                    setUnMode(false);
-                    setTimeout(() => { const b = document.querySelector('#unPinBoxes .pin-box'); if(b) b.focus(); }, 50);
-                } catch(_signInErr) {
-                    // ── Username taken by someone else (PIN didn't match) → just flag it, no redirect ──
-                    _unMark(userInput, false, 'Username already taken. Try a suggestion below.');
-                    markPinBoxes('unPinBoxes', false); markPinBoxes('unPinConfirmBoxes', false);
-                    const suggestions = await unGenerateSuggestions(username);
-                    unRenderSuggestions(suggestions);
-                }
-            } else if(!unSignupMode) {
-                // ── Invalid login attempt → inline shake error with remaining attempts ──
-                _unMark(userInput, false);
-                markPinBoxes('unPinBoxes', false);
-                clearPinBoxes('unPinBoxes'); clearPinBoxes('unPinConfirmBoxes');
-                unLoginAttemptsLeft--;
-                if(unLoginAttemptsLeft > 0) {
-                    unShowLoginError(`Invalid login credentials. ${unLoginAttemptsLeft} attempt${unLoginAttemptsLeft === 1 ? '' : 's'} remaining.`);
-                    setTimeout(() => { const b = document.querySelector('#unPinBoxes .pin-box'); if(b) b.focus(); }, 50);
-                } else {
-                    unShowLoginError('Invalid login credentials.');
-                    setTimeout(() => {
-                        unHideLoginError();
-                        setUnMode(true);
-                        unLoginAttemptsLeft = UN_LOGIN_MAX_ATTEMPTS;
-                        const b = document.querySelector('#unPinBoxes .pin-box'); if(b) b.focus();
-                    }, 1400);
-                }
-            } else {
-                showToast(e.message.replace('Firebase: ', ''), 'error');
-            }
-            return;
-        }
-        btn.classList.remove('btn-loading'); btn.disabled = false; hideLoader();
-    });
-
-    // ═══════════════════════════════════════════════════════════════════
-    // 👤 RECOVER OLD ACCOUNT (Email/Google) → migrate to Username+PIN
-    // Used ONCE by legacy users. Their uid & all existing data stay intact.
-    // ═══════════════════════════════════════════════════════════════════
-    window.openRecoverModal = () => {
-        document.getElementById('recoverStepOld').style.display = 'block';
-        document.getElementById('recoverStepSetUsername').style.display = 'none';
-        document.getElementById('recoverModal').classList.add('active');
-    };
-    window.closeRecoverModal = () => {
-        document.getElementById('recoverModal').classList.remove('active');
-    };
-    document.getElementById('recoverModal').addEventListener('click', function(e) {
-        if(e.target === this) closeRecoverModal();
-    });
-
-    // Called after a legacy account (email/password or Google) signs in successfully
-    // and its profile has no `username` yet — ask them to set one up.
-    window._promptSetUsername = () => {
-        document.getElementById('recoverStepOld').style.display = 'none';
-        document.getElementById('recoverStepSetUsername').style.display = 'block';
-        document.getElementById('recoverModal').classList.add('active');
-        clearPinBoxes('migPinBoxes'); clearPinBoxes('migPinConfirmBoxes');
-    };
-
-    window.saveMigratedUsername = async () => {
-        const userInput = document.getElementById('migUsername');
-        const msg = document.getElementById('migMsg');
-        const username = unNormalize(userInput.value.trim());
-        const usernameRaw = userInput.value.trim();
-        const pin = getPinBoxesValue('migPinBoxes');
-        const pinConfirm = getPinBoxesValue('migPinConfirmBoxes');
-        msg.innerHTML = '';
-
-        if(!unIsValidUsername(username)) { msg.innerHTML = '<span style="color:#ef4444;font-size:12.5px;">Username must be 3-20 chars: letters, numbers, underscore only</span>'; return; }
-        if(!unIsValidPin(pin)) { msg.innerHTML = '<span style="color:#ef4444;font-size:12.5px;">PIN must be exactly 4 digits</span>'; return; }
-        if(pin !== pinConfirm) { msg.innerHTML = '<span style="color:#ef4444;font-size:12.5px;">PINs do not match</span>'; return; }
-        if(!auth.currentUser) { msg.innerHTML = '<span style="color:#ef4444;font-size:12.5px;">Session expired. Please login again.</span>'; return; }
-
-        const btn = document.getElementById('migSaveBtn');
-        btn.disabled = true; showLoader();
-        const syntheticEmail = unToEmail(username);
-        const syntheticPassword = unToPassword(pin);
-        try {
-            const providers = auth.currentUser.providerData.map(p => p.providerId);
-            if(providers.includes('password')) {
-                await updateEmail(auth.currentUser, syntheticEmail);
-                await updatePassword(auth.currentUser, syntheticPassword);
-            } else {
-                const cred = EmailAuthProvider.credential(syntheticEmail, syntheticPassword);
-                await linkWithCredential(auth.currentUser, cred);
-            }
-            await update(ref(db, `users/${auth.currentUser.uid}/profile`), { username: usernameRaw });
-            try { await set(ref(db, `usernames/${username}`), auth.currentUser.uid); } catch(_) {}
-            hideLoader(); btn.disabled = false;
-            closeRecoverModal();
-            showToast('✅ Username & PIN set! Use these to login next time.', 'success');
-        } catch(e) {
-            hideLoader(); btn.disabled = false;
-            if(e.code === 'auth/email-already-in-use') {
-                msg.innerHTML = '<span style="color:#ef4444;font-size:12.5px;">Username already taken. Try another.</span>';
-            } else {
-                msg.innerHTML = `<span style="color:#ef4444;font-size:12.5px;">${e.message.replace('Firebase: ','')}</span>`;
-            }
-        }
-    };
-
     // ── ACCOUNT LINKING HELPERS ───────────────────────────────────────────
 
     // Case 1: User tried email/password login but account only has Google provider
@@ -4185,14 +3729,12 @@
         }
     });
 
-    onAuthStateChanged(auth, async user => { 
+    onAuthStateChanged(auth, user => { 
         currentUser = user;
         if(user) {
-            const isSyntheticAcct = unIsSyntheticEmail(user.email);
-            currentUserContact = isSyntheticAcct ? ('@' + (user.email || '').split('@')[0]) : (user.email || '');
-            // ── Email verification gate (skip for Google/provider users AND for Username+PIN accounts) ──
+            // ── Email verification gate (skip for Google/provider users) ──
             const isEmailProvider = user.providerData.some(p => p.providerId === 'password');
-            if(isEmailProvider && !user.emailVerified && !isSyntheticAcct) {
+            if(isEmailProvider && !user.emailVerified) {
                 // User is logged in but email not verified — show modal, block dashboard
                 currentUser = null; // treat as logged out for dashboard purposes
                 _authReady = true;
@@ -4202,28 +3744,11 @@
                 showEmailVerifyModal(user.email);
                 return;
             }
-            // ── Legacy account recovered via old email/Google login: force one-time Username+PIN setup ──
-            if(!isSyntheticAcct) {
-                let _legacyProf = null;
-                try { const _s = await get(ref(db, `users/${user.uid}/profile`)); if(_s.exists()) _legacyProf = _s.val(); } catch(_) {}
-                if(_legacyProf && !_legacyProf.username) {
-                    currentUser = null;
-                    _authReady = true;
-                    hideLoader();
-                    document.getElementById('authView').style.display = 'none';
-                    document.getElementById('userProfileView').style.display = 'none';
-                    window._promptSetUsername();
-                    return;
-                }
-            }
             _authReady = true;
             hideLoader();
             // Close verify modal if somehow open
             const evModal = document.getElementById('emailVerifyModal');
             if(evModal) evModal.style.display = 'none';
-            // Close recover modal if somehow open
-            const rcModal = document.getElementById('recoverModal');
-            if(rcModal) rcModal.classList.remove('active');
 
             // ── Referral Reward: Give signup reward after verification (email or Google) ──
             // Fires once per user when they access dashboard with a verified account
@@ -4239,7 +3764,7 @@
                 } catch(_) {}
             })();
 
-            document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = isSyntheticAcct ? ('@' + (user.email || '').split('@')[0]) : (user.email || ''); document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
+            document.getElementById('authView').style.display = 'none'; document.getElementById('userProfileView').style.display = 'block'; document.getElementById('profileName').textContent = user.displayName || 'User'; document.getElementById('profileEmail').textContent = user.email; document.getElementById('profileAvatar').textContent = (user.displayName || 'U').charAt(0).toUpperCase();
             if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
             loadOrders(); loadChat(); loadWallet();
             resumePendingVerification(user.uid);
@@ -4277,7 +3802,7 @@
                     // Count only verified users (signupRewardProcessed = true means email verified / Google signup done)
                     if(p?.signupRewardProcessed === true) {
                         cnt++;
-                        referredList.push({ uid: s.key, name: p.name || 'Unknown', email: p.username ? ('@'+p.username) : (p.email || ''), joinedAt: p.createdAt || '', totalSpent: parseFloat(p.totalSpent || 0) });
+                        referredList.push({ uid: s.key, name: p.name || 'Unknown', email: p.email || '', joinedAt: p.createdAt || '', totalSpent: parseFloat(p.totalSpent || 0) });
                     }
                 });
                 if(document.getElementById('refTotalJoined')) document.getElementById('refTotalJoined').textContent = cnt;
@@ -5167,8 +4692,8 @@
             const conv = paypalConvert(inr);
             await push(ref(db, 'depositRequests'), {
                 userId: currentUser.uid,
-                userEmail: currentUserContact,
-                userName: (currentUser.displayName || currentUserContact || 'User'),
+                userEmail: currentUser.email,
+                userName: (currentUser.displayName || currentUser.email || 'User'),
                 method: 'paypal',
                 inrAmount: inr,
                 usdAmount: conv.usd,
@@ -5195,7 +4720,7 @@
                 if (botSnap.exists()) {
                     const { token, topUpChatId } = botSnap.val();
                     if (token && topUpChatId) {
-                        const msg = `💳 <b>New PayPal Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUserContact}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${conv.usd} USD / ${conv.eur} EUR)\n📝 <b>Transaction ID:</b> ${txnId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
+                        const msg = `💳 <b>New PayPal Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${conv.usd} USD / ${conv.eur} EUR)\n📝 <b>Transaction ID:</b> ${txnId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
                         fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ chat_id: topUpChatId, text: msg, parse_mode: 'HTML' })
@@ -5238,8 +4763,8 @@
             const usd = binanceConvert(inr);
             await push(ref(db, 'depositRequests'), {
                 userId: currentUser.uid,
-                userEmail: currentUserContact,
-                userName: (currentUser.displayName || currentUserContact || 'User'),
+                userEmail: currentUser.email,
+                userName: (currentUser.displayName || currentUser.email || 'User'),
                 method: 'binance',
                 inrAmount: inr,
                 usdAmount: usd,
@@ -5265,7 +4790,7 @@
                 if (botSnap.exists()) {
                     const { token, topUpChatId } = botSnap.val();
                     if (token && topUpChatId) {
-                        const msg = `💳 <b>New Binance Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUserContact}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${usd} USDT)\n📝 <b>Order ID:</b> ${orderId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
+                        const msg = `💳 <b>New Binance Deposit Request!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${inr.toFixed(2)} (${usd} USDT)\n📝 <b>Order ID:</b> ${orderId}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}\n\n👉 Open Admin Panel → Deposit Requests to verify & approve.`;
                         fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ chat_id: topUpChatId, text: msg, parse_mode: 'HTML' })
@@ -5415,7 +4940,7 @@
                     utrId: utr, createdAt: new Date().toISOString()
                 }),
                 push(ref(db, 'orders'), {
-                    userId: currentUser.uid, userEmail: currentUserContact,
+                    userId: currentUser.uid, userEmail: currentUser.email,
                     utrId: utr, finalAmount: paidVal.toFixed(2),
                     type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString()
                 }),
@@ -5428,7 +4953,7 @@
                 if(botSnap.exists()) {
                     const {token, topUpChatId} = botSnap.val();
                     if(token && topUpChatId) {
-                        const msg = `💳 <b>Wallet Top-Up!</b>\n\n➞ <b>User:</b> ${currentUserContact}\n💵 <b>Amount:</b> ₹${paidVal.toFixed(2)}\n📝 <b>UTR:</b> ${utr}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}`;
+                        const msg = `💳 <b>Wallet Top-Up!</b>\n\n➞ <b>User:</b> ${currentUser.email}\n💵 <b>Amount:</b> ₹${paidVal.toFixed(2)}\n📝 <b>UTR:</b> ${utr}\n⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}`;
                         fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                             method:'POST', headers:{'Content-Type':'application/json'},
                             body: JSON.stringify({chat_id: topUpChatId, text: msg, parse_mode:'HTML'})
@@ -5502,7 +5027,7 @@
             const curBal = parseFloat(profSnap.exists() ? (profSnap.val().walletBalance || 0) : 0);
             await update(ref(db, `users/${uid}/profile`), { walletBalance: curBal + paidVal });
             await push(ref(db, `users/${uid}/walletHistory`), { type: 'credit', amount: paidVal, note: 'Wallet Top-Up (Auto-Resumed)', utrId: utr, createdAt: new Date().toISOString() });
-            await push(ref(db, 'orders'), { userId: uid, userEmail: currentUserContact, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
+            await push(ref(db, 'orders'), { userId: uid, userEmail: currentUser.email, utrId: utr, finalAmount: paidVal.toFixed(2), type: 'wallet_topup', status: 'completed', createdAt: new Date().toISOString() });
             await remove(ref(db, `users/${uid}/pendingVerification`));
 
             showToast(`✅ ₹${paidVal.toFixed(2)} credited! (Resumed from last session)`, 'success');
@@ -5543,14 +5068,24 @@
         } catch(e) {}
     }
 
-    // ── TYPE A: Signup Reward — DISABLED. Referral reward is now given only on spend (see TYPE B below). ──
+    // ── TYPE A: Signup Reward — ek baar milta hai ──
     async function processSignupReferralReward(newUserId, referredBy) {
         try {
-            // Still mark as processed so legacy/old accounts don't retroactively trigger anything,
-            // but no wallet credit is applied here anymore — reward now happens only via processReferralReward().
+            // Prevent duplicate: check if this new user already triggered signup reward
             const newUserSnap = await get(ref(db, `users/${newUserId}/profile`));
             if(newUserSnap.exists() && newUserSnap.val().signupRewardProcessed === true) return;
+
+            const settingsSnap = await get(ref(db, 'meta/referralSettings'));
+            const refSettings = settingsSnap.exists() ? settingsSnap.val() : {};
+            if(refSettings.active === false) return;
+            const signupReward = parseFloat(refSettings.rewardAmount || 0);
+            if(signupReward <= 0) return;
+
+            // Mark as processed first to prevent race conditions / double reward
             await update(ref(db, `users/${newUserId}/profile`), { signupRewardProcessed: true });
+
+            const noteDesc = `🎉 Signup Reward — New user joined via your link`;
+            await _applyReferralReward(referredBy, signupReward, noteDesc, 'signup', newUserId);
         } catch(e) {}
     }
 
@@ -5728,7 +5263,7 @@
                 selectedServices: services,
             },
             userId: currentUser.uid,
-            userEmail: currentUserContact,
+            userEmail: currentUser.email,
             finalAmount: finalAmt,
             utrId: utr,
             targetLink: reelLink,
@@ -5815,10 +5350,14 @@
             const rs = s.val();
             infoBox.style.display = 'block';
 
-            // Flat Signup Reward — disabled. Referral reward is now earned only when the
-            // referred user spends (see Spend % Reward below), so this box always stays hidden.
+            // Signup Reward
             const rewardEl = document.getElementById('refInfoReward');
-            if(rewardEl) rewardEl.style.display = 'none';
+            const rewardValEl = document.getElementById('refInfoRewardVal');
+            if(parseFloat(rs.rewardAmount || 0) > 0) {
+                rewardValEl.textContent = '₹' + parseFloat(rs.rewardAmount).toFixed(0);
+                rewardEl.querySelector ? (rewardEl.querySelector('div:last-child') || {}).textContent = 'Signup Reward' : null;
+                rewardEl.style.display = 'block';
+            } else { rewardEl.style.display = 'none'; }
 
             // Spend % Reward — show if configured
             const spendEl = document.getElementById('refInfoSpendRate');
@@ -6111,7 +5650,7 @@
           if(botSnap.exists()){const {token,supportChatId}=botSnap.val();
             if(token&&supportChatId){
               const now=new Date().toLocaleString('en-IN');
-              const tgMsg=`🎧 <b>New Support Message!</b>\n\n➞ <b>User:</b> ${displayName}\n⚙️ <b>Email:</b> ${currentUserContact}\n📥 <b>Message:</b> ${msg}\n⏰ <b>Time:</b> ${now}`;
+              const tgMsg=`🎧 <b>New Support Message!</b>\n\n➞ <b>User:</b> ${displayName}\n⚙️ <b>Email:</b> ${currentUser.email}\n📥 <b>Message:</b> ${msg}\n⏰ <b>Time:</b> ${now}`;
               fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:supportChatId,text:tgMsg,parse_mode:'HTML'})}).catch(()=>{});
             }
           }
@@ -6467,7 +6006,7 @@
                 productId:       checkoutItem.id,
                 productSnapshot: checkoutItem,
                 userId:          currentUser.uid,
-                userEmail:       currentUserContact,
+                userEmail:       currentUser.email,
                 finalAmount:     checkoutFinalAmt.toFixed(2),
                 utrId:           utr,
                 targetLink,
@@ -6618,7 +6157,7 @@
                 productId:       checkoutItem.id, 
                 productSnapshot: checkoutItem, 
                 userId:          currentUser.uid, 
-                userEmail:       currentUserContact, 
+                userEmail:       currentUser.email, 
                 finalAmount:     checkoutFinalAmt.toFixed(2), 
                 utrId:           utr,  
                 targetLink,
@@ -6754,7 +6293,7 @@
                 productId:       checkoutItem.id,
                 productSnapshot: checkoutItem,
                 userId:          currentUser.uid,
-                userEmail:       currentUserContact,
+                userEmail:       currentUser.email,
                 finalAmount:     '0.00',
                 utrId:           utr,
                 targetLink,
@@ -7023,7 +6562,7 @@
                 const hasApi = !!(item.product.apiUrl && item.product.apiKey && item.product.serviceId && item.link);
                 const orderData = {
                     productId: item.id, productSnapshot: item.product,
-                    userId: currentUser.uid, userEmail: currentUserContact,
+                    userId: currentUser.uid, userEmail: currentUser.email,
                     finalAmount: parseFloat(item.product.discountedPrice).toFixed(2),
                     utrId: utr, targetLink: item.link,
                     status: hasApi ? 'progress' : 'pending',
@@ -7106,7 +6645,7 @@
             const promises = cart.map(async item => {
                 const hasApi = !!(item.product.apiUrl && item.product.apiKey && item.product.serviceId && item.link);
                 const orderData = {
-                    productId: item.id, productSnapshot: item.product, userId: currentUser.uid, userEmail: currentUserContact,
+                    productId: item.id, productSnapshot: item.product, userId: currentUser.uid, userEmail: currentUser.email,
                     finalAmount: (parseFloat(item.product.discountedPrice)).toFixed(2),
                     utrId: utr, targetLink: item.link, status: hasApi ? 'progress' : 'pending',
                     createdAt: new Date().toISOString(), isSubscription: false,
@@ -7174,7 +6713,7 @@
             const tgMsg =
 `📥 <b>New Order Received!</b>
 
-➞ <b>User:</b> ${currentUserContact}
+➞ <b>User:</b> ${currentUser.email}
 🛒 <b>Items:</b> ${cartItems.map(i => i.product?.title || i.product?.planName || 'Service').join(', ')}
 💳 <b>Method:</b> ${payLabel}
 
@@ -7308,7 +6847,7 @@
             // Notify Telegram channel about gift code redemption
             sendTelegramChannelNotification(
                 '🎁 <b>Gift Code Redeemed!</b>\n\n' +
-                '➞  User: <code>' + currentUserContact + '</code>\n' +
+                '➞  User: <code>' + currentUser.email + '</code>\n' +
                 '🎊 Code: <b>' + code + '</b>\n' +
                 '💵 Amount: <b>₹' + rewardAmt.toFixed(2) + '</b>\n' +
                 '⏰ Time: ' + new Date().toLocaleString('en-IN')
@@ -7664,4 +7203,3 @@
 
 </body>
 </html>
-
