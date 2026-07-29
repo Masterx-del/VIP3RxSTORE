@@ -3606,8 +3606,10 @@
             let existingDeviceUid = null;
             try { existingDeviceUid = localStorage.getItem('pinAccountCreated'); } catch(_) {}
             if(existingDeviceUid) {
-                showToast('⚠️ Is device par pehle se ek account ban chuka hai. Login karein.', 'warn');
-                _swapAuthMode(false, false);
+                _mark(usernameInput, false, 'Only 1 account allowed per device.');
+                usernameInput.classList.add('shake');
+                setTimeout(() => usernameInput.classList.remove('shake'), 400);
+                _swapAuthMode(false, true);
                 return;
             }
         }
