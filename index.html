@@ -3600,6 +3600,18 @@
         if(pin.length < 4) { markPinError(true); hasError = true; } else { markPinError(false); }
         if(hasError) return;
 
+        // ── One account per device (Sign Up only) ──────────────────────────
+        // Mirrors anonymous login's natural one-account-per-device behavior.
+        if(isSignupMode) {
+            let existingDeviceUid = null;
+            try { existingDeviceUid = localStorage.getItem('pinAccountCreated'); } catch(_) {}
+            if(existingDeviceUid) {
+                showToast('⚠️ Is device par pehle se ek account ban chuka hai. Login karein.', 'warn');
+                _swapAuthMode(false, false);
+                return;
+            }
+        }
+
         const btn = document.getElementById('authSubmitBtn');
         btn.classList.add('btn-loading');
         btn.disabled = true;
@@ -3620,6 +3632,7 @@
                 await updateProfile(cred.user, { displayName: name }); 
                 await set(ref(db, `users/${cred.user.uid}/profile`), { name, username: usernameLower, email: syntheticEmail, createdAt: new Date().toISOString(), referredBy: referralSource || null, walletBalance: 0, totalSpent: 0 }); 
                 await set(ref(db, `usernames/${usernameLower}`), cred.user.uid);
+                try { localStorage.setItem('pinAccountCreated', cred.user.uid); } catch(_) {}
                 // Clear validation marks + suggestions on success
                 [usernameInput, nameInput].forEach(el => { el.classList.remove('input-error','input-success'); });
                 _renderUsernameSuggestions([]);
@@ -3632,6 +3645,7 @@
                 return; 
             } else { 
                 const loginCred = await signInWithEmailAndPassword(auth, syntheticEmail, derivedPassword);
+                try { localStorage.setItem('pinAccountCreated', loginCred.user.uid); } catch(_) {}
                 usernameInput.classList.remove('input-error','input-success');
                 clearPinBoxes();
                 _pinFailCount[usernameLower] = 0;
@@ -7425,4 +7439,3 @@
 
 </body>
 </html>
-
