@@ -6832,9 +6832,31 @@
             }
 
             if (existingClaim) {
-                const claimedAt = new Date(existingClaim.val());
+                const _claimVal = existingClaim.val();
+                // Legacy records stored a plain ISO string; newer ones store { ts, link }.
+                const _claimTs   = (_claimVal && typeof _claimVal === 'object') ? _claimVal.ts : _claimVal;
+                const _claimLink = (_claimVal && typeof _claimVal === 'object') ? _claimVal.link : null;
+                const claimedAt = new Date(_claimTs);
                 const nextReset = new Date(claimedAt.getTime() + 24 * 60 * 60 * 1000);
                 if(nextReset > new Date()) {
+                    // Cooldown still active. Reusing the SAME link before the wait is
+                    // over is a bypass attempt (spamming/scripting to force the order
+                    // through) — restrict the service. A DIFFERENT link, or simply
+                    // waiting out the cooldown, is normal usage and stays unaffected.
+                    const _sameLinkRetry = _claimLink && (_hashLink(_normalizeLink(_claimLink)) === _hashLink(_normalizeLink(targetLink)));
+                    if (_sameLinkRetry) {
+                        await set(ref(activeDb(), `users/${currentUser.uid}/freeServiceBans/${checkoutItem.id}`), {
+                            ts: Date.now(), link: targetLink, reason: 'cooldown_bypass_attempt'
+                        }).catch(() => {});
+                        window._freeServiceBansCache = window._freeServiceBansCache || {};
+                        window._freeServiceBansCache[checkoutItem.id] = true;
+                        _unlockOrder(); hideLoader();
+                        closeCheckout();
+                        showAlertRestrictModal('Service Restricted', 'Same link reused before your cooldown period ended for this free service. Your account has been restricted from claiming it again.');
+                        const _bannedCardEl = document.getElementById(`plc_${checkoutItem.id}`);
+                        if (_bannedCardEl) _bannedCardEl.remove();
+                        return;
+                    }
                     _unlockOrder(); hideLoader();
                     const h = Math.floor((nextReset - new Date()) / 3600000);
                     const m = Math.floor(((nextReset - new Date()) % 3600000) / 60000);
@@ -6854,7 +6876,7 @@
             try {
                 claimTx = await runTransaction(limitRef, (current) => {
                     if (current !== null) return; // abort — already claimed, don't touch it
-                    return new Date().toISOString();
+                    return { ts: new Date().toISOString(), link: targetLink };
                 });
             } catch(e) {
                 _unlockOrder(); hideLoader();
