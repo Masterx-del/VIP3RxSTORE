@@ -1111,15 +1111,15 @@
                 <div class="skeleton-cat-card"><div class="skeleton skeleton-cat-icon"></div><div class="skeleton skeleton-cat-text"></div></div>
             </div>
             <div class="services-grid" id="servicesGridReal" style="display:none;">
-                <div class="service-cat-card"><i class="fab fa-instagram" style="color: #E1306C;"></i><div class="service-cat-name">Instagram</div><button class="service-cat-select-btn" onclick="openCategory('Instagram')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-facebook" style="color: #1877F2;"></i><div class="service-cat-name">Facebook</div><button class="service-cat-select-btn" onclick="openCategory('Facebook')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-telegram" style="color: #0088cc;"></i><div class="service-cat-name">Telegram</div><button class="service-cat-select-btn" onclick="openCategory('Telegram')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-whatsapp" style="color: #25D366;"></i><div class="service-cat-name">WhatsApp</div><button class="service-cat-select-btn" onclick="openCategory('WhatsApp')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-youtube" style="color: #FF0000;"></i><div class="service-cat-name">YouTube</div><button class="service-cat-select-btn" onclick="openCategory('YouTube')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-tiktok" style="color: #010101;"></i><div class="service-cat-name">TikTok</div><button class="service-cat-select-btn" onclick="openCategory('TikTok')">Select</button></div>
-                <div class="service-cat-card"><i class="fab fa-twitter" style="color: #1DA1F2;"></i><div class="service-cat-name">Twitter</div><button class="service-cat-select-btn" onclick="openCategory('Twitter')">Select</button></div>
-                <div class="service-cat-card"><i class="fas fa-address-card" style="color: #6366F1;"></i><div class="service-cat-name">Accounts</div><button class="service-cat-select-btn" onclick="openCategory('Accounts')">Select</button></div>
-                <div class="service-cat-card"><i class="fas fa-laptop-code" style="color: #2563EB;"></i><div class="service-cat-name">Scripts</div><button class="service-cat-select-btn" onclick="openCategory('Scripts')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Instagram')"><i class="fab fa-instagram" style="color: #E1306C;"></i><div class="service-cat-name">Instagram</div><button class="service-cat-select-btn" onclick="openCategory('Instagram')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Facebook')"><i class="fab fa-facebook" style="color: #1877F2;"></i><div class="service-cat-name">Facebook</div><button class="service-cat-select-btn" onclick="openCategory('Facebook')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Telegram')"><i class="fab fa-telegram" style="color: #0088cc;"></i><div class="service-cat-name">Telegram</div><button class="service-cat-select-btn" onclick="openCategory('Telegram')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('WhatsApp')"><i class="fab fa-whatsapp" style="color: #25D366;"></i><div class="service-cat-name">WhatsApp</div><button class="service-cat-select-btn" onclick="openCategory('WhatsApp')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('YouTube')"><i class="fab fa-youtube" style="color: #FF0000;"></i><div class="service-cat-name">YouTube</div><button class="service-cat-select-btn" onclick="openCategory('YouTube')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('TikTok')"><i class="fab fa-tiktok" style="color: #010101;"></i><div class="service-cat-name">TikTok</div><button class="service-cat-select-btn" onclick="openCategory('TikTok')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Twitter')"><i class="fab fa-twitter" style="color: #1DA1F2;"></i><div class="service-cat-name">Twitter</div><button class="service-cat-select-btn" onclick="openCategory('Twitter')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Accounts')"><i class="fas fa-address-card" style="color: #6366F1;"></i><div class="service-cat-name">Accounts</div><button class="service-cat-select-btn" onclick="openCategory('Accounts')">Select</button></div>
+                <div class="service-cat-card" onclick="openCategory('Scripts')"><i class="fas fa-laptop-code" style="color: #2563EB;"></i><div class="service-cat-name">Scripts</div><button class="service-cat-select-btn" onclick="openCategory('Scripts')">Select</button></div>
             </div>
 
             <div id="categoryPane" style="display: none; padding-top: 24px; border-top: 1px solid var(--border-color); margin-top: 20px; padding-bottom: 20px;">
@@ -6248,7 +6248,7 @@
         const grid = document.getElementById('servicesGridReal');
         if (!grid) return;
         if (!categories || !categories.length) { grid.innerHTML = ''; return; }
-        grid.innerHTML = categories.map(cat => `<div class="service-cat-card" onclick="openCategory('${cat.replace(/'/g, "\\'")}')">${window._categoryIconHTML(cat)}<div class="service-cat-name">${cat}</div></div>`).join('');
+        grid.innerHTML = categories.map(cat => `<div class="service-cat-card" onclick="openCategory('${cat.replace(/'/g, "\\'")}')">${window._categoryIconHTML(cat)}<div class="service-cat-name">${cat}</div><button class="service-cat-select-btn" onclick="event.stopPropagation();openCategory('${cat.replace(/'/g, "\\'")}')">Select</button></div>`).join('');
     };
 
     // ── ADVERTISEMENT CAROUSEL ──────────────────────────────────────────
