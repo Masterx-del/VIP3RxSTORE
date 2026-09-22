@@ -1145,6 +1145,8 @@
         .site-footer .sf-link:focus-visible,
         .site-footer .sf-social a:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; border-radius: 8px; }
 
+        #homeTab.active ~ .site-footer { display: none; }   /* footer hidden on the Home tab only */
+
         @media (max-width: 300px) { .sf-cols { grid-template-columns: 1fr; } }
         @media (prefers-reduced-motion: reduce) {
             .sf-social a, .sf-link { transition: none; }
