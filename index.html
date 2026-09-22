@@ -3899,51 +3899,6 @@
     navItems.forEach(nav => { nav.addEventListener('click', () => switchTab(nav.dataset.target)); });
     document.getElementById('headerProfileBtn').addEventListener('click', () => switchTab('profileTab'));
 
-    // ── SWIPE-TO-SWITCH TABS ──────────────────────────────────────────
-    // Swipe left/right anywhere in the content area to move between tabs,
-    // in the same order as the bottom nav. Ignored while a modal/sheet is
-    // open, inside anything that scrolls horizontally on its own (offer
-    // carousel, wallet filter row, chat), or over text inputs.
-    (function initSwipeTabs() {
-        const contentArea = document.querySelector('.content-area');
-        if (!contentArea) return;
-        const tabOrder = Array.from(navItems).map(n => n.dataset.target);
-        const SWIPE_THRESHOLD = 55;      // px
-        const SWIPE_RATIO = 1.4;         // how much more horizontal than vertical movement is required
-        const NO_SWIPE_SELECTOR = '#offerCarousel, .chat-messages, .wf-tab, input, textarea, select, [contenteditable="true"]';
-        let sx = 0, sy = 0, tracking = false, aborted = false;
-
-        function anyModalOpen() {
-            return !!document.querySelector('.modal-overlay.active, .alert-modal-overlay.active');
-        }
-
-        contentArea.addEventListener('touchstart', (e) => {
-            if (e.touches.length !== 1) { tracking = false; return; }
-            if (anyModalOpen() || e.target.closest(NO_SWIPE_SELECTOR)) { tracking = false; return; }
-            sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-            tracking = true; aborted = false;
-        }, { passive: true });
-
-        contentArea.addEventListener('touchmove', (e) => {
-            if (!tracking || aborted) return;
-            const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-            if (Math.abs(dy) > Math.abs(dx)) aborted = true;   // vertical scroll wins, let it through
-        }, { passive: true });
-
-        contentArea.addEventListener('touchend', (e) => {
-            if (!tracking || aborted) { tracking = false; return; }
-            tracking = false;
-            const t = e.changedTouches[0];
-            const dx = t.clientX - sx, dy = t.clientY - sy;
-            if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy) * SWIPE_RATIO) return;
-            const activeTab = document.querySelector('.tab-content.active');
-            const curIdx = activeTab ? tabOrder.indexOf(activeTab.id) : -1;
-            if (curIdx === -1) return;
-            const nextIdx = dx < 0 ? curIdx + 1 : curIdx - 1;   // swipe left -> next tab, right -> previous
-            if (nextIdx >= 0 && nextIdx < tabOrder.length) switchTab(tabOrder[nextIdx]);
-        }, { passive: true });
-    })();
-
     window.openCategory = (catName) => { 
         currentCatView = { level: 1, cat: catName, subCat: '' };
         const catTitle = document.getElementById('catTitle');
